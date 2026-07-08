@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>생산과정 - 영월방앗간</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .process-container {
+            max-width: 1000px;
+            margin: 5rem auto;
+            padding: 0 5%;
+        }
+
+        .process-step {
+            display: flex;
+            align-items: center;
+            gap: 4rem;
+            margin-bottom: 6rem;
+        }
+
+        .process-step:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .step-img {
+            flex: 1;
+            background-color: var(--color-secondary);
+            border-radius: 50%;
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--color-primary);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+        }
+
+        .step-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .step-num {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: var(--color-point2);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-content h3 {
+            font-size: 2rem;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+        }
+
+        .step-content p {
+            font-size: 1.1rem;
+            color: var(--color-text-main);
+            line-height: 1.8;
+            word-break: keep-all;
+        }
+
+        @media (max-width: 768px) {
+
+            .process-step,
+            .process-step:nth-child(even) {
+                flex-direction: column;
+                text-align: center;
+                gap: 2rem;
+            }
+
+            .step-img {
+                width: 80%;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="nav-overlay"></div>
+        <a href="index.html" class="logo">영월방앗간</a>
+        <div class="nav-container">
+            <nav class="gnb">
+                <a href="index.html">홈</a>
+                <a href="brand.html">브랜드 소개</a>
+                <a href="process.html" style="color: var(--color-primary);">생산과정</a>
+                <a href="category.html">상품보기</a>
+            </nav>
+            <div class="utility">
+                <a href="#" onclick="openLoginModal(event)">로그인</a>
+                <a href="cart.html" id="cart-nav">장바구니 (0)</a>
+            </div>
+        </div>
+        <button class="mobile-menu-btn" aria-label="메뉴 열기">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+
+    <div class="page-header">
+        <h1>한 방울에 담긴<br class="mo-br"> 정직한 과정</h1>
+        <p>전통 방식을 고집하며<br class="mo-br"> 안전하고 깨끗하게 만듭니다</p>
+    </div>
+
+    <div class="process-container">
+        <!-- Step 1 -->
+        <div class="process-step">
+            <div class="step-img" style="padding:0; background:none; border-radius: 50%;">
+                <span class="step-num" style="z-index: 10;">1</span>
+                <img src="assets/process_1.png" alt="깐깐한 원재료 선별"
+                    style="width:100%; height:100%; object-fit: cover; border-radius: 50%;">
+            </div>
+            <div class="step-content">
+                <h3>01. 원재료 선별</h3>
+                <p>영월에서 수확한 100% 국산 농산물 중에서도<br class="pc-br"><br class="mo-br"> 알이 굵고 속이 꽉 찬 최상급 참깨와 들깨만을<br
+                        class="pc-br"><br class="mo-br"> 직접 눈으로 보고 만져보며 깐깐하게 선별합니다.</p>
+                <div class="why-block">
+                    <h4>왜 원재료 선별이 중요할까요?</h4>
+                    <p>좋은 기름은 좋은 원재료에서 시작됩니다. 알이 작거나 상처난 원료가 하나라도 섞이면 전체의 향과 맛을 떨어뜨릴 수 있기 때문에 최상급 원재료만 엄선합니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="process-step">
+            <div class="step-img" style="padding:0; background:none; border-radius: 50%;">
+                <span class="step-num" style="z-index: 10;">2</span>
+                <img src="assets/process_2.png" alt="맑은 물 3회 세척"
+                    style="width:100%; height:100%; object-fit: cover; border-radius: 50%;">
+            </div>
+            <div class="step-content">
+                <h3>02. 맑은 물 3회 세척</h3>
+                <p>눈에 보이지 않는 미세한 먼지와 흙을 제거하기 위해<br class="pc-br"><br class="mo-br"> 맑은 물로 3번 이상 반복해서 깨끗하게 씻어냅니다.<br
+                        class="pc-br"><br class="mo-br"> 가장 기본이 되는 위생의 첫걸음입니다.</p>
+                <div class="why-block">
+                    <h4>왜 여러 번 세척하나요?</h4>
+                    <p>눈에 보이지 않는 미세먼지와 불순물을 완벽히 제거하여 텁텁함 없이 더 깨끗하고 안전한 맑은 기름을 만들기 위해서입니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="process-step">
+            <div class="step-img" style="padding:0; background:none; border-radius: 50%;">
+                <span class="step-num" style="z-index: 10;">3</span>
+                <img src="assets/process_3.png" alt="건강한 저온 로스팅"
+                    style="width:100%; height:100%; object-fit: cover; border-radius: 50%;">
+            </div>
+            <div class="step-content">
+                <h3>03. 저온 로스팅</h3>
+                <p>높은 온도에서 빠르게 볶으면 양은 많아지지만 유해물질이 생깁니다.<br class="pc-br"><br class="mo-br"> 영월방앗간은 160도 이하의 낮은 온도에서 천천히
+                    볶아<br class="pc-br"><br class="mo-br"> 건강하고 부드러운 고소함을 끌어냅니다.</p>
+                <div class="why-block">
+                    <h4>왜 160도 이하일까요?</h4>
+                    <p>높은 온도에서는 발암물질인 벤조피렌이 발생할 가능성이 높습니다. 영월방앗간은 낮은 온도에서 천천히 볶아 깊은 향과 고객님의 건강을 함께 지켜냅니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="process-step">
+            <div class="step-img" style="padding:0; background:none; border-radius: 50%;">
+                <span class="step-num" style="z-index: 10;">4</span>
+                <img src="assets/process_4.png" alt="단 한 번의 정직한 착유"
+                    style="width:100%; height:100%; object-fit: cover; border-radius: 50%;">
+            </div>
+            <div class="step-content">
+                <h3>04. 한 번의 정직한 착유</h3>
+                <p>위생적인 최신식 스테인리스 착유기를 사용하여<br class="pc-br"><br class="mo-br"> 쇳가루 걱정 없이 안전하게 기름을 짭니다.<br
+                        class="pc-br"><br class="mo-br"> 여러 번 짜내지 않고 오직 첫 번째로 나오는 맑은 기름만 취합니다.</p>
+                <div class="why-block">
+                    <h4>왜 한 번만 착유하나요?</h4>
+                    <p>여러 번 짜면 생산량은 늘릴 수 있지만 맛과 향이 현저히 떨어집니다. 영월방앗간은 양보단 질을 선택하여 단 한 번의 정직한 착유만을 고집합니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="process-step">
+            <div class="step-img" style="padding:0; background:none; border-radius: 50%;">
+                <span class="step-num" style="z-index: 10;">5</span>
+                <img src="assets/process_5.png" alt="자연 침전 필터링"
+                    style="width:100%; height:100%; object-fit: cover; border-radius: 50%;">
+            </div>
+            <div class="step-content">
+                <h3>05. 72시간 자연 침전</h3>
+                <p>갓 짜낸 기름은 화학 필터로 강제로 거르지 않습니다.<br class="pc-br"><br class="mo-br"> 서늘한 곳에서 72시간 동안 가만히 두어 자연스럽게 불순물을
+                    가라앉힙니다.<br class="pc-br"><br class="mo-br"> 기다림이 만들어내는 투명함입니다.</p>
+                <div class="why-block">
+                    <h4>왜 화학 필터를 쓰지 않나요?</h4>
+                    <p>인공적인 필터링은 본연의 풍미를 깎아내릴 수 있습니다. 오랜 시간이 걸리더라도 자연 침전 방식을 거쳐야 진정으로 맑고 깊은 기름이 완성됩니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 신규 추가 2: 기다림의 시간 (감성 클로징) -->
+    <section class="section-emotional">
+        <div class="emotional-text">
+            <p>
+                한 병의 기름이 완성되기까지<br><br>
+                원재료를 고르는 시간.<br>
+                깨를 씻는 시간.<br>
+                천천히 볶는 시간.<br>
+                정직하게 짜내는 시간.<br><br>
+                <strong>기다림의 시간만큼 깊은 향이 완성됩니다.</strong>
+            </p>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-info">
+                <span class="footer-logo">영월방앗간</span>
+                강원도 영월군 영월읍 방앗간길 123<br>
+                대표자: 홍길동 | 사업자등록번호: 123-45-67890<br>
+                고객센터: 1588-0000 (평일 09:00 - 18:00)
+            </div>
+            <div class="footer-links">
+                <a href="#">이용약관</a>
+                <a href="#">개인정보처리방침</a>
+                <a href="#">입점문의</a>
+            </div>
+        </div>
+        <div class="copyright">&copy; 2026 고향방앗간. All rights reserved.</div>
+    </footer>
+
+    <script src="cart.js"></script>
+    <script>
+        // Mobile menu toggle
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const navContainer = document.querySelector('.nav-container');
+        const navOverlay = document.querySelector('.nav-overlay');
+
+        function toggleMenu() {
+            if (mobileMenuBtn) mobileMenuBtn.classList.toggle('active');
+            if (navContainer) navContainer.classList.toggle('active');
+            if (navOverlay) navOverlay.classList.toggle('active');
+            if (navContainer) document.body.style.overflow = navContainer.classList.contains('active') ? 'hidden' : '';
+        }
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', toggleMenu);
+        }
+        if (navOverlay) {
+            navOverlay.addEventListener('click', toggleMenu);
+        }
+    </script>
+    <script>
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                header.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            } else {
+                header.style.boxShadow = 'none';
+            }
+        });
+    </script>
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal" onclick="closeLoginModal(event)">
+        <div class="modal-container" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeLoginModal(event)">&times;</button>
+            <span class="login-logo">영월방앗간</span>
+            <p class="login-desc">프리미엄 전통 방앗간, 환영합니다.</p>
+
+            <a href="#" class="social-login-btn btn-kakao"
+                onclick="alert('카카오 로그인 연동 준비중입니다.'); closeLoginModal(event);">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M12 3C6.477 3 2 6.55 2 10.93c0 2.844 1.815 5.342 4.544 6.815-.316 1.16-.984 3.65-1.026 3.86-.046.236.082.268.225.174.116-.076 2.502-1.688 3.51-2.433.882.25 1.8.384 2.747.384 5.523 0 10-3.55 10-7.93S17.523 3 12 3z"
+                        fill="#000000" />
+                </svg>
+                카카오로 3초 만에 시작하기
+            </a>
+
+            <a href="#" class="social-login-btn btn-google"
+                onclick="alert('구글 로그인 연동 준비중입니다.'); closeLoginModal(event);">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        fill="#4285F4" />
+                    <path
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        fill="#34A853" />
+                    <path
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                        fill="#FBBC05" />
+                    <path
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        fill="#EA4335" />
+                </svg>
+                Google로 시작하기
+            </a>
+
+            <p class="login-notice">
+                소셜 계정으로 로그인 시 자동으로 회원가입이 진행되며,<br class="pc-br">
+                <a href="#" style="text-decoration: underline;">이용약관</a> 및 <a href="#"
+                    style="text-decoration: underline;">개인정보처리방침</a>에 동의한 것으로 간주합니다.
+            </p>
+        </div>
+    </div>
+
+</body>
+
+</html>

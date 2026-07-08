@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영월방앗간 프로젝트 시안 모음</title>
+    <style>
+        body {
+            font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+            background-color: #f7f6f2;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2c3e35;
+            margin-bottom: 30px;
+        }
+
+        .draft-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .draft-card {
+            display: block;
+            padding: 24px;
+            border: 2px solid #e2e0d8;
+            border-radius: 8px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .draft-card:hover {
+            border-color: #45735b;
+            background-color: #fcfbf9;
+            transform: translateY(-2px);
+        }
+
+        .draft-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #45735b;
+            margin-bottom: 8px;
+        }
+
+        .draft-desc {
+            color: #666;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>영월방앗간 프로젝트 시안</h1>
+        <div class="draft-list">
+            <a href="draft_01/index.html" class="draft-card">
+                <div class="draft-title">시안 1</div>
+                <div class="draft-desc">전통적이고 차분한 화이트 & 카키 톤의 디자인 시안입니다.</div>
+            </a>
+            <a href="draft_02/index.html" class="draft-card">
+                <div class="draft-title">시안 2</div>
+                <div class="draft-desc">맑은 청자색과 한지 화이트를 베이스로 한 현대적이고 고급스러운 디자인 시안입니다.</div>
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>

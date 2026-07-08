@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품보기 - 영월방앗간</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Products Grid 재사용 및 확장 */
+        .products {
+            padding: 5rem 5% 8rem;
+            background-color: var(--color-point1);
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 3rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+        }
+
+        .product-img {
+            height: 350px;
+            background-color: var(--color-secondary);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .product-img img {
+            width: 80%;
+            height: auto;
+            object-fit: contain;
+            transition: transform 0.5s ease;
+        }
+
+        .product-card:hover .product-img img {
+            transform: scale(1.05);
+        }
+
+        .badge {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: var(--color-primary);
+            color: white;
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border-radius: 4px;
+            z-index: 10;
+        }
+
+        .product-info {
+            padding: 2.5rem 2rem;
+            text-align: center;
+        }
+
+        .product-info h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--color-text-main);
+        }
+
+        .product-info p {
+            color: var(--color-text-sub);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .price {
+            font-family: var(--font-heading);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--color-text-main);
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="nav-overlay"></div>
+        <a href="index.html" class="logo">영월방앗간</a>
+        <div class="nav-container">
+            <nav class="gnb">
+                <a href="index.html">홈</a>
+                <a href="brand.html">브랜드 소개</a>
+                <a href="process.html">생산과정</a>
+                <a href="category.html" style="color: var(--color-primary);">상품보기</a>
+            </nav>
+            <div class="utility">
+                <a href="#" onclick="openLoginModal(event)">로그인</a>
+                <a href="cart.html" id="cart-nav">장바구니 (0)</a>
+            </div>
+        </div>
+        <button class="mobile-menu-btn" aria-label="메뉴 열기">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+
+    <div class="page-header">
+        <h1>영월방앗간 상품보기</h1>
+        <p>정성으로 짜낸 우리 농산물 건강 기름</p>
+    </div>
+
+    <section class="products">
+
+        <div class="product-grid">
+            <!-- Item 1 -->
+            <a href="product.html" class="product-card">
+                <div class="product-img" style="background-color: var(--color-point1);">
+                    <span class="badge" style="background-color: var(--color-point2);">BEST</span>
+                    <img src="assets/gift_set.png" alt="들기름 & 들기름 세트">
+                </div>
+                <div class="product-info">
+                    <h3>들기름 & 들기름 세트</h3>
+                    <p>건강을 위해 볶지 않고 그대로 압착한 생들기름 2병 구성</p>
+                    <span class="price">50,000원</span>
+                </div>
+            </a>
+
+            <!-- Item 2 -->
+            <a href="product.html" class="product-card">
+                <div class="product-img">
+                    <span class="badge">추천</span>
+                    <img src="assets/gift_set.png" alt="참기름 & 들기름 세트">
+                </div>
+                <div class="product-info">
+                    <h3>참기름 & 들기름 세트</h3>
+                    <p>고소한 참기름과 건강한 들기름을 함께 즐기는 실속 세트</p>
+                    <span class="price">60,000원</span>
+                </div>
+            </a>
+
+            <!-- Item 3 -->
+            <a href="product.html" class="product-card">
+                <div class="product-img" style="background-color: var(--color-secondary);">
+                    <span class="badge" style="background-color: #111;">프리미엄</span>
+                    <img src="assets/gift_set.png" alt="참기름 & 참기름 세트">
+                </div>
+                <div class="product-info">
+                    <h3>참기름 & 참기름 세트</h3>
+                    <p>저온 로스팅으로 맑고 진하게 짜낸 프리미엄 참기름 2병 구성</p>
+                    <span class="price">70,000원</span>
+                </div>
+            </a>
+
+            <!-- Item 4 -->
+            <a href="product.html" class="product-card">
+                <div class="product-img" style="background-color: var(--color-point2);">
+                    <span class="badge">특산품</span>
+                    <img src="assets/product_redpepper.png" alt="최상급 고춧가루"
+                        style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div class="product-info">
+                    <h3>최상급 영월 고춧가루</h3>
+                    <p>일교차가 큰 영월에서 자라 태양빛에 말린 빛깔 고운 고춧가루</p>
+                    <span class="price">30,000원</span>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-info">
+                <span class="footer-logo">영월방앗간</span>
+                강원도 영월군 영월읍 방앗간길 123<br>
+                대표자: 홍길동 | 사업자등록번호: 123-45-67890<br>
+                고객센터: 1588-0000 (평일 09:00 - 18:00)
+            </div>
+            <div class="footer-links">
+                <a href="#">이용약관</a>
+                <a href="#">개인정보처리방침</a>
+                <a href="#">입점문의</a>
+            </div>
+        </div>
+        <div class="copyright">&copy; 2026 고향방앗간. All rights reserved.</div>
+    </footer>
+
+    <script src="cart.js"></script>
+    <script>
+        // Mobile menu toggle
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const navContainer = document.querySelector('.nav-container');
+        const navOverlay = document.querySelector('.nav-overlay');
+
+        function toggleMenu() {
+            if (mobileMenuBtn) mobileMenuBtn.classList.toggle('active');
+            if (navContainer) navContainer.classList.toggle('active');
+            if (navOverlay) navOverlay.classList.toggle('active');
+            if (navContainer) document.body.style.overflow = navContainer.classList.contains('active') ? 'hidden' : '';
+        }
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', toggleMenu);
+        }
+        if (navOverlay) {
+            navOverlay.addEventListener('click', toggleMenu);
+        }
+    </script>
+    <script>
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                header.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            } else {
+                header.style.boxShadow = 'none';
+            }
+        });
+    </script>
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal" onclick="closeLoginModal(event)">
+        <div class="modal-container" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeLoginModal(event)">&times;</button>
+            <span class="login-logo">영월방앗간</span>
+            <p class="login-desc">프리미엄 전통 방앗간, 환영합니다.</p>
+            
+            <a href="#" class="social-login-btn btn-kakao" onclick="alert('카카오 로그인 연동 준비중입니다.'); closeLoginModal(event);">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 3C6.477 3 2 6.55 2 10.93c0 2.844 1.815 5.342 4.544 6.815-.316 1.16-.984 3.65-1.026 3.86-.046.236.082.268.225.174.116-.076 2.502-1.688 3.51-2.433.882.25 1.8.384 2.747.384 5.523 0 10-3.55 10-7.93S17.523 3 12 3z" fill="#000000"/></svg>
+                카카오로 3초 만에 시작하기
+            </a>
+            
+            <a href="#" class="social-login-btn btn-google" onclick="alert('구글 로그인 연동 준비중입니다.'); closeLoginModal(event);">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                Google로 시작하기
+            </a>
+
+            <p class="login-notice">
+                소셜 계정으로 로그인 시 자동으로 회원가입이 진행되며,<br class="pc-br">
+                <a href="#" style="text-decoration: underline;">이용약관</a> 및 <a href="#" style="text-decoration: underline;">개인정보처리방침</a>에 동의한 것으로 간주합니다.
+            </p>
+        </div>
+    </div>
+
+</body>
+
+</html>

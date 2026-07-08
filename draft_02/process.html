@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>착유 공정 - 영월방앗간</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    
+    <style>
+        .page-header {
+            text-align: center;
+            padding: var(--spacing-xl) 0 var(--spacing-lg);
+        }
+
+        .process-list {
+            display: flex;
+            flex-direction: column;
+            gap: 80px; /* 120px -> 80px 축소 */
+            max-width: 800px; /* 1000px -> 800px 축소 */
+            margin: 60px auto; /* 80px -> 60px 축소 */
+            padding: 0 5%;
+        }
+
+        .process-item {
+            display: flex;
+            align-items: center;
+            gap: 40px; /* 60px -> 40px 축소 */
+        }
+
+        .process-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .step-img-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .process-img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .step-indicator {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 50px;
+            height: 50px;
+            background-color: var(--color-accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-family-serif);
+            font-size: 20px;
+            font-weight: 700;
+            z-index: 10;
+        }
+
+        .process-item:nth-child(even) .step-indicator {
+            left: auto;
+            right: 12px;
+        }
+
+        .process-content {
+            flex: 1;
+        }
+
+        .process-content h3 {
+            font-size: 26px; /* 32px -> 26px */
+            color: var(--color-primary);
+            margin-bottom: 16px; /* 24px -> 16px */
+            font-family: var(--font-family-serif);
+        }
+
+        .process-content p.desc {
+            font-size: 16px; /* 18px -> 16px */
+            line-height: 1.8;
+            color: var(--color-text-main);
+            margin-bottom: 24px; /* 32px -> 24px */
+            word-break: keep-all;
+        }
+
+        .process-why {
+            background-color: var(--color-bg-white);
+            padding: 24px; /* 32px -> 24px */
+            border-radius: 16px; /* 24px -> 16px */
+            border: 1px solid rgba(125, 155, 139, 0.2);
+        }
+
+        .process-why h4 {
+            color: var(--color-primary-dark);
+            margin-bottom: 12px;
+            font-size: 16px; /* 18px -> 16px */
+        }
+
+        .process-why p {
+            font-size: 14px; /* 15px -> 14px */
+            margin-bottom: 0;
+            color: var(--color-text-muted);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .process-list {
+                gap: 80px;
+            }
+            .process-item,
+            .process-item:nth-child(even) {
+                flex-direction: column;
+                text-align: center;
+                gap: 40px;
+            }
+            .step-img-wrapper {
+                width: 80%;
+                margin: 0 auto;
+            }
+            .step-indicator,
+            .process-item:nth-child(even) .step-indicator {
+                left: 0;
+                right: auto;
+            }
+            .process-content h3 {
+                font-size: 28px;
+            }
+            .process-why {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">영월방앗간</a>
+            <button class="hamburger" id="hamburger-menu" aria-label="메뉴 열기">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="nav-wrapper" id="nav-wrapper">
+                <nav class="nav-links">
+                <a href="index.html">홈</a>
+                <a href="brand.html">브랜드 소개</a>
+                <a href="process.html" style="color: var(--color-primary);">생산과정</a>
+                <a href="products.html">상품보기</a>
+            </nav>
+                <div class="header-actions">
+                <a href="login.html">로그인</a>
+                <a href="cart.html">장바구니</a>
+            </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="page-header">
+            <h1 class="font-serif">한 방울에 담긴 정직한 과정</h1>
+            <p style="font-size: var(--font-size-lg); color: var(--color-text-muted); margin-top: 24px; font-family: var(--font-family-serif);">
+                전통 방식을 고집하며 안전하고 깨끗하게 만듭니다
+            </p>
+        </div>
+
+        <div class="process-list">
+            <div class="process-item">
+                <div class="step-img-wrapper">
+                    <div class="step-indicator">01</div>
+                    <div class="process-img" style="background-image: url('images/nature.png');"></div>
+                </div>
+                <div class="process-content">
+                    <h3>01. 원재료 선별</h3>
+                    <p class="desc">영월에서 수확한 100% 국산 농산물 중에서도 알이 굵고 속이 꽉 찬 최상급 참깨와 들깨만을 직접 눈으로 보고 만져보며 깐깐하게 선별합니다.</p>
+                    <div class="process-why">
+                        <h4>왜 원재료 선별이 중요할까요?</h4>
+                        <p>좋은 기름은 좋은 원재료에서 시작됩니다. 알이 작거나 상처난 원료가 하나라도 섞이면 전체의 향과 맛을 떨어뜨릴 수 있기 때문에 최상급 원재료만 엄선합니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="process-item">
+                <div class="step-img-wrapper">
+                    <div class="step-indicator">02</div>
+                    <div class="process-img" style="background-image: url('images/nature.png');"></div>
+                </div>
+                <div class="process-content">
+                    <h3>02. 맑은 물 3회 세척</h3>
+                    <p class="desc">눈에 보이지 않는 미세한 먼지와 흙을 제거하기 위해 맑은 물로 3번 이상 반복해서 깨끗하게 씻어냅니다. 가장 기본이 되는 위생의 첫걸음입니다.</p>
+                    <div class="process-why">
+                        <h4>왜 여러 번 세척하나요?</h4>
+                        <p>눈에 보이지 않는 미세먼지와 불순물을 완벽히 제거하여 텁텁함 없이 더 깨끗하고 안전한 맑은 기름을 만들기 위해서입니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="process-item">
+                <div class="step-img-wrapper">
+                    <div class="step-indicator">03</div>
+                    <div class="process-img" style="background-image: url('images/sesame_oil.png');"></div>
+                </div>
+                <div class="process-content">
+                    <h3>03. 저온 로스팅</h3>
+                    <p class="desc">높은 온도에서 빠르게 볶으면 양은 많아지지만 유해물질이 생깁니다. 영월방앗간은 160도 이하의 낮은 온도에서 천천히 볶아 건강하고 부드러운 고소함을 끌어냅니다.</p>
+                    <div class="process-why">
+                        <h4>왜 160도 이하일까요?</h4>
+                        <p>높은 온도에서는 발암물질인 벤조피렌이 발생할 가능성이 높습니다. 영월방앗간은 낮은 온도에서 천천히 볶아 깊은 향과 고객님의 건강을 함께 지켜냅니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="process-item">
+                <div class="step-img-wrapper">
+                    <div class="step-indicator">04</div>
+                    <div class="process-img" style="background-image: url('images/sesame_oil.png');"></div>
+                </div>
+                <div class="process-content">
+                    <h3>04. 한 번의 정직한 착유</h3>
+                    <p class="desc">위생적인 최신식 스테인리스 착유기를 사용하여 쇳가루 걱정 없이 안전하게 기름을 짭니다. 여러 번 짜내지 않고 오직 첫 번째로 나오는 맑은 기름만 취합니다.</p>
+                    <div class="process-why">
+                        <h4>왜 한 번만 착유하나요?</h4>
+                        <p>여러 번 짜면 생산량은 늘릴 수 있지만 맛과 향이 현저히 떨어집니다. 영월방앗간은 양보단 질을 선택하여 단 한 번의 정직한 착유만을 고집합니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="process-item">
+                <div class="step-img-wrapper">
+                    <div class="step-indicator">05</div>
+                    <div class="process-img" style="background-image: url('images/nature.png');"></div>
+                </div>
+                <div class="process-content">
+                    <h3>05. 72시간 자연 침전</h3>
+                    <p class="desc">갓 짜낸 기름은 화학 필터로 강제로 거르지 않습니다. 서늘한 곳에서 72시간 동안 가만히 두어 자연스럽게 불순물을 가라앉힙니다. 기다림이 만들어내는 투명함입니다.</p>
+                    <div class="process-why">
+                        <h4>왜 화학 필터를 쓰지 않나요?</h4>
+                        <p>인공적인 필터링은 본연의 풍미를 깎아내릴 수 있습니다. 오랜 시간이 걸리더라도 자연 침전 방식을 거쳐야 진정으로 맑고 깊은 기름이 완성됩니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="section" style="text-align: center; padding: 120px 0;">
+            <p style="font-family: var(--font-family-serif); font-size: var(--font-size-md); line-height: 2.2; color: var(--color-primary-dark);">
+                한 병의 기름이 완성되기까지<br><br>
+                원재료를 고르는 시간.<br>
+                깨를 씻는 시간.<br>
+                천천히 볶는 시간.<br>
+                정직하게 짜내는 시간.<br><br>
+                <strong style="font-size: var(--font-size-lg);">기다림의 시간만큼 깊은 향이 완성됩니다.</strong>
+            </p>
+        </section>
+    </main>
+
+        <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <span class="footer-logo">영월방앗간</span>
+                강원도 영월군 영월읍 하송로 123<br>
+                대표자: 이영월 | 사업자등록번호: 123-45-67890<br>
+                통신판매업신고: 2026-강원영월-0123<br>
+                고객센터: 033-123-4567 (평일 09:00 - 18:00)
+            </div>
+            <div class="footer-links">
+                <a href="#">이용약관</a>
+                <a href="#">개인정보처리방침</a>
+                <a href="#">입점문의</a>
+            </div>
+        </div>
+        <div class="copyright">
+            &copy; 2026 영월방앗간. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const hamburger = document.getElementById('hamburger-menu');
+            const navWrapper = document.getElementById('nav-wrapper');
+            
+            if (hamburger && navWrapper) {
+                hamburger.addEventListener('click', () => {
+                    hamburger.classList.toggle('active');
+                    navWrapper.classList.toggle('active');
+                });
+            }
+        });
+    </script>
+    <script src="cart.js"></script>
+</body>
+</html>
