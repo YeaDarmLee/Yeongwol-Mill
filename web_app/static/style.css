@@ -53,11 +53,11 @@ body {
     overflow-x: hidden;
     word-break: keep-all;
     overflow-wrap: break-word;
-    opacity: 0;
-    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-body.page-loaded {
     opacity: 1;
+}
+body.page-fade-out {
+    opacity: 0;
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
@@ -522,5 +522,74 @@ footer {
     .btn:hover,
     .product-card:hover .product-img img {
         transform: none !important;
+    }
+}
+
+/* Brand Story Section */
+.brand-story {
+    padding: 8rem 5%;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.story-img {
+    flex: 1;
+    height: 400px;
+    background: url('assets/hero_banner.png') center/cover no-repeat;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+.story-content {
+    flex: 1;
+}
+.story-content h2 {
+    font-size: 2.2rem;
+    color: var(--color-primary);
+    margin-bottom: 1.5rem;
+    font-family: var(--font-heading);
+}
+.story-content p {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--color-text-sub);
+    margin-bottom: 2rem;
+    word-break: keep-all;
+}
+
+/* Gift Set Section */
+.gift-set {
+    padding: 8rem 5%;
+    background-color: var(--color-point1);
+    text-align: center;
+}
+.gift-showcase {
+    max-width: 600px;
+    margin: 0 auto 3rem;
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+.gift-showcase img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+    .brand-story {
+        flex-direction: column;
+        padding: 4rem 5%;
+        gap: 2rem;
+        text-align: center;
+    }
+    .story-img {
+        width: 100%;
+        height: 250px;
     }
 }

@@ -89,7 +89,7 @@ function logoutUser(e) {
 
 // 페이지 전환(Smooth Page Transition) 시스템
 function initPageTransitions() {
-    document.body.classList.add('page-loaded');
+    document.body.classList.remove('page-fade-out');
 
     document.addEventListener('click', (e) => {
         const anchor = e.target.closest('a');
@@ -104,10 +104,10 @@ function initPageTransitions() {
         // 동일 도메인 내 내부 페이지 이동 시 페이드아웃 후 전환
         if (href.startsWith('/') || href.startsWith(window.location.origin)) {
             e.preventDefault();
-            document.body.classList.remove('page-loaded');
+            document.body.classList.add('page-fade-out');
             setTimeout(() => {
                 window.location.href = href;
-            }, 200);
+            }, 180);
         }
     });
 }
@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 브라우저 뒤로가기/앞으로가기 BFCache 호환성 처리
 window.addEventListener('pageshow', (e) => {
-    document.body.classList.add('page-loaded');
+    document.body.classList.remove('page-fade-out');
 });
 
 // Login Modal Handlers
