@@ -21,7 +21,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 
-app = Flask(__name__, static_folder=STATIC_DIR, template_folder=TEMPLATES_DIR, static_url_path='')
+app = Flask(__name__, static_folder=None, template_folder=TEMPLATES_DIR)
 app.config.from_object(Config)
 
 # Nginx ProxyFix (trust exactly 1 hop for X-Forwarded-For)
