@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전자상거래 이용약관 - {{ config.BUSINESS_NAME }}</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .legal-container { max-width: 900px; margin: 3rem auto; padding: 2rem; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #eee; line-height: 1.8; color: #333; }
+        .legal-container h1 { font-family: 'Noto Serif KR', serif; font-size: 1.8rem; margin-bottom: 1.5rem; padding-bottom: 0.8rem; border-bottom: 2px solid var(--color-primary, #915a28); }
+        .legal-container h2 { font-size: 1.2rem; margin-top: 1.5rem; margin-bottom: 0.5rem; color: #222; }
+    </style>
+</head>
+<body>
+    {% include 'components/header.html' %}
+
+    <div class="legal-container">
+        <h1>전자상거래 표준 이용약관</h1>
+        <p><strong>제1조 (목적)</strong><br>본 약관은 {{ config.BUSINESS_NAME }}(이하 "회사"라 함)이 운영하는 사이버 몰(이하 "몰"이라 함)에서 제공하는 인터넷 관련 서비스(이하 "서비스"라 함)를 이용함에 있어 사이버 몰과 이용자의 권리·의무 및 책임사항을 규정함을 목적으로 합니다.</p>
+        
+        <h2>제2조 (정의)</h2>
+        <p>1. "몰"이란 회사가 재화 또는 용역을 이용자에게 제공하기 위하여 컴퓨터 등 정보통신설비를 이용하여 재화 등을 거래할 수 있도록 설정한 가상의 영업장을 말합니다.<br>
+        2. "이용자"란 "몰"에 접속하여 이 약관에 따라 "몰"이 제공하는 서비스를 받는 회원 및 비회원을 말합니다.</p>
+        
+        <h2>제3조 (약관의 명시와 개정)</h2>
+        <p>1. "몰"은 이 약관의 내용과 상호 및 대표자 성명, 영업소 소재지 주소, 전화번호, 이메일주소, 사업자등록번호, 통신판매업신고번호, 개인정보보호책임자 등을 이용자가 쉽게 알 수 있도록 사이버몰의 초기 서비스화면에 게시합니다.</p>
+        
+        <h2>제4조 (서비스의 제공 및 변경)</h2>
+        <p>1. "몰"은 재화 또는 용역에 대한 정보 제공 및 구매계약의 체결, 구매계약이 체결된 재화 또는 용역의 배송 업무를 수행합니다.<br>
+        2. 품절 또는 기술적 사양의 변경 등의 경우에는 장차 체결되는 계약에 의해 제공할 재화 또는 용역의 내용을 변경할 수 있습니다.</p>
+
+        <h2>제5조 (청약철회 및 환불 규정)</h2>
+        <p>1. "몰"과 재화 등의 구매에 관한 계약을 체결한 이용자는 수령한 날로부터 7일 이내에 청약의 철회를 할 수 있습니다.<br>
+        2. 단, 신선식품 및 제조 방앗간 특성상 개봉 후 상품 가치가 현저히 감소한 경우에는 교환 및 반품이 제한될 수 있습니다.</p>
+    </div>
+
+    {% include 'components/footer.html' %}
+</body>
+</html>

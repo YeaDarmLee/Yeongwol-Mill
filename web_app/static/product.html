@@ -4,17 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>상품 상세 - 영월방앗간</title>
+    <title>상품 상세 - 영월고향방앗간</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
         .product-detail-container {
             max-width: 1100px;
-            margin: 4rem auto 8rem;
+            margin: 4rem auto 3rem;
             padding: 0 5%;
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -152,6 +150,36 @@
             background: #7a4a1f;
         }
 
+        .food-disclosure-section {
+            max-width: 1100px;
+            margin: 0 auto 6rem;
+            padding: 0 5%;
+        }
+
+        .food-disclosure-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: #fff;
+            border: 1px solid #e0d8cc;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .food-disclosure-table th, .food-disclosure-table td {
+            padding: 0.9rem 1.2rem;
+            border-bottom: 1px solid #eee;
+            font-size: 0.95rem;
+        }
+
+        .food-disclosure-table th {
+            width: 25%;
+            background: #fdfaf6;
+            color: #444;
+            text-align: left;
+            font-weight: 600;
+        }
+
         @media (max-width: 768px) {
             .product-detail-container {
                 grid-template-columns: 1fr;
@@ -165,13 +193,13 @@
 <body>
     <header>
         <div class="nav-overlay"></div>
-        <a href="index.html" class="logo">영월방앗간</a>
+        <a href="index.html" class="logo">영월고향방앗간</a>
         <div class="nav-container">
             <nav class="gnb">
                 <a href="index.html">홈</a>
-                <a href="brand.html">브랜드 소개</a>
-                <a href="process.html">생산과정</a>
-                <a href="category.html">상품보기</a>
+                <a href="brand.html">방앗간 소개</a>
+                <a href="process.html">착유 공정</a>
+                <a href="category.html">전체 상품</a>
             </nav>
             <div class="utility">
                 <a href="login.html">로그인</a>
@@ -185,30 +213,45 @@
         <p style="grid-column: 1/-1; text-align: center; padding: 4rem;">상품 정보를 불러오는 중입니다...</p>
     </main>
 
+    <!-- 식품 상품정보제공고시 -->
+    <section class="food-disclosure-section">
+        <h2 style="font-family: 'Noto Serif KR', serif; font-size: 1.5rem; color: #222; margin-bottom: 1rem; border-bottom: 2px solid var(--color-primary, #915a28); padding-bottom: 0.5rem;">
+            📋 식품 상품정보제공고시 (식품위생법 준수)
+        </h2>
+        <table class="food-disclosure-table" id="disclosureTable">
+            <tbody>
+                <tr><th>제품명</th><td id="discName">-</td></tr>
+                <tr><th>식품의 유형</th><td id="discFoodType">-</td></tr>
+                <tr><th>생산자 및 소재지</th><td id="discManufacturer">영월고향방앗간 (강원특별자치도 영월군)</td></tr>
+                <tr><th>제조연월일 및 소비기한</th><td id="discShelfLife">-</td></tr>
+                <tr><th>포장단위별 내용물의 용량</th><td id="discCapacity">-</td></tr>
+                <tr><th>원재료명 및 원산지</th><td id="discOrigin">-</td></tr>
+                <tr><th>보관방법 또는 취급방법</th><td id="discStorage">-</td></tr>
+                <tr><th>알레르기 유발물질</th><td id="discAllergy">-</td></tr>
+                <tr><th>소비자상담 관련 전화번호</th><td id="discCS">033-000-0000</td></tr>
+            </tbody>
+        </table>
+    </section>
+
     <footer>
         <div class="footer-content">
             <div class="footer-info">
-                <span class="footer-logo">영월방앗간</span><br>
-                강원도 영월군 영월읍 방앗간길 123<br>
-                대표자: 홍길동 | 사업자등록번호: 123-45-67890<br>
-                고객센터: 1588-0000 (평일 09:00 - 18:00)
-            </div>
-            <div class="footer-links">
-                <a href="#">이용약관</a>
-                <a href="#">개인정보처리방침</a>
+                <span class="footer-logo">영월고향방앗간</span><br>
+                강원특별자치도 영월군 영월읍 방앗간길 12 | 고객센터: 033-000-0000
             </div>
         </div>
-        <div class="copyright">&copy; 2026 영월방앗간. All rights reserved.</div>
+        <div class="copyright">&copy; 2026 영월고향방앗간. All rights reserved.</div>
     </footer>
 
     <script src="cart.js"></script>
     <script>
         let currentProduct = null;
+        let selectedOption = null;
         let quantity = 1;
 
         async function loadProductDetail() {
             const params = new URLSearchParams(window.location.search);
-            const productId = params.get('id') || '1'; // 기본값 1번 상품
+            const productId = params.get('id') || '1';
 
             const container = document.getElementById('productDetail');
             try {
@@ -217,6 +260,33 @@
 
                 const data = await response.json();
                 currentProduct = data.product;
+                selectedOption = (currentProduct.options && currentProduct.options.length > 0) ? currentProduct.options[0] : null;
+
+                // 식품 고시 표 데이터 채우기
+                document.getElementById('discName').innerText = currentProduct.name;
+                document.getElementById('discFoodType').innerText = currentProduct.food_type || '식용유지류';
+                document.getElementById('discManufacturer').innerText = currentProduct.manufacturer || '영월고향방앗간';
+                document.getElementById('discShelfLife').innerText = currentProduct.shelf_life_text || '제조일로부터 12개월';
+                document.getElementById('discCapacity').innerText = currentProduct.contents_capacity || currentProduct.capacity || '300ml';
+                document.getElementById('discOrigin').innerText = currentProduct.origin_info || '원재료: 국산(강원도 영월군 100%)';
+                document.getElementById('discStorage').innerText = currentProduct.storage_method || '서늘한 곳 보관';
+                document.getElementById('discAllergy').innerText = currentProduct.allergy_notice || '참깨/들깨 함유';
+                document.getElementById('discCS').innerText = currentProduct.cs_phone || '033-000-0000';
+
+                // 옵션 HTML 생성
+                let optionsHtml = '';
+                if (currentProduct.options && currentProduct.options.length > 0) {
+                    optionsHtml = `
+                        <div class="option-group">
+                            <label>옵션 선택 *</label>
+                            <select id="optionSelect" class="quantity-input" style="width: 100%; height: 42px; text-align: left; padding: 0 0.8rem; border: 1px solid #ccc; border-radius: 6px;" onchange="handleOptionChange(this)">
+                                ${currentProduct.options.map(opt => `
+                                    <option value="${opt.id}">${opt.option_name} ${opt.additional_price > 0 ? '(+' + Number(opt.additional_price).toLocaleString() + '원)' : ''}</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                    `;
+                }
 
                 container.innerHTML = `
                     <div class="product-gallery">
@@ -226,14 +296,9 @@
                         <span class="product-category-tag">${currentProduct.category_name}</span>
                         <h1 class="product-title">${currentProduct.name}</h1>
                         <p class="product-desc">${currentProduct.description}</p>
-                        <div class="product-price">${Number(currentProduct.price).toLocaleString()}원</div>
+                        <div class="product-price" id="totalPriceDisplay">${Number(currentProduct.price).toLocaleString()}원</div>
 
-                        <div class="option-group">
-                            <label>용량 / 규격</label>
-                            <div style="padding: 0.8rem; background: #f9f9f9; border-radius: 6px; font-weight: 500;">
-                                ${currentProduct.capacity || '기본 규격'}
-                            </div>
-                        </div>
+                        ${optionsHtml}
 
                         <div class="option-group">
                             <label>수량</label>
@@ -256,18 +321,37 @@
             }
         }
 
+        function handleOptionChange(selectEl) {
+            const optId = parseInt(selectEl.value);
+            if (currentProduct && currentProduct.options) {
+                selectedOption = currentProduct.options.find(o => o.id === optId);
+                updateTotalPrice();
+            }
+        }
+
+        function updateTotalPrice() {
+            if (!currentProduct) return;
+            const unitPrice = currentProduct.price + (selectedOption ? selectedOption.additional_price : 0);
+            const total = unitPrice * quantity;
+            const priceEl = document.getElementById('totalPriceDisplay');
+            if (priceEl) priceEl.innerText = `${Number(total).toLocaleString()}원`;
+        }
+
         function changeQty(delta) {
             quantity = Math.max(1, quantity + delta);
             const input = document.getElementById('qtyInput');
             if (input) input.value = quantity;
+            updateTotalPrice();
         }
 
         function handleAddToCart() {
             if (!currentProduct) return;
+            const unitPrice = currentProduct.price + (selectedOption ? selectedOption.additional_price : 0);
             addToCart({
                 id: currentProduct.id,
-                name: currentProduct.name,
-                price: currentProduct.price,
+                option_id: selectedOption ? selectedOption.id : null,
+                name: `${currentProduct.name} ${selectedOption ? '(' + selectedOption.option_name + ')' : ''}`,
+                price: unitPrice,
                 capacity: currentProduct.capacity,
                 image_url: currentProduct.image_url,
                 quantity: quantity
@@ -276,11 +360,12 @@
 
         function handleDirectBuy() {
             if (!currentProduct) return;
-            // 바로구매용 임시 장바구니 세팅 후 checkout 이동
+            const unitPrice = currentProduct.price + (selectedOption ? selectedOption.additional_price : 0);
             const checkoutItems = [{
                 id: currentProduct.id,
-                name: currentProduct.name,
-                price: currentProduct.price,
+                option_id: selectedOption ? selectedOption.id : null,
+                name: `${currentProduct.name} ${selectedOption ? '(' + selectedOption.option_name + ')' : ''}`,
+                price: unitPrice,
                 capacity: currentProduct.capacity,
                 image_url: currentProduct.image_url,
                 quantity: quantity

@@ -1,0 +1,14 @@
+[Unit]
+Description=Gunicorn Application Server for 영월고향방앗간
+After=network.target mysql.service
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/var/www/yeongwol-mill/web_app
+Environment="PATH=/var/www/yeongwol-mill/venv/bin"
+ExecStart=/var/www/yeongwol-mill/venv/bin/gunicorn --workers 4 --bind 127.0.0.1:5000 app:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

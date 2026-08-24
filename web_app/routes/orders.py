@@ -2,20 +2,33 @@ import datetime
 import random
 import string
 from flask import Blueprint, request, jsonify
+from config import Config
 from db.db_connection import query_db, execute_db, get_db_connection
 from middlewares.auth import verify_jwt_token, hash_password, check_password
 
 orders_bp = Blueprint('orders', __name__, url_prefix='/api/orders')
 
 def generate_order_number():
-    """주문번호 생성 (예: ORD-20260803-A8F2K9)"""
+    """주문번호 생성 (예: ORD-20260824-A8F2K9)"""
     today_str = datetime.datetime.now().strftime('%Y%m%d')
     random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
     return f"ORD-{today_str}-{random_str}"
 
+def calculate_remote_surcharge(postal_code):
+    """우편번호 앞자리를 기반으로 도서산간 추가 배송비를 계산합니다."""
+    if not postal_code:
+        return 0
+    clean_code = postal_code.strip()
+    rules = query_db("SELECT * FROM remote_shipping_rules") or []
+    for rule in rules:
+        prefix = rule['postal_code_prefix']
+        if clean_code.startswith(prefix):
+            return rule['surcharge']
+    return 0
+
 @orders_bp.route('', methods=['POST'])
 def create_order():
-    """회원 및 비회원 주문 생성 API"""
+    """회원 및 비회원 주문 생성 API (재고 예약 & 금액 스냅샷)"""
     data = request.get_json() or {}
     
     items = data.get('items', [])
@@ -26,7 +39,6 @@ def create_order():
     address_detail = data.get('address_detail', '').strip()
     delivery_memo = data.get('delivery_memo', '').strip()
     
-    # 회원/비회원 구분
     user_id = None
     auth_header = request.headers.get('Authorization')
     if auth_header and auth_header.startswith('Bearer '):
@@ -46,73 +58,120 @@ def create_order():
         if not guest_name or not guest_phone or not guest_password:
             return jsonify({'error': '비회원 주문 조회를 위해 성함, 연락처, 비밀번호를 입력해 주세요.'}), 400
 
-    # 주문 상품 데이터 검증 및 총 금액 계산
-    total_amount = 0
+    subtotal_amount = 0
     order_items_to_insert = []
+    reservation_targets = []
     
     for item in items:
         product_id = item.get('product_id')
+        option_id = item.get('option_id')
         quantity = int(item.get('quantity', 1))
         
         product = query_db("SELECT * FROM products WHERE id = %s AND is_active = 1", (product_id,), one=True)
         if not product:
             return jsonify({'error': f"상품(ID: {product_id})이 존재하지 않거나 판매 중단되었습니다."}), 400
         
+        if option_id:
+            option = query_db("SELECT * FROM product_options WHERE id = %s AND product_id = %s", (option_id, product_id), one=True)
+        else:
+            option = query_db("SELECT * FROM product_options WHERE product_id = %s LIMIT 1", (product_id,), one=True)
+            
+        if not option:
+            return jsonify({'error': f"상품 '{product['name']}'의 선택 가능한 옵션이 없습니다."}), 400
+            
+        available_stock = option['stock'] - option['reserved_stock']
+        if available_stock < quantity:
+            return jsonify({'error': f"상품 '{product['name']}' ({option['option_name']}) 재고가 부족합니다. (가능 재고: {available_stock}개)"}), 400
+
         unit_price = product['price']
-        subtotal = unit_price * quantity
-        total_amount += subtotal
-        
+        option_price = option['additional_price']
+        final_unit_price = unit_price + option_price
+        item_subtotal = final_unit_price * quantity
+        subtotal_amount += item_subtotal
+
         order_items_to_insert.append({
             'product_id': product_id,
-            'product_name': product['name'],
+            'option_id': option['id'],
+            'product_name_snapshot': product['name'],
+            'option_name_snapshot': option['option_name'],
             'capacity': product['capacity'],
             'quantity': quantity,
             'unit_price': unit_price,
-            'subtotal': subtotal
+            'option_price': option_price,
+            'final_unit_price': final_unit_price,
+            'subtotal': item_subtotal
         })
+
+        reservation_targets.append({
+            'option_id': option['id'],
+            'quantity': quantity
+        })
+
+    # 배송비 계산
+    base_shipping_fee = 0 if subtotal_amount >= Config.FREE_SHIPPING_THRESHOLD else Config.BASE_SHIPPING_FEE
+    remote_area_surcharge = calculate_remote_surcharge(postal_code)
+    discount_amount = 0
+    total_amount = subtotal_amount + base_shipping_fee + remote_area_surcharge - discount_amount
 
     order_number = generate_order_number()
     guest_pw_hash = hash_password(guest_password) if guest_password else None
+    expires_at = (datetime.datetime.now() + datetime.timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S')
 
-    # MySQL 트랜잭션 처리
     conn = get_db_connection()
     try:
-        with conn.cursor() as cursor:
-            # 1. Orders 테이블 저장
-            cursor.execute("""
-                INSERT INTO orders (
-                    order_number, user_id, guest_name, guest_phone, guest_password_hash,
-                    total_amount, payment_status, shipping_status,
-                    recipient_name, recipient_phone, postal_code, address, address_detail, delivery_memo
-                ) VALUES (%s, %s, %s, %s, %s, %s, 'PENDING', 'PREPARING', %s, %s, %s, %s, %s, %s)
+        # 1. Orders 테이블 저장
+        order_id = execute_db("""
+            INSERT INTO orders (
+                order_number, user_id, guest_name, guest_phone, guest_password_hash,
+                subtotal_amount, base_shipping_fee, remote_area_surcharge, discount_amount, total_amount,
+                order_status, payment_status,
+                recipient_name, recipient_phone, postal_code, address, address_detail, delivery_memo
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PENDING', 'READY', %s, %s, %s, %s, %s, %s)
+        """, (
+            order_number, user_id, guest_name, guest_phone, guest_pw_hash,
+            subtotal_amount, base_shipping_fee, remote_area_surcharge, discount_amount, total_amount,
+            recipient_name, recipient_phone, postal_code, address, address_detail, delivery_memo
+        ))
+
+        # 2. Order Items 테이블 저장
+        for item in order_items_to_insert:
+            execute_db("""
+                INSERT INTO order_items (
+                    order_id, product_id, option_id, product_name_snapshot, option_name_snapshot,
+                    capacity, quantity, unit_price, option_price, final_unit_price, subtotal
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
-                order_number, user_id, guest_name, guest_phone, guest_pw_hash,
-                total_amount, recipient_name, recipient_phone, postal_code, address, address_detail, delivery_memo
+                order_id, item['product_id'], item['option_id'], item['product_name_snapshot'],
+                item['option_name_snapshot'], item['capacity'], item['quantity'],
+                item['unit_price'], item['option_price'], item['final_unit_price'], item['subtotal']
             ))
-            order_id = cursor.lastrowid
-            
-            # 2. Order Items 테이블 저장
-            for item in order_items_to_insert:
-                cursor.execute("""
-                    INSERT INTO order_items (
-                        order_id, product_id, product_name, capacity, quantity, unit_price, subtotal
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """, (
-                    order_id, item['product_id'], item['product_name'], item['capacity'],
-                    item['quantity'], item['unit_price'], item['subtotal']
-                ))
-                
+
+        # 3. 재고 예약 & reserved_stock 원자적 증가 (reserved_stock += quantity)
+        for res in reservation_targets:
+            execute_db("""
+                INSERT INTO stock_reservations (order_id, product_option_id, quantity, expires_at, status)
+                VALUES (%s, %s, %s, %s, 'RESERVED')
+            """, (order_id, res['option_id'], res['quantity'], expires_at))
+
+            execute_db("""
+                UPDATE product_options
+                SET reserved_stock = reserved_stock + %s
+                WHERE id = %s AND (stock - reserved_stock) >= %s
+            """, (res['quantity'], res['option_id'], res['quantity']))
+
         return jsonify({
-            'message': '주문서가 성공적으로 생성되었습니다.',
+            'message': '주문서가 성공적으로 생성되었습니다. (15분간 재고 예약)',
             'order_id': order_id,
             'order_number': order_number,
-            'total_amount': total_amount
+            'subtotal_amount': subtotal_amount,
+            'base_shipping_fee': base_shipping_fee,
+            'remote_area_surcharge': remote_area_surcharge,
+            'total_amount': total_amount,
+            'expires_at': expires_at
         }), 201
     except Exception as e:
         print(f"Order Creation Exception: {e}")
         return jsonify({'error': '주문 처리 중 오류가 발생했습니다.'}), 500
-    finally:
-        conn.close()
 
 @orders_bp.route('/guest-lookup', methods=['POST'])
 def guest_order_lookup():
@@ -134,9 +193,14 @@ def guest_order_lookup():
         return jsonify({'error': '일치하는 비회원 주문 정보를 찾을 수 없습니다. 정보를 다시 확인해 주세요.'}), 404
 
     items = query_db("SELECT * FROM order_items WHERE order_id = %s", (order['id'],))
+    payments = query_db("SELECT * FROM payments WHERE order_id = %s", (order['id'],))
+    refunds = query_db("SELECT * FROM refunds WHERE order_id = %s", (order['id'],))
+    
     order_data = dict(order)
     order_data.pop('guest_password_hash', None)
     order_data['items'] = items
+    order_data['payments'] = payments
+    order_data['refunds'] = refunds
 
     return jsonify({'order': order_data}), 200
 
@@ -148,8 +212,13 @@ def get_order_detail(order_number):
         return jsonify({'error': '주문을 찾을 수 없습니다.'}), 404
 
     items = query_db("SELECT * FROM order_items WHERE order_id = %s", (order['id'],))
+    payments = query_db("SELECT * FROM payments WHERE order_id = %s", (order['id'],))
+    refunds = query_db("SELECT * FROM refunds WHERE order_id = %s", (order['id'],))
+
     order_data = dict(order)
     order_data.pop('guest_password_hash', None)
     order_data['items'] = items
+    order_data['payments'] = payments
+    order_data['refunds'] = refunds
 
     return jsonify({'order': order_data}), 200

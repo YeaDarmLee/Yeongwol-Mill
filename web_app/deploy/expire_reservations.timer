@@ -1,0 +1,10 @@
+[Unit]
+Description=1분 주기로 expire_reservations.service 실행하는 Systemd Timer
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=1min
+Unit=expire_reservations.service
+
+[Install]
+WantedBy=timers.target

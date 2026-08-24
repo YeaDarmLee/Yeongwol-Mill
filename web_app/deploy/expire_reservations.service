@@ -1,0 +1,9 @@
+[Unit]
+Description=15분 만료된 재고 예약 복구 Worker (영월고향방앗간)
+After=network.target mysql.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/var/www/yeongwol-mill/web_app
+Environment="PATH=/var/www/yeongwol-mill/venv/bin"
+ExecStart=/var/www/yeongwol-mill/venv/bin/flask expire-reservations

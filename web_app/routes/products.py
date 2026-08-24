@@ -5,7 +5,7 @@ products_bp = Blueprint('products', __name__, url_prefix='/api')
 
 @products_bp.route('/products', methods=['GET'])
 def get_products():
-    """상품 목록 조회 API (카테고리 필터링 지원)"""
+    """상품 목록 조회 API (카테고리 및 태그 필터링)"""
     category_id = request.args.get('category_id')
     badge = request.args.get('badge')
 
@@ -25,12 +25,16 @@ def get_products():
         args.append(badge)
 
     sql += " ORDER BY p.id ASC"
-    products = query_db(sql, args)
+    products = query_db(sql, args) or []
+    
+    for p in products:
+        p['options'] = query_db("SELECT * FROM product_options WHERE product_id = %s", (p['id'],)) or []
+
     return jsonify({'products': products}), 200
 
 @products_bp.route('/products/<int:product_id>', methods=['GET'])
 def get_product(product_id):
-    """상품 상세 정보 조회 API"""
+    """상품 상세 정보 및 옵션, 식품 고시 정보 조회 API"""
     product = query_db("""
         SELECT p.*, c.name as category_name 
         FROM products p
@@ -41,10 +45,14 @@ def get_product(product_id):
     if not product:
         return jsonify({'error': '해당 상품을 찾을 수 없습니다.'}), 404
 
-    return jsonify({'product': product}), 200
+    options = query_db("SELECT * FROM product_options WHERE product_id = %s", (product_id,)) or []
+    product_dict = dict(product)
+    product_dict['options'] = options
+
+    return jsonify({'product': product_dict}), 200
 
 @products_bp.route('/categories', methods=['GET'])
 def get_categories():
     """카테고리 목록 조회 API"""
-    categories = query_db("SELECT * FROM categories ORDER BY id ASC")
+    categories = query_db("SELECT * FROM categories ORDER BY id ASC") or []
     return jsonify({'categories': categories}), 200

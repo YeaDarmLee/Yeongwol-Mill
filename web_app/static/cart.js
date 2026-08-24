@@ -1,4 +1,4 @@
-// 영월방앗간 공통 스크립트 (장바구니 & JWT 로그인 상태 관리)
+// 영월고향방앗간 공통 스크립트 (장바구니 & JWT 로그인 상태 관리)
 
 function updateCartCount() {
     const cart = JSON.parse(localStorage.getItem('yw_cart')) || [];

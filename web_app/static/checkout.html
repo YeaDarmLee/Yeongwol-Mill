@@ -4,13 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>주문/결제 - 영월방앗간</title>
+    <title>주문/결제 - 영월고향방앗간</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <!-- Portone SDK V2 -->
     <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+    <!-- Kakao Daum Postcode SDK -->
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <style>
         .checkout-container {
             max-width: 1000px;
@@ -59,11 +61,6 @@
             box-sizing: border-box;
         }
 
-        .form-row {
-            display: flex;
-            gap: 1rem;
-        }
-
         .checkout-item {
             display: flex;
             align-items: center;
@@ -99,6 +96,16 @@
             background: #7a4a1f;
         }
 
+        .btn-postcode {
+            padding: 0.8rem 1.2rem;
+            background: #4a3e3d;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
         @media (max-width: 768px) {
             .checkout-container {
                 grid-template-columns: 1fr;
@@ -110,13 +117,13 @@
 <body>
     <header>
         <div class="nav-overlay"></div>
-        <a href="index.html" class="logo">영월방앗간</a>
+        <a href="index.html" class="logo">영월고향방앗간</a>
         <div class="nav-container">
             <nav class="gnb">
                 <a href="index.html">홈</a>
-                <a href="brand.html">브랜드 소개</a>
-                <a href="process.html">생산과정</a>
-                <a href="category.html">상품보기</a>
+                <a href="brand.html">방앗간 소개</a>
+                <a href="process.html">착유 공정</a>
+                <a href="category.html">전체 상품</a>
             </nav>
             <div class="utility">
                 <a href="login.html">로그인</a>
@@ -163,12 +170,15 @@
                     <input type="tel" id="recipientPhone" class="form-control" placeholder="010-0000-0000">
                 </div>
                 <div class="form-group">
-                    <label>우편번호</label>
-                    <input type="text" id="postalCode" class="form-control" placeholder="12345" style="max-width: 150px;">
+                    <label>우편번호 *</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="postalCode" class="form-control" placeholder="우편번호" readonly style="max-width: 150px;">
+                        <button type="button" class="btn-postcode" onclick="execDaumPostcode()">우편번호 검색</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>주소 *</label>
-                    <input type="text" id="address" class="form-control" placeholder="기본 주소 입력">
+                    <input type="text" id="address" class="form-control" placeholder="우편번호 검색을 이용해 주세요" readonly>
                 </div>
                 <div class="form-group">
                     <label>상세 주소</label>
@@ -190,13 +200,17 @@
                 </div>
 
                 <div style="border-top: 1px solid #ddd; padding-top: 1rem; margin-bottom: 1.5rem;">
-                    <div style="display:flex; justify-size:space-between; justify-content:space-between; margin-bottom:0.5rem;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
                         <span>총 상품 금액</span>
                         <span id="subtotalAmount">0원</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
-                        <span>배송비</span>
-                        <span style="color:var(--color-primary, #915a28); font-weight:600;">무료배송</span>
+                        <span>기본 배송비 (5만원 이상 무료)</span>
+                        <span id="baseShippingFee">3,000원</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;" id="remoteSurchargeRow">
+                        <span>도서산간/제주 추가 배송비</span>
+                        <span id="remoteSurchargeFee">0원</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; font-size:1.3rem; font-weight:700; color:#111; margin-top:1rem;">
                         <span>최종 결제 금액</span>
@@ -212,17 +226,55 @@
     <footer>
         <div class="footer-content">
             <div class="footer-info">
-                <span class="footer-logo">영월방앗간</span><br>
-                강원도 영월군 영월읍 방앗간길 123 | 고객센터: 1588-0000
+                <span class="footer-logo">영월고향방앗간</span><br>
+                강원특별자치도 영월군 영월읍 방앗간길 12 | 고객센터: 033-000-0000
             </div>
         </div>
-        <div class="copyright">&copy; 2026 영월방앗간. All rights reserved.</div>
+        <div class="copyright">&copy; 2026 영월고향방앗간. All rights reserved.</div>
     </footer>
 
     <script src="cart.js"></script>
     <script>
         let checkoutItems = [];
-        let totalAmount = 0;
+        let subtotalAmount = 0;
+        let baseShippingFee = 3000;
+        let remoteSurchargeFee = 0;
+        let finalAmount = 0;
+
+        function execDaumPostcode() {
+            new daum.Postcode({
+                oncomplete: function(data) {
+                    let addr = '';
+                    if (data.userSelectedType === 'R') {
+                        addr = data.roadAddress;
+                    } else {
+                        addr = data.jibunAddress;
+                    }
+                    document.getElementById('postalCode').value = data.zonecode;
+                    document.getElementById('address').value = addr;
+                    document.getElementById('addressDetail').focus();
+
+                    // 도서산간 배송비 갱신 체크 (제주/도서 지역 우편번호)
+                    const prefix = data.zonecode.substring(0, 2);
+                    if (['63', '23', '40', '54'].includes(prefix)) {
+                        remoteSurchargeFee = 3000;
+                    } else {
+                        remoteSurchargeFee = 0;
+                    }
+                    recalculateTotals();
+                }
+            }).open();
+        }
+
+        function recalculateTotals() {
+            baseShippingFee = subtotalAmount >= 50000 ? 0 : 3000;
+            finalAmount = subtotalAmount + baseShippingFee + remoteSurchargeFee;
+
+            document.getElementById('subtotalAmount').innerText = `${Number(subtotalAmount).toLocaleString()}원`;
+            document.getElementById('baseShippingFee').innerText = baseShippingFee === 0 ? '무료배송' : `${Number(baseShippingFee).toLocaleString()}원`;
+            document.getElementById('remoteSurchargeFee').innerText = `${Number(remoteSurchargeFee).toLocaleString()}원`;
+            document.getElementById('finalAmount').innerText = `${Number(finalAmount).toLocaleString()}원`;
+        }
 
         function initCheckout() {
             checkoutItems = JSON.parse(localStorage.getItem('yw_checkout_items')) || [];
@@ -232,7 +284,6 @@
                 return;
             }
 
-            // 회원 정보가 있으면 비회원 입력창 숨기기 및 기본값 채우기
             const user = JSON.parse(localStorage.getItem('yw_user') || 'null');
             const guestSection = document.getElementById('guestSection');
 
@@ -242,12 +293,11 @@
                 document.getElementById('recipientPhone').value = user.phone || '';
             }
 
-            // 주문 목록 렌더링
-            totalAmount = 0;
+            subtotalAmount = 0;
             const container = document.getElementById('checkoutItemList');
             container.innerHTML = checkoutItems.map(item => {
                 const itemTotal = item.price * item.quantity;
-                totalAmount += itemTotal;
+                subtotalAmount += itemTotal;
                 return `
                     <div class="checkout-item">
                         <div>
@@ -259,8 +309,7 @@
                 `;
             }).join('');
 
-            document.getElementById('subtotalAmount').innerText = `${Number(totalAmount).toLocaleString()}원`;
-            document.getElementById('finalAmount').innerText = `${Number(totalAmount).toLocaleString()}원`;
+            recalculateTotals();
         }
 
         async function requestPayment() {
@@ -275,7 +324,7 @@
             const deliveryMemo = document.getElementById('deliveryMemo').value.trim();
 
             if (!recipientName || !recipientPhone || !address) {
-                alert('수령인 성함, 연락처, 주소를 입력해 주세요.');
+                alert('수령인 성함, 연락처, 주소를 우편번호 검색을 이용해 올바르게 입력해 주세요.');
                 return;
             }
 
@@ -296,7 +345,6 @@
                 quantity: item.quantity
             }));
 
-            // 1. Backend 주문서 생성 API 호출
             try {
                 const headers = { 'Content-Type': 'application/json' };
                 if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -325,19 +373,16 @@
                 }
 
                 const orderNumber = result.order_number;
-
-                // 2. Portone PG SDK V2 호출 (가상/테스트 모듈)
                 const paymentId = `pay_${Date.now()}_${Math.floor(Math.random()*1000)}`;
 
-                try {
-                    // Portone.requestPayment 호출 (테스트 채널)
-                    if (window.Portone) {
-                        const response = await Portone.requestPayment({
-                            storeId: "store-test-id", // 가상 테스트 스토어 ID
+                if (window.Portone) {
+                    try {
+                        await Portone.requestPayment({
+                            storeId: "store-test-id",
                             channelKey: "channel-key-test",
                             paymentId: paymentId,
                             orderName: checkoutItems[0].name + (checkoutItems.length > 1 ? ` 외 ${checkoutItems.length - 1}건` : ''),
-                            totalAmount: totalAmount,
+                            totalAmount: finalAmount,
                             currency: "CURRENCY_KRW",
                             payMethod: "CARD",
                             customer: {
@@ -345,18 +390,11 @@
                                 phoneNumber: user ? user.phone : guestPhone
                             }
                         });
-
-                        if (response && response.code != null) {
-                            alert(`결제 실패/취소: ${response.message || '결제가 취소되었습니다.'}`);
-                            return;
-                        }
+                    } catch (pErr) {
+                        console.log("Portone SDK call:", pErr);
                     }
-                } catch (portoneErr) {
-                    console.log("Portone SDK test modal fallback simulation:", portoneErr);
-                    // 테스트 연동 시 모달 팝업 데모 안내 후 가상 결제 진행
                 }
 
-                // 3. 백엔드 결제 완결 & 사후 검증 API 호출
                 const verifyResp = await fetch('/api/payment/complete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -368,12 +406,9 @@
 
                 const verifyResult = await verifyResp.json();
                 if (verifyResp.ok) {
-                    // 장바구니 및 구매 대기 항목 초기화
                     localStorage.removeItem('yw_cart');
                     localStorage.removeItem('yw_checkout_items');
-                    updateCartCount();
-
-                    // 완료 페이지 이동
+                    if (typeof updateCartCount === 'function') updateCartCount();
                     window.location.href = `order-complete.html?order_number=${orderNumber}`;
                 } else {
                     alert(verifyResult.error || '결제 검증 실패');
@@ -388,4 +423,5 @@
         document.addEventListener('DOMContentLoaded', initCheckout);
     </script>
 </body>
+
 </html>

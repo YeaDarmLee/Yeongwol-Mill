@@ -6,18 +6,19 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config
 
 def hash_password(password):
-    """비밀번호 단방향 암호화 (Werkzeug/pbkdf2:sha256/bcrypt)"""
+    """비밀번호 단방향 암호화 (Werkzeug/pbkdf2:sha256)"""
     return generate_password_hash(password)
 
 def check_password(password, password_hash):
     """비밀번호 검증"""
     return check_password_hash(password_hash, password)
 
-def generate_jwt_token(user_id, email):
-    """JWT 토큰 생성"""
+def generate_jwt_token(user_id, email, role='USER'):
+    """JWT 토큰 생성 (role 포함)"""
     payload = {
         'user_id': user_id,
         'email': email,
+        'role': role,
         'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=Config.JWT_EXPIRATION_HOURS),
         'iat': datetime.datetime.utcnow()
     }
