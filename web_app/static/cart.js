@@ -1,4 +1,4 @@
-// 영월고향방앗간 공통 스크립트 (장바구니 & JWT 로그인 상태 관리)
+// 영월고향방앗간 공통 스크립트 (페이지 트랜지션, 장바구니 & JWT 로그인 상태 관리)
 
 function triggerCartBadgePulse() {
     const badge = document.querySelector('.cart-badge');
@@ -87,8 +87,39 @@ function logoutUser(e) {
     window.location.href = '/';
 }
 
+// 페이지 전환(Smooth Page Transition) 시스템
+function initPageTransitions() {
+    document.body.classList.add('page-loaded');
+
+    document.addEventListener('click', (e) => {
+        const anchor = e.target.closest('a');
+        if (!anchor) return;
+        const href = anchor.getAttribute('href');
+        
+        // 외부 링크, 앵커, JS 스크립트 실행 링크 등은 제외
+        if (!href || href.startsWith('#') || href.startsWith('javascript:') || anchor.target === '_blank' || anchor.hasAttribute('onclick')) {
+            return;
+        }
+        
+        // 동일 도메인 내 내부 페이지 이동 시 페이드아웃 후 전환
+        if (href.startsWith('/') || href.startsWith(window.location.origin)) {
+            e.preventDefault();
+            document.body.classList.remove('page-loaded');
+            setTimeout(() => {
+                window.location.href = href;
+            }, 200);
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     updateHeaderAuthUI();
+    initPageTransitions();
+});
+
+// 브라우저 뒤로가기/앞으로가기 BFCache 호환성 처리
+window.addEventListener('pageshow', (e) => {
+    document.body.classList.add('page-loaded');
 });
 
 // Login Modal Handlers

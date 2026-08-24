@@ -53,6 +53,11 @@ body {
     overflow-x: hidden;
     word-break: keep-all;
     overflow-wrap: break-word;
+    opacity: 0;
+    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+body.page-loaded {
+    opacity: 1;
 }
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
