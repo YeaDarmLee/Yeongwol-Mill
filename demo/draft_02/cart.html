@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>장바구니 - 영월방앗간</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>장바구니 - 영월고향방앗간</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <style>
         .cart-wrapper {
@@ -13,22 +16,26 @@
             gap: 40px;
             margin-top: 40px;
         }
+
         .cart-items {
             flex: 2;
             min-width: 300px;
         }
+
         .cart-summary {
             flex: 1;
             min-width: 300px;
             position: sticky;
             top: 40px;
         }
+
         .summary-row {
             display: flex;
             justify-content: space-between;
             margin-bottom: 16px;
             font-size: 15px;
         }
+
         .summary-total {
             font-size: 24px;
             font-weight: 700;
@@ -39,11 +46,12 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
         <div class="container">
-            <a href="index.html" class="logo">영월방앗간</a>
+            <a href="index.html" class="logo">영월고향방앗간</a>
             <button class="hamburger" id="hamburger-menu" aria-label="메뉴 열기">
                 <span></span>
                 <span></span>
@@ -51,32 +59,32 @@
             </button>
             <div class="nav-wrapper" id="nav-wrapper">
                 <nav class="nav-links">
-                <a href="index.html">홈</a>
-                <a href="brand.html">브랜드 소개</a>
-                <a href="process.html">생산과정</a>
-                <a href="products.html">상품보기</a>
-            </nav>
+                    <a href="index.html">홈</a>
+                    <a href="brand.html">브랜드 소개</a>
+                    <a href="process.html">생산과정</a>
+                    <a href="products.html">상품보기</a>
+                </nav>
                 <div class="header-actions">
-                <a href="login.html">로그인</a>
-                <a href="cart.html">장바구니</a>
-            </div>
+                    <a href="login.html">로그인</a>
+                    <a href="cart.html">장바구니</a>
+                </div>
             </div>
         </div>
     </header>
 
     <main class="section container">
         <h1 class="font-serif" style="text-align: center; margin-bottom: 40px; font-size: 32px;">장바구니</h1>
-        
+
         <div class="cart-wrapper" id="cart-content">
             <!-- 장바구니 내용은 아래 자바스크립트로 렌더링됩니다 -->
         </div>
     </main>
 
-        <!-- Footer -->
+    <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-info">
-                <span class="footer-logo">영월방앗간</span>
+                <span class="footer-logo">영월고향방앗간</span>
                 강원도 영월군 영월읍 하송로 123<br>
                 대표자: 이영월 | 사업자등록번호: 123-45-67890<br>
                 통신판매업신고: 2026-강원영월-0123<br>
@@ -89,7 +97,7 @@
             </div>
         </div>
         <div class="copyright">
-            &copy; 2026 영월방앗간. All rights reserved.
+            &copy; 2026 영월고향방앗간. All rights reserved.
         </div>
     </footer>
     <script src="cart.js"></script>
@@ -172,4 +180,5 @@
         document.addEventListener('DOMContentLoaded', renderCart);
     </script>
 </body>
+
 </html>

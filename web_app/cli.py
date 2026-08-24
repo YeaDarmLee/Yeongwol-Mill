@@ -64,3 +64,10 @@ def register_cli_commands(app):
                 conn.close()
 
         click.echo(f"성공: 총 {count}건의 미결제 재고 예약이 만료 해제(reserved_stock 복구)되었습니다.")
+
+    @app.cli.command("reconcile-refunds")
+    def reconcile_refunds_cmd():
+        """REFUND_PENDING 및 CANCEL_REQUESTED 대상 PG Refund Reconciliation 실행"""
+        from routes.payment import reconcile_pending_refunds
+        count = reconcile_pending_refunds()
+        click.echo(f"성공: 총 {count}건의 환불 대사 및 상태 복구가 처리되었습니다.")

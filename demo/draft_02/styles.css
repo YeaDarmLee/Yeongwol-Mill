@@ -1,25 +1,30 @@
 @charset "UTF-8";
 
 /* ==========================================================================
-   영월방앗간 Draft 02 - Design System (Celadon & Hanji - 3rd iteration)
+   영월고향방앗간 Draft 02 - Design System (Celadon & Hanji - 3rd iteration)
    ========================================================================== */
 
 :root {
   /* Color Palette (청자색 중심의 완전히 새로운 배색) */
-  --color-primary: #45735b; /* Celadon Green: 가독성을 높인 진하고 깊은 옥색 */
+  --color-primary: #45735b;
+  /* Celadon Green: 가독성을 높인 진하고 깊은 옥색 */
   --color-primary-dark: #2a4d3a;
-  --color-secondary: #f6f5f0; /* Hanji White: 밝은 한지 베이스 */
-  --color-accent: #c48f56; /* 따뜻한 모래색 포인트 */
+  --color-secondary: #f6f5f0;
+  /* Hanji White: 밝은 한지 베이스 */
+  --color-accent: #c48f56;
+  /* 따뜻한 모래색 포인트 */
   --color-bg-white: #ffffff;
-  --color-text-main: #16201a; /* 더 어둡고 선명한 먹색으로 가독성 강화 */
-  --color-text-muted: #4a5750; /* 대비를 높인 서브 텍스트 */
-  
+  --color-text-main: #16201a;
+  /* 더 어둡고 선명한 먹색으로 가독성 강화 */
+  --color-text-muted: #4a5750;
+  /* 대비를 높인 서브 텍스트 */
+
   /* Typography - 5060 맞춤 가독성 유지 */
   --font-family-serif: 'Noto Serif KR', 'Nanum Myeongjo', serif;
   --font-family-sans: 'Pretendard', 'Noto Sans KR', sans-serif;
-  
+
   --font-size-xs: 16px;
-  --font-size-sm: 18px; 
+  --font-size-sm: 18px;
   --font-size-md: 20px;
   --font-size-lg: 26px;
   --font-size-xl: 36px;
@@ -34,9 +39,11 @@
 
   /* Curves & Depth (도자기 같은 우아한 곡선) */
   --radius-md: 16px;
-  --radius-lg: 24px; /* 살짝 줄여서 덜 극단적인 둥근 모서리로 변경 */
+  --radius-lg: 24px;
+  /* 살짝 줄여서 덜 극단적인 둥근 모서리로 변경 */
   --radius-full: 999px;
-  --shadow-soft: 0 10px 40px rgba(125, 155, 139, 0.08); /* 청자색이 감도는 부드러운 그림자 */
+  --shadow-soft: 0 10px 40px rgba(125, 155, 139, 0.08);
+  /* 청자색이 감도는 부드러운 그림자 */
 }
 
 /* ==========================================================================
@@ -54,7 +61,7 @@ body {
   color: var(--color-text-main);
   background-color: var(--color-secondary);
   /* 텍스처를 제거하고 부드러운 그라데이션만 남겨 가독성을 확보 */
-  background-image: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.8) 0%, transparent 100%);
+  background-image: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.8) 0%, transparent 100%);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   word-break: keep-all;
@@ -73,16 +80,31 @@ img {
 /* ==========================================================================
    Typography
    ========================================================================== */
-h1, h2, h3, .font-serif {
+h1,
+h2,
+h3,
+.font-serif {
   font-family: var(--font-family-serif);
-  font-weight: 600; /* 5060 타겟층 가독성을 위해 두께 강화 */
+  font-weight: 600;
+  /* 5060 타겟층 가독성을 위해 두께 강화 */
   line-height: 1.3;
   color: var(--color-text-main);
 }
 
-h1 { font-size: var(--font-size-xxl); letter-spacing: -0.02em; }
-h2 { font-size: var(--font-size-xl); margin-bottom: var(--spacing-sm); letter-spacing: -0.02em; }
-h3 { font-size: var(--font-size-lg); }
+h1 {
+  font-size: var(--font-size-xxl);
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-sm);
+  letter-spacing: -0.02em;
+}
+
+h3 {
+  font-size: var(--font-size-lg);
+}
 
 .section-title {
   text-align: center;
@@ -128,7 +150,8 @@ h3 { font-size: var(--font-size-lg); }
   padding: 16px 40px;
   font-size: var(--font-size-md);
   font-weight: 500;
-  border-radius: 8px; /* 너무 과했던 곡률 완화 */
+  border-radius: 8px;
+  /* 너무 과했던 곡률 완화 */
   cursor: pointer;
   transition: all 0.3s ease;
   border: none;
@@ -164,7 +187,7 @@ h3 { font-size: var(--font-size-lg); }
   overflow: hidden;
   box-shadow: var(--shadow-soft);
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid rgba(255,255,255,0.8);
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
 .card:hover {
@@ -182,10 +205,12 @@ h3 { font-size: var(--font-size-lg); }
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
 }
+
 .gift-card-img {
   flex: 1;
   min-width: 300px;
 }
+
 .gift-card-content {
   flex: 1;
   min-width: 300px;
@@ -226,8 +251,10 @@ h3 { font-size: var(--font-size-lg); }
 .logo {
   font-family: var(--font-family-serif);
   font-size: 28px;
-  font-weight: 700; /* 로고 두께 추가 */
-  color: var(--color-primary); /* 로고도 옥색으로 맑게 */
+  font-weight: 700;
+  /* 로고 두께 추가 */
+  color: var(--color-primary);
+  /* 로고도 옥색으로 맑게 */
 }
 
 /* 햄버거 메뉴 추가 */
@@ -353,7 +380,8 @@ h3 { font-size: var(--font-size-lg); }
   display: inline-flex;
   align-items: center;
   border: 1px solid rgba(69, 115, 91, 0.3);
-  border-radius: 8px; /* 버튼과 통일 */
+  border-radius: 8px;
+  /* 버튼과 통일 */
   overflow: hidden;
   background-color: var(--color-bg-white);
 }
@@ -441,17 +469,17 @@ h3 { font-size: var(--font-size-lg); }
     --font-size-xxl: 36px;
     --spacing-xl: 60px;
   }
-  
+
   .header .container {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
   }
-  
+
   .hamburger {
     display: flex;
   }
-  
+
   .nav-wrapper {
     position: absolute;
     top: 100%;
@@ -461,61 +489,65 @@ h3 { font-size: var(--font-size-lg); }
     backdrop-filter: blur(12px);
     flex-direction: column;
     padding: var(--spacing-lg) var(--spacing-md);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
     display: none;
     border-bottom: 1px solid rgba(125, 155, 139, 0.1);
   }
-  
+
   .nav-wrapper.active {
     display: flex;
   }
-  
+
   .nav-links {
     flex-direction: column;
     align-items: center;
     gap: var(--spacing-md);
     margin-bottom: var(--spacing-lg);
   }
-  
+
   .header-actions {
     flex-direction: row;
     justify-content: center;
     width: 100%;
     gap: var(--spacing-lg);
   }
-  
+
   /* hamburger active animation */
   .hamburger.active span:nth-child(1) {
     transform: translateY(8px) rotate(45deg);
   }
+
   .hamburger.active span:nth-child(2) {
     opacity: 0;
   }
+
   .hamburger.active span:nth-child(3) {
     transform: translateY(-8px) rotate(-45deg);
   }
-  
+
   .hero {
     padding: 80px 0;
   }
-  
+
   .product-img {
     height: 300px !important;
   }
-  
+
   .brand-banner {
     padding: 60px 20px !important;
   }
-  
+
   .card {
     padding: 24px !important;
   }
-  
+
   .gift-card {
     padding: var(--spacing-md) !important;
     gap: var(--spacing-md) !important;
   }
-  .gift-card-img, .gift-card-content {
+
+  .gift-card-img,
+  .gift-card-content {
     min-width: 100% !important;
     padding: 0 !important;
   }
@@ -524,11 +556,12 @@ h3 { font-size: var(--font-size-lg); }
   .footer {
     padding: 3rem 20px;
   }
+
   .footer-content {
     flex-direction: column;
     gap: 32px;
   }
-  
+
   .footer-links {
     flex-direction: row;
     flex-wrap: wrap;
@@ -539,12 +572,12 @@ h3 { font-size: var(--font-size-lg); }
 
 /* Cart Badge */
 .cart-badge {
-    background-color: var(--color-accent);
-    color: var(--color-bg-white);
-    font-size: 12px;
-    font-weight: bold;
-    padding: 2px 6px;
-    border-radius: 12px;
-    margin-left: 4px;
-    vertical-align: middle;
+  background-color: var(--color-accent);
+  color: var(--color-bg-white);
+  font-size: 12px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 12px;
+  margin-left: 4px;
+  vertical-align: middle;
 }

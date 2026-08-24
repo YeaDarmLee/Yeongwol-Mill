@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="alternate icon" type="image/png" href="/favicon.png">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/admin/css/admin.css">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- 1. 관리자 로그인 폼 -->
+    <div id="login-section" class="login-wrapper">
+        <h2 style="font-family:'Noto Serif KR', serif;">영월고향방앗간</h2>
+        <p style="font-size:0.9rem; color:#777; margin-bottom:1.5rem;">통합 관리자 시스템 로그인</p>
+        <form id="admin-login-form" onsubmit="handleAdminLogin(event)">
+            <div class="form-group">
+                <label>관리자 이메일</label>
+                <input type="email" id="admin-email" class="form-control" placeholder="admin@example.com" required>
+            </div>
+            <div class="form-group">
+                <label>비밀번호</label>
+                <input type="password" id="admin-password" class="form-control" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-admin">로그인</button>
+        </form>
+    </div>
+
+    <!-- 2. 멀티 페이지 관리자 레이아웃 -->
+    <div id="admin-app" class="admin-layout" style="display:none;">
+        <!-- 사이드바 네비게이션 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                영월고향방앗간
+                <span
+                    style="font-size:0.7rem; background:var(--admin-primary); color:#fff; padding:2px 6px; border-radius:3px;">ADMIN</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li id="menu-dashboard" class="active"><a href="#dashboard">대시보드</a></li>
+                <li id="menu-orders"><a href="#orders">주문 & 배송 관리</a></li>
+                <li id="menu-products"><a href="#products">상품 & 재고 관리</a></li>
+                <li id="menu-customers"><a href="#customers">회원 관리</a></li>
+                <li id="menu-audit"><a href="#audit">운영 감사로그</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <div id="admin-user-display" style="font-weight:600; color:#ddd; margin-bottom:8px;"></div>
+                <button onclick="logoutAdmin()"
+                    style="background:none; border:1px solid #555; color:#ccc; padding:4px 10px; border-radius:4px; cursor:pointer; width:100%;">로그아웃</button>
+            </div>
+        </aside>
+
+        <!-- 메인 콘텐츠 영역 -->
+        <main class="main-content">
+            <!-- PAGE 1: 실운영 대시보드 -->
+            <div id="view-dashboard" class="page-view active">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title" style="display:inline-block; margin-right:12px;">대시보드</h1>
+                        <span style="font-size:0.85rem; color:rgba(255,255,255,0.85) !important;">오늘 실시간 운영 현황 (KST
+                            기준)</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-size:0.8rem; color:rgba(255,255,255,0.85) !important;">마지막 갱신: <strong
+                                id="dash-as-of" style="color:#ffffff !important;">-</strong></span>
+                        <button class="btn-action"
+                            style="background:rgba(255,255,255,0.18); border:1.5px solid rgba(255,255,255,0.4); color:#fff;"
+                            onclick="loadDashboardMetrics()">
+                            ↻ 지금 새로고침
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 1. 최상단 5개 KPI 카드 -->
+                <div class="dashboard-kpi-grid">
+                    <div class="kpi-card" onclick="navigateToOrdersWithFilter('', 'PAID')">
+                        <div class="kpi-label">오늘 결제 완료 주문</div>
+                        <div class="kpi-val" id="val-kpi-today-orders">0건</div>
+                        <div class="kpi-sub">오늘 결제 승인 건수</div>
+                    </div>
+                    <div class="kpi-card highlight-success" onclick="navigateToOrdersWithFilter('', 'PAID')">
+                        <div class="kpi-label">오늘 순매출</div>
+                        <div class="kpi-val" id="val-kpi-today-net" style="color:#2e7d32;">0원</div>
+                        <div class="kpi-sub">
+                            <span>총결제: <span id="val-kpi-gross-sub">0원</span></span>
+                            <span style="color:#d32f2f;">환불: <span id="val-kpi-refund-sub">0원</span></span>
+                        </div>
+                    </div>
+                    <div class="kpi-card highlight-warning" onclick="navigateToOrdersWithFilter('PREPARING', '')">
+                        <div class="kpi-label">출고 대기</div>
+                        <div class="kpi-val" id="val-kpi-preparing" style="color:#ed6c02;">0건</div>
+                        <div class="kpi-sub">상품 준비중 상태</div>
+                    </div>
+                    <div class="kpi-card highlight-danger" onclick="navigateToOrdersWithFilter('', '', 'RECONCILING')">
+                        <div class="kpi-label">환불 / 대조 중</div>
+                        <div class="kpi-val" id="val-kpi-reconciling" style="color:#d32f2f;">0건</div>
+                        <div class="kpi-sub" id="val-kpi-reconcile-sub">처리/승인/대조 필요</div>
+                    </div>
+                    <div class="kpi-card" onclick="navigatePage('products')">
+                        <div class="kpi-label">재고 경고 상품</div>
+                        <div class="kpi-val" id="val-kpi-lowstock">0개</div>
+                        <div class="kpi-sub">가용 재고 10개 이하</div>
+                    </div>
+                </div>
+
+                <!-- 2. 업무 Queue & 운영 추이 2분할 -->
+                <div class="dashboard-split-grid">
+                    <div class="admin-section" style="margin-bottom:0;">
+                        <div class="section-header">
+                            <h3 class="section-title">주문 현황</h3>
+                        </div>
+
+                        <!-- 윗줄: 정상 주문 프로세스 (5개) -->
+                        <div
+                            style="font-size:0.75rem; font-weight:700; color:#555; margin-bottom:6px; display:flex; align-items:center; gap:5px;">
+                            <span
+                                style="display:inline-block; width:6px; height:6px; background:#c59b27; border-radius:50%;"></span>
+                            정상 주문 프로세스
+                        </div>
+                        <div class="work-queue-grid" style="margin-bottom:12px;">
+                            <div class="queue-card" onclick="navigateToOrdersWithFilter('PENDING', '')" id="qc-pending">
+                                <div class="q-title">신규 주문대기</div>
+                                <div class="q-count" id="q-val-pending">0</div>
+                            </div>
+                            <div class="queue-card" onclick="navigateToOrdersWithFilter('CONFIRMED', '')"
+                                id="qc-confirmed">
+                                <div class="q-title">주문 확정</div>
+                                <div class="q-count" id="q-val-confirmed">0</div>
+                            </div>
+                            <div class="queue-card" onclick="navigateToOrdersWithFilter('PREPARING', '')"
+                                id="qc-preparing">
+                                <div class="q-title">상품 준비중</div>
+                                <div class="q-count" id="q-val-preparing">0</div>
+                            </div>
+                            <div class="queue-card" onclick="navigateToOrdersWithFilter('SHIPPING', '')"
+                                id="qc-shipping">
+                                <div class="q-title">배송 중</div>
+                                <div class="q-count" id="q-val-shipping">0</div>
+                            </div>
+                            <div class="queue-card" onclick="navigateToOrdersWithFilter('DELIVERED', '')"
+                                id="qc-delivered">
+                                <div class="q-title">배송 완료</div>
+                                <div class="q-count" id="q-val-delivered">0</div>
+                            </div>
+                        </div>
+
+                        <!-- 아래줄: 클레임 및 이슈 관리 (5개) -->
+                        <div
+                            style="font-size:0.75rem; font-weight:700; color:#c62828; margin-bottom:6px; display:flex; align-items:center; gap:5px;">
+                            <span
+                                style="display:inline-block; width:6px; height:6px; background:#d32f2f; border-radius:50%;"></span>
+                            클레임 & 이슈 관리
+                        </div>
+                        <div class="work-queue-grid">
+                            <div class="queue-card" onclick="navigateToOrdersWithFilter('PREPARING', '', '', 'true')"
+                                id="qc-stale-preparing">
+                                <div class="q-title">24H+ 지연출고</div>
+                                <div class="q-count" id="q-val-stale-preparing">0</div>
+                            </div>
+                            <div class="queue-card" onclick="navigateToOrdersWithFilter('', '', 'PENDING')"
+                                id="qc-refund-req">
+                                <div class="q-title">환불 접수대기</div>
+                                <div class="q-count" id="q-val-refund-req">0</div>
+                            </div>
+                            <div class="queue-card" onclick="navigateToOrdersWithFilter('', '', 'PROCESSING')"
+                                id="qc-refund-proc">
+                                <div class="q-title">환불 처리중</div>
+                                <div class="q-count" id="q-val-refund-proc">0</div>
+                            </div>
+                            <div class="queue-card" onclick="navigateToOrdersWithFilter('', '', 'RECONCILING')"
+                                id="qc-reconciling">
+                                <div class="q-title">상태 대조중</div>
+                                <div class="q-count" id="q-val-reconciling">0</div>
+                            </div>
+                            <div class="queue-card" onclick="navigateToOrdersWithFilter('', '', '', '', 'true')"
+                                id="qc-mismatch">
+                                <div class="q-title">금액 불일치</div>
+                                <div class="q-count" id="q-val-mismatch">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="admin-section" style="margin-bottom:0;">
+                        <div class="section-header">
+                            <h3 class="section-title">운영 추이</h3>
+                            <div class="chart-tab-group">
+                                <button id="btn-chart-7d" class="chart-tab-btn active"
+                                    onclick="switchTrendPeriod(7)">7일</button>
+                                <button id="btn-chart-30d" class="chart-tab-btn"
+                                    onclick="switchTrendPeriod(30)">30일</button>
+                            </div>
+                        </div>
+                        <div
+                            style="position:relative; width:100%; height:220px; background:#faf8f5; border-radius:8px; padding:10px; box-sizing:border-box;">
+                            <canvas id="dashTrendCanvas" style="width:100%; height:100%;"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. 최근 주문 목록 테이블 -->
+                <div class="admin-section">
+                    <div class="section-header">
+                        <h3 class="section-title">최근 주문 목록</h3>
+                        <button class="btn-action"
+                            style="font-size:0.8rem; background:none; border:none; color:var(--admin-primary); font-weight:600; cursor:pointer;"
+                            onclick="navigatePage('orders')">
+                            전체 주문 보기 &gt;
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>주문번호</th>
+                                    <th>주문일시</th>
+                                    <th>구매자</th>
+                                    <th>결제금액</th>
+                                    <th>주문상태</th>
+                                    <th>결제상태</th>
+                                    <th>송장 등록</th>
+                                    <th>관리</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-recent-orders-tbody">
+                                <tr>
+                                    <td colspan="8" style="text-align:center; color:#777;">최근 주문을 불러오는 중...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 4. 운영 알림 & 재고 경고 상품 2분할 -->
+                <div class="dashboard-split-grid">
+                    <div class="admin-section" style="margin-bottom:0;">
+                        <div class="section-header">
+                            <h3 class="section-title">운영 알림</h3>
+                        </div>
+                        <div id="dashboard-alerts-container">
+                            <div class="alert-empty-success">
+                                현재 긴급 운영 이슈가 없습니다.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="admin-section" style="margin-bottom:0;">
+                        <div class="section-header">
+                            <h3 class="section-title">품절 임박 및 재고 경고 상품</h3>
+                        </div>
+                        <div id="dash-stock-wrapper" class="table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>상품명</th>
+                                        <th>옵션명</th>
+                                        <th>보유</th>
+                                        <th>예약</th>
+                                        <th>가용</th>
+                                        <th>관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dash-stock-tbody">
+                                    <tr>
+                                        <td colspan="6" style="text-align:center; color:#777;">재고 데이터를 불러오는 중입니다...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE 2: 주문 & 배송 관리 -->
+            <div id="view-orders" class="page-view">
+                <div class="page-header">
+                    <h1 class="page-title">주문 및 배송 관리</h1>
+                </div>
+
+                <!-- 주문 필터 바 -->
+                <div class="filter-bar">
+                    <div class="filter-field">
+                        <label>주문 상태</label>
+                        <select id="order-status-filter" style="width:120px;">
+                            <option value="">전체</option>
+                            <option value="PENDING">주문 대기</option>
+                            <option value="CONFIRMED">주문 확정</option>
+                            <option value="PREPARING">상품 준비중</option>
+                            <option value="SHIPPING">배송 중</option>
+                            <option value="DELIVERED">배송 완료</option>
+                            <option value="CANCELLED">주문 취소</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label>결제 상태</label>
+                        <select id="payment-status-filter" style="width:120px;">
+                            <option value="">전체</option>
+                            <option value="PENDING">결제 대기</option>
+                            <option value="PAID">결제 완료</option>
+                            <option value="PARTIALLY_REFUNDED">부분 환불</option>
+                            <option value="REFUNDED">전액 환불</option>
+                            <option value="FAILED">결제 실패</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label>환불 상태</label>
+                        <select id="refund-status-filter" style="width:120px;">
+                            <option value="">전체</option>
+                            <option value="PENDING">접수 대기</option>
+                            <option value="PROCESSING">처리 중</option>
+                            <option value="RECONCILING">상태 대조중</option>
+                            <option value="COMPLETED">환불 완료</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label>송장 미등록</label>
+                        <select id="unregistered-tracking-filter" style="width:96px;">
+                            <option value="">전체</option>
+                            <option value="true">미등록만</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label>금액 불일치</label>
+                        <select id="amount-mismatch-filter" style="width:96px;">
+                            <option value="">전체</option>
+                            <option value="true">불일치만</option>
+                        </select>
+                    </div>
+                    <div class="filter-field" style="flex:1; min-width:160px;">
+                        <label>키워드 검색</label>
+                        <input type="text" id="order-keyword-filter" class="form-control"
+                            placeholder="주문번호, 수령인, 전화번호..." onkeydown="if(event.key==='Enter') filterOrders()">
+                    </div>
+                    <div class="filter-btn-group">
+                        <button class="btn-filter-search" onclick="filterOrders()">검색</button>
+                        <button class="btn-filter-reset" onclick="resetOrderFilters()">✕ 초기화</button>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>주문번호</th>
+                                    <th>수령인</th>
+                                    <th>연락처</th>
+                                    <th>결제금액</th>
+                                    <th>주문상태</th>
+                                    <th>결제상태</th>
+                                    <th>송장 등록</th>
+                                    <th>관리</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-tbody">
+                                <tr>
+                                    <td colspan="9" style="text-align:center;">주문 데이터를 불러오는 중입니다...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="orders-pagination"></div>
+                </div>
+            </div>
+
+            <!-- PAGE 3: 상품 & 재고 관리 -->
+            <div id="view-products" class="page-view">
+                <div class="page-header">
+                    <h1 class="page-title">상품 및 재고 관리</h1>
+                    <button class="btn-filter-search" onclick="openAddProductModal()">+ 신규 상품 등록</button>
+                </div>
+
+                <!-- 상품 필터 바 -->
+                <div class="filter-bar">
+                    <div class="filter-field" style="flex:1; min-width:160px;">
+                        <label>키워드 검색</label>
+                        <input type="text" id="product-keyword-filter" class="form-control" placeholder="상품명 검색..."
+                            onkeydown="if(event.key==='Enter') filterProducts()">
+                    </div>
+                    <div class="filter-field">
+                        <label>카테고리</label>
+                        <select id="product-category-filter" style="width:130px;">
+                            <option value="">전체</option>
+                            <option value="1">참기름</option>
+                            <option value="2">들기름</option>
+                            <option value="3">고춧가루</option>
+                            <option value="4">선물세트</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label>판매 상태</label>
+                        <select id="product-active-filter" style="width:110px;">
+                            <option value="">전체</option>
+                            <option value="1">판매중</option>
+                            <option value="0">판매중지</option>
+                        </select>
+                    </div>
+                    <div class="filter-btn-group">
+                        <button class="btn-filter-search" onclick="filterProducts()">검색</button>
+                        <button class="btn-filter-reset" onclick="resetProductFilters()">✕ 초기화</button>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>상품명</th>
+                                    <th>판매가</th>
+                                    <th>옵션 및 재고 현황</th>
+                                    <th>판매 상태</th>
+                                    <th>관리 및 수정</th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-tbody">
+                                <tr>
+                                    <td colspan="6" style="text-align:center;">상품 목록을 불러오는 중입니다...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="products-pagination"></div>
+                </div>
+            </div>
+
+            <!-- PAGE 4: 가입 회원 리스트 관리 -->
+            <div id="view-customers" class="page-view">
+                <div class="page-header">
+                    <h1 class="page-title">회원 관리</h1>
+                </div>
+
+                <!-- 회원 필터 바 -->
+                <div class="filter-bar">
+                    <div class="filter-field" style="flex:1; min-width:180px;">
+                        <label>이름 / 이메일 / 전화번호</label>
+                        <input type="text" id="customer-search-input" class="form-control" placeholder="검색어 입력..."
+                            onkeydown="if(event.key==='Enter') filterCustomerList()">
+                    </div>
+                    <div class="filter-field">
+                        <label>계정 상태</label>
+                        <select id="customer-status-filter" style="width:130px;">
+                            <option value="">전체</option>
+                            <option value="ACTIVE">정상 (ACTIVE)</option>
+                            <option value="SUSPENDED">정지 (SUSPENDED)</option>
+                        </select>
+                    </div>
+                    <div class="filter-btn-group">
+                        <button class="btn-filter-search" onclick="filterCustomerList()">검색</button>
+                        <button class="btn-filter-reset" onclick="resetCustomerFilters()">✕ 초기화</button>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>회원 ID</th>
+                                    <th>회원 이름</th>
+                                    <th>이메일 주소</th>
+                                    <th>연락처</th>
+                                    <th>계정 상태</th>
+                                    <th>마케팅 동의(SMS/이메일)</th>
+                                    <th>가입 일시</th>
+                                    <th>관리</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customers-tbody">
+                                <tr>
+                                    <td colspan="8" style="text-align:center;">회원 데이터를 불러오는 중입니다...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="customers-pagination"></div>
+                </div>
+            </div>
+
+            <!-- PAGE 5: 운영 감사로그 -->
+            <div id="view-audit" class="page-view">
+                <div class="page-header">
+                    <h1 class="page-title">운영 감사로그</h1>
+                </div>
+
+                <!-- 감사로그 필터 바 -->
+                <div class="filter-bar">
+                    <div class="filter-field" style="flex:1; min-width:180px;">
+                        <label>키워드 검색</label>
+                        <input type="text" id="audit-keyword-filter" class="form-control"
+                            placeholder="관리자 이메일, 대상ID, 사유..." onkeydown="if(event.key==='Enter') filterAuditLogs()">
+                    </div>
+                    <div class="filter-field">
+                        <label>액션 유형</label>
+                        <select id="audit-action-filter" style="width:160px;">
+                            <option value="">전체 액션</option>
+                            <option value="ADMIN_LOGIN_SUCCESS">로그인 성공</option>
+                            <option value="ADMIN_LOGIN_FAILED">로그인 실패</option>
+                            <option value="ORDER_STATUS_UPDATE">주문상태 변경</option>
+                            <option value="TRACKING_REGISTERED">운송장 등록/수정</option>
+                            <option value="SHIPPING_ADDRESS_UPDATE">배송지 변경</option>
+                            <option value="REFUND_EXECUTE">환불 승인/실행</option>
+                            <option value="USER_INFO_UPDATE">회원 정보 수정</option>
+                            <option value="USER_STATUS_TOGGLE">계정 상태 변경</option>
+                            <option value="PII_VIEW">개인정보 원문 조회</option>
+                            <option value="PRODUCT_CREATE">상품 신규 등록</option>
+                            <option value="PRODUCT_UPDATE">상품 정보 수정</option>
+                            <option value="OPTION_STOCK_UPDATE">재고 조정</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label>대상 유형</label>
+                        <select id="audit-target-filter" style="width:120px;">
+                            <option value="">전체 대상</option>
+                            <option value="ORDER">주문 (ORDER)</option>
+                            <option value="USER">회원 (USER)</option>
+                            <option value="PRODUCT">상품 (PRODUCT)</option>
+                            <option value="ADMIN">관리자 (ADMIN)</option>
+                        </select>
+                    </div>
+                    <div class="filter-btn-group">
+                        <button class="btn-filter-search" onclick="filterAuditLogs()">검색</button>
+                        <button class="btn-filter-reset" onclick="resetAuditFilters()">✕ 초기화</button>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>관리자 계정</th>
+                                    <th>액션 구분</th>
+                                    <th>대상 유형</th>
+                                    <th>대상 ID</th>
+                                    <th>사유/메모</th>
+                                    <th>결과</th>
+                                    <th>IP 주소</th>
+                                    <th>발생 일시</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audit-tbody">
+                                <tr>
+                                    <td colspan="9" style="text-align:center;">감사로그를 불러오는 중입니다...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="audit-pagination"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 주문 상세 통합 관리 모달 -->
+    <div id="orderDetailModal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 920px; max-height: 88vh; overflow-y: auto; padding: 2rem;">
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--admin-primary, #8D6E63); padding-bottom:0.8rem; margin-bottom:1.2rem;">
+                <h3 style="margin:0; font-family:'Noto Serif KR', serif; color:#2c3e50; font-size:1.25rem;">주문 상세</h3>
+                <button type="button" onclick="closeModal('orderDetailModal')"
+                    style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#888;">&times;</button>
+            </div>
+            <div id="admin-order-modal-body">
+                <p style="text-align:center; color:#777; padding:2rem;">주문 상세 데이터를 불러오는 중...</p>
+            </div>
+            <div style="text-align:right; margin-top:1.5rem; border-top:1px solid #eee; padding-top:1rem;">
+                <button onclick="closeModal('orderDetailModal')" class="btn-action">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2단계 환불 확인 모달 -->
+    <div id="adminRefundConfirmModal" class="modal-overlay" style="z-index: 2050;">
+        <div class="modal-card" style="max-width: 520px; border:2px solid #d32f2f;">
+            <h3 style="font-family:'Noto Serif KR', serif; margin-top:0; color:#c62828;">2단계 환불 승인 확인</h3>
+            <input type="hidden" id="refund-target-order-id">
+            <div id="refund-preview-body"
+                style="font-size:0.9rem; line-height:1.6; background:#fff8f8; padding:12px 16px; border-radius:8px; border:1px solid #ffcdd2; margin-bottom:1.2rem;">
+                <p>환불 예상 금액을 계산 중입니다...</p>
+            </div>
+            <div class="form-group">
+                <label style="font-weight:600; color:#c62828;">환불 사유 선택 / 입력</label>
+                <select id="refund-reason-code" class="form-control" style="margin-bottom:8px;">
+                    <option value="CUSTOMER_REQUEST">고객변심 / 요청</option>
+                    <option value="OUT_OF_STOCK">재고부족 / 품절</option>
+                    <option value="SHIPPING_DELAY">배송지연</option>
+                    <option value="DEFECTIVE_PRODUCT">상품하자 / 이물질</option>
+                    <option value="ADMIN_MANUAL">관리자 직권 취소</option>
+                </select>
+                <input type="text" id="refund-reason-custom" class="form-control" placeholder="상세 사유 입력 (선택사항)">
+            </div>
+            <div style="font-size:0.78rem; color:#d32f2f; margin-bottom:1.2rem;">
+                환불 실행 시 PortOne PG 취소 및 상품 재고 복구가 즉시 진행되며, 취소된 결제는 복구할 수 없습니다.
+            </div>
+            <div style="text-align:right; gap:8px; display:flex; justify-content:flex-end;">
+                <button onclick="closeModal('adminRefundConfirmModal')" class="btn-action">취소</button>
+                <button onclick="executeFinalAdminRefund(this)" class="btn-action"
+                    style="background:#c62828; color:#fff;">최종 환불 승인 실행</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 회원 정보 수정 모달 -->
+    <div id="editCustomerModal" class="modal-overlay">
+        <div class="modal-card" style="max-width:500px;">
+            <h3 style="font-family:'Noto Serif KR', serif; margin-top:0;">회원 정보 수정 및 비밀번호 초기화</h3>
+            <input type="hidden" id="edit-cust-id">
+            <div class="form-group">
+                <label>회원 이름</label>
+                <input type="text" id="edit-cust-name" class="form-control" placeholder="예: 홍길동" required>
+            </div>
+            <div class="form-group">
+                <label>이메일 주소</label>
+                <input type="email" id="edit-cust-email" class="form-control" placeholder="user@example.com" required>
+            </div>
+            <div class="form-group">
+                <label>연락처 (전화번호)</label>
+                <input type="text" id="edit-cust-phone" class="form-control" placeholder="010-0000-0000">
+            </div>
+            <div class="form-group">
+                <label>계정 상태</label>
+                <select id="edit-cust-status" class="form-control">
+                    <option value="ACTIVE">정상 활동 (ACTIVE)</option>
+                    <option value="SUSPENDED">계정 정지 (SUSPENDED)</option>
+                </select>
+            </div>
+            <div class="form-group"
+                style="background:#faf8f5; padding:12px; border-radius:8px; border:1px solid #ebe6df;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                    <label style="margin:0; font-weight:600; color:#2c3e50;">비밀번호 변경 / 초기화</label>
+                    <button type="button" class="btn-action"
+                        style="font-size:0.75rem; background:#455a64; color:#fff; padding:2px 8px;"
+                        onclick="generateTempPassword()">임시 비밀번호 생성</button>
+                </div>
+                <input type="text" id="edit-cust-newpass" class="form-control"
+                    placeholder="새 비밀번호 입력 (미입력 시 기존 비밀번호 유지)">
+            </div>
+            <div style="text-align:right; gap:8px; display:flex; justify-content:flex-end; margin-top:1.5rem;">
+                <button onclick="closeModal('editCustomerModal')" class="btn-action">취소</button>
+                <button onclick="submitEditCustomer(this)" class="btn-action"
+                    style="background:var(--admin-primary); color:#fff;">수정 사항 저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 상품 및 재고 수정 모달 -->
+    <div id="editProductModal" class="modal-overlay">
+        <div class="modal-card" style="max-width:980px; width:92%;">
+            <h3 style="font-family:'Noto Serif KR', serif; margin-top:0;">상품 및 옵션 재고 수정</h3>
+            <input type="hidden" id="edit-prod-id">
+            <div class="form-group">
+                <label>상품명</label>
+                <input type="text" id="edit-prod-name" class="form-control" required>
+            </div>
+            <div class="form-group" style="display:flex; gap:12px;">
+                <div style="flex:1;">
+                    <label>카테고리 ID</label>
+                    <select id="edit-prod-category" class="form-control">
+                        <option value="1">참기름 (1)</option>
+                        <option value="2">들기름 (2)</option>
+                        <option value="3">고춧가루 (3)</option>
+                        <option value="4">선물세트 (4)</option>
+                    </select>
+                </div>
+                <div style="flex:1;">
+                    <label>기본 판매가(원)</label>
+                    <input type="number" id="edit-prod-price" class="form-control" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>용량 표현</label>
+                <input type="text" id="edit-prod-capacity" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>상품 설명</label>
+                <textarea id="edit-prod-description" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+                <label>판매 상태</label>
+                <select id="edit-prod-active" class="form-control">
+                    <option value="1">판매중 (ACTIVE)</option>
+                    <option value="0">판매 중지 (INACTIVE)</option>
+                </select>
+            </div>
+
+            <hr style="border:none; border-top:1px solid #eee; margin:1.2rem 0;">
+            <h4 style="font-family:'Noto Serif KR', serif; margin:0 0 0.6rem 0; font-size:1.05rem;">식품 상품정보제공고시</h4>
+            <div
+                style="display:grid; grid-template-columns:1fr 1fr; gap:10px; background:#faf8f5; padding:12px; border-radius:8px; border:1px solid #ebe6df;">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.75rem; color:#555;">식품의 유형</label>
+                    <input type="text" id="edit-prod-foodtype" class="form-control" style="padding:6px 10px;"
+                        placeholder="식용유지류">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.75rem; color:#555;">생산자 및 소재지</label>
+                    <input type="text" id="edit-prod-manufacturer" class="form-control" style="padding:6px 10px;"
+                        placeholder="영월고향방앗간">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.75rem; color:#555;">제조연월일 및 소비기한</label>
+                    <input type="text" id="edit-prod-shelflife" class="form-control" style="padding:6px 10px;"
+                        placeholder="제조일로부터 12개월">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.75rem; color:#555;">포장단위별 내용물의 용량</label>
+                    <input type="text" id="edit-prod-contentscap" class="form-control" style="padding:6px 10px;"
+                        placeholder="300ml">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.75rem; color:#555;">원재료명 및 원산지</label>
+                    <input type="text" id="edit-prod-origin" class="form-control" style="padding:6px 10px;"
+                        placeholder="참깨/들깨: 국산">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.75rem; color:#555;">소비자상담 관련 전화번호</label>
+                    <input type="text" id="edit-prod-csphone" class="form-control" style="padding:6px 10px;"
+                        placeholder="033-000-0000">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.75rem; color:#555;">보관방법 또는 취급방법</label>
+                    <input type="text" id="edit-prod-storage" class="form-control" style="padding:6px 10px;"
+                        placeholder="서늘한 곳 보관">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.75rem; color:#555;">알레르기 유발물질</label>
+                    <input type="text" id="edit-prod-allergy" class="form-control" style="padding:6px 10px;"
+                        placeholder="참깨 함유">
+                </div>
+            </div>
+
+            <hr style="border:none; border-top:1px solid #eee; margin:1.2rem 0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+                <h4 style="font-family:'Noto Serif KR', serif; margin:0;">상품 옵션 및 재고(stock) 구성</h4>
+                <button type="button" class="btn-action" style="background:#2e7d32; color:#fff;"
+                    onclick="addEditOptionRow()">+ 옵션 추가</button>
+            </div>
+            <div id="edit-prod-options-container" style="display:flex; flex-direction:column; gap:10px;">
+                <!-- JS 동적 생성 -->
+            </div>
+
+            <div style="text-align:right; gap:8px; display:flex; justify-content:flex-end; margin-top:1.5rem;">
+                <button onclick="closeModal('editProductModal')" class="btn-action">취소</button>
+                <button onclick="submitEditProduct(this)" class="btn-action"
+                    style="background:var(--admin-primary); color:#fff;">수정 사항 저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 신규 상품 등록 모달 -->
+    <div id="createProductModal" class="modal-overlay">
+        <div class="modal-card" style="max-width:780px; width:92%;">
+            <h3 style="font-family:'Noto Serif KR', serif; margin-top:0;">신규 상품 및 옵션 재고 등록</h3>
+            <div class="form-group">
+                <label>상품명</label>
+                <input type="text" id="create-prod-name" class="form-control" placeholder="예: 전통 저온착유 참기름" required>
+            </div>
+            <div class="form-group" style="display:flex; gap:12px;">
+                <div style="flex:1;">
+                    <label>카테고리</label>
+                    <select id="create-prod-category" class="form-control">
+                        <option value="1">참기름 (1)</option>
+                        <option value="2">들기름 (2)</option>
+                        <option value="3">고춧가루 (3)</option>
+                        <option value="4">선물세트 (4)</option>
+                    </select>
+                </div>
+                <div style="flex:1;">
+                    <label>기본 판매가(원)</label>
+                    <input type="number" id="create-prod-price" class="form-control" placeholder="25000" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>대표 용량/규격 표현</label>
+                <input type="text" id="create-prod-capacity" class="form-control" placeholder="예: 300ml">
+            </div>
+
+            <hr style="border:none; border-top:1px solid #eee; margin:1.2rem 0;">
+            <h4 style="font-family:'Noto Serif KR', serif; margin:0 0 0.6rem 0; font-size:1.05rem;">식품 상품정보제공고시</h4>
+            <div
+                style="display:grid; grid-template-columns:1fr 1fr; gap:10px; background:#faf8f5; padding:12px; border-radius:8px; border:1px solid #ebe6df;">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.75rem; color:#555;">식품의 유형</label>
+                    <input type="text" id="create-prod-foodtype" class="form-control" style="padding:6px 10px;"
+                        value="식용유지류">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.75rem; color:#555;">생산자 및 소재지</label>
+                    <input type="text" id="create-prod-manufacturer" class="form-control" style="padding:6px 10px;"
+                        value="영월고향방앗간">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.75rem; color:#555;">제조연월일 및 소비기한</label>
+                    <input type="text" id="create-prod-shelflife" class="form-control" style="padding:6px 10px;"
+                        value="제조일로부터 12개월">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.75rem; color:#555;">포장단위별 내용물의 용량</label>
+                    <input type="text" id="create-prod-contentscap" class="form-control" style="padding:6px 10px;"
+                        placeholder="예: 300ml">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.75rem; color:#555;">원재료명 및 원산지</label>
+                    <input type="text" id="create-prod-origin" class="form-control" style="padding:6px 10px;"
+                        value="참깨/들깨: 국산(강원도 영월군 100%)">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.75rem; color:#555;">소비자상담 관련 전화번호</label>
+                    <input type="text" id="create-prod-csphone" class="form-control" style="padding:6px 10px;"
+                        value="033-000-0000">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.75rem; color:#555;">보관방법 또는 취급방법</label>
+                    <input type="text" id="create-prod-storage" class="form-control" style="padding:6px 10px;"
+                        value="직사광선을 피하고 서늘한 곳 보관">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.75rem; color:#555;">알레르기 유발물질</label>
+                    <input type="text" id="create-prod-allergy" class="form-control" style="padding:6px 10px;"
+                        value="참깨/들깨 함유">
+                </div>
+            </div>
+
+            <hr style="border:none; border-top:1px solid #eee; margin:1.2rem 0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+                <h4 style="font-family:'Noto Serif KR', serif; margin:0;">상품 옵션 및 재고(stock) 구성</h4>
+                <button type="button" class="btn-action" style="background:#2e7d32; color:#fff;"
+                    onclick="addCreateOptionRow()">+ 옵션 추가</button>
+            </div>
+            <div id="create-prod-options-container" style="display:flex; flex-direction:column; gap:10px;">
+                <!-- JS 동적 생성 -->
+            </div>
+
+            <div style="text-align:right; gap:8px; display:flex; justify-content:flex-end; margin-top:1.5rem;">
+                <button onclick="closeModal('createProductModal')" class="btn-action">취소</button>
+                <button onclick="submitAddProduct(this)" class="btn-action"
+                    style="background:var(--admin-primary); color:#fff;">상품 등록</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 분리된 모듈 JS 로드 -->
+    <script src="/admin/js/admin-core.js"></script>
+    <script src="/admin/js/dashboard.js"></script>
+    <script src="/admin/js/orders.js"></script>
+    <script src="/admin/js/products.js"></script>
+    <script src="/admin/js/customers.js"></script>
+    <script src="/admin/js/audit.js"></script>
+
+
+</body>
+
+</html>

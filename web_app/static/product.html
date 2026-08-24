@@ -12,7 +12,7 @@
     <style>
         .product-detail-container {
             max-width: 1100px;
-            margin: 120px auto 3rem;
+            margin: 140px auto 3rem;
             padding: 0 5%;
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -20,13 +20,14 @@
         }
 
         .product-gallery {
-            background-color: #f8f6f2;
-            border-radius: 16px;
-            padding: 3rem;
+            background-color: var(--color-surface-soft);
+            border-radius: var(--radius-lg);
+            padding: var(--space-8);
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
+            border: 1px solid var(--color-border-subtle);
         }
 
         .product-gallery img {
@@ -34,6 +35,7 @@
             height: auto;
             max-height: 400px;
             object-fit: contain;
+            transition: transform var(--motion-emphasis) var(--ease-standard);
         }
 
         .product-purchase-info {
@@ -43,34 +45,34 @@
         }
 
         .product-category-tag {
-            color: var(--color-primary, #915a28);
+            color: var(--color-primary);
             font-weight: 700;
             font-size: 0.9rem;
-            margin-bottom: 0.5rem;
+            margin-bottom: var(--space-2);
         }
 
         .product-title {
-            font-family: 'Noto Serif KR', serif;
+            font-family: var(--font-heading);
             font-size: 2.2rem;
-            margin-bottom: 1rem;
-            color: #222;
+            margin-bottom: var(--space-3);
+            color: var(--color-text-primary);
         }
 
         .product-desc {
-            color: #666;
+            color: var(--color-text-secondary);
             line-height: 1.6;
-            margin-bottom: 1.5rem;
+            margin-bottom: var(--space-5);
             font-size: 1.05rem;
         }
 
         .product-price {
-            font-family: 'Noto Serif KR', serif;
+            font-family: var(--font-heading);
             font-size: 2rem;
             font-weight: 700;
-            color: #111;
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid #eee;
+            color: var(--color-text-primary);
+            margin-bottom: var(--space-6);
+            padding-bottom: var(--space-4);
+            border-bottom: 1px solid var(--color-border-subtle);
         }
 
         .option-group {
@@ -82,23 +84,35 @@
             font-weight: 600;
             margin-bottom: 0.5rem;
             font-size: 0.95rem;
+            color: var(--color-text-primary);
         }
 
         .quantity-control {
             display: inline-flex;
             align-items: center;
-            border: 1px solid #ddd;
-            border-radius: 6px;
+            border: 1px solid var(--color-border-strong);
+            border-radius: var(--radius-sm);
             overflow: hidden;
+            background: var(--color-surface);
         }
 
         .quantity-btn {
-            background: #f5f5f5;
+            background: var(--color-surface-soft);
             border: none;
             width: 38px;
             height: 38px;
             font-size: 1.2rem;
             cursor: pointer;
+            color: var(--color-text-primary);
+            transition: background-color var(--motion-fast) var(--ease-standard);
+        }
+
+        .quantity-btn:hover {
+            background-color: var(--color-secondary);
+        }
+
+        .quantity-btn:active {
+            background-color: var(--color-border-strong);
         }
 
         .quantity-input {
@@ -108,6 +122,8 @@
             text-align: center;
             font-size: 1rem;
             font-weight: 600;
+            color: var(--color-text-primary);
+            background: transparent;
         }
 
         .action-buttons {
@@ -119,35 +135,44 @@
         .btn-cart {
             flex: 1;
             padding: 1.1rem;
-            border: 1px solid var(--color-primary, #915a28);
-            background: white;
-            color: var(--color-primary, #915a28);
+            border: 1px solid var(--color-primary);
+            background: var(--color-surface);
+            color: var(--color-primary);
             font-size: 1.1rem;
             font-weight: 700;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-cart:hover {
-            background: #fdfaf6;
+            transition: transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard);
         }
 
         .btn-buy {
             flex: 1;
             padding: 1.1rem;
             border: none;
-            background: var(--color-primary, #915a28);
+            background: var(--color-primary);
             color: white;
             font-size: 1.1rem;
             font-weight: 700;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            transition: all 0.2s;
+            transition: transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard);
         }
 
-        .btn-buy:hover {
-            background: #7a4a1f;
+        @media (hover: hover) and (pointer: fine) {
+            .btn-cart:hover {
+                background: var(--color-primary-light);
+                transform: translateY(-1px);
+                box-shadow: var(--shadow-sm);
+            }
+            .btn-buy:hover {
+                background: var(--color-primary-hover);
+                transform: translateY(-1px);
+                box-shadow: var(--shadow-sm);
+            }
+        }
+
+        .btn-cart:active, .btn-buy:active {
+            transform: translateY(0) scale(0.98);
         }
 
         .food-disclosure-section {
@@ -160,22 +185,23 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 1rem;
-            background: #fff;
-            border: 1px solid #e0d8cc;
-            border-radius: 8px;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-sm);
             overflow: hidden;
+            box-shadow: var(--shadow-sm);
         }
 
         .food-disclosure-table th, .food-disclosure-table td {
-            padding: 0.9rem 1.2rem;
-            border-bottom: 1px solid #eee;
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid var(--color-border-subtle);
             font-size: 0.95rem;
         }
 
         .food-disclosure-table th {
             width: 25%;
-            background: #fdfaf6;
-            color: #444;
+            background: var(--color-surface-soft);
+            color: var(--color-text-primary);
             text-align: left;
             font-weight: 600;
         }

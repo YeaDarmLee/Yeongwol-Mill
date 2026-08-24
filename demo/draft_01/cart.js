@@ -1,4 +1,4 @@
-// 영월방앗간 공통 스크립트 (장바구니 & JWT 로그인 상태 관리)
+// 영월고향방앗간 공통 스크립트 (장바구니 & JWT 로그인 상태 관리)
 
 function updateCartCount() {
     const cart = JSON.parse(localStorage.getItem('yw_cart')) || [];
@@ -6,10 +6,10 @@ function updateCartCount() {
     cart.forEach(item => {
         totalCount += item.quantity;
     });
-    
+
     const cartNavs = document.querySelectorAll('a[href*="cart.html"], #cart-nav');
     cartNavs.forEach(nav => {
-        if(nav.innerText.includes('장바구니') || nav.id === 'cart-nav') {
+        if (nav.innerText.includes('장바구니') || nav.id === 'cart-nav') {
             if (totalCount > 0) {
                 nav.innerHTML = `장바구니 <span class="cart-badge">${totalCount}</span>`;
             } else {
@@ -21,8 +21,8 @@ function updateCartCount() {
 
 function addToCart(item, redirect = true) {
     let cart = JSON.parse(localStorage.getItem('yw_cart')) || [];
-    
-    const existingItemIndex = cart.findIndex(cartItem => 
+
+    const existingItemIndex = cart.findIndex(cartItem =>
         cartItem.id === item.id && cartItem.capacity === item.capacity
     );
 
@@ -34,7 +34,7 @@ function addToCart(item, redirect = true) {
 
     localStorage.setItem('yw_cart', JSON.stringify(cart));
     updateCartCount();
-    
+
     if (redirect) {
         if (confirm('장바구니에 상품이 담겼습니다. 장바구니로 이동하시겠습니까?')) {
             window.location.href = 'cart.html';
@@ -46,7 +46,7 @@ function addToCart(item, redirect = true) {
 function updateHeaderAuthUI() {
     const token = localStorage.getItem('yw_jwt_token');
     const user = JSON.parse(localStorage.getItem('yw_user') || 'null');
-    
+
     const utilityDiv = document.querySelector('.utility');
     if (!utilityDiv) return;
 
@@ -68,7 +68,7 @@ function updateHeaderAuthUI() {
 }
 
 function logoutUser(e) {
-    if(e) e.preventDefault();
+    if (e) e.preventDefault();
     localStorage.removeItem('yw_jwt_token');
     localStorage.removeItem('yw_user');
     alert('로그아웃되었습니다.');
@@ -81,6 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Login Modal Handlers
 function openLoginModal(e) {
-    if(e) e.preventDefault();
+    if (e) e.preventDefault();
     window.location.href = 'login.html';
 }

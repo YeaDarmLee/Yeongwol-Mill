@@ -1,4 +1,4 @@
-# 영월방앗간 UI/UX 디자인 가이드
+# 영월고향방앗간 UI/UX 디자인 가이드
 
 ## 1. 디자인 컨셉
 **톤앤매너:** Modern Korean Premium

@@ -4,10 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>주문/결제 - 영월방앗간</title>
+    <title>주문/결제 - 영월고향방앗간</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <!-- Portone SDK V2 -->
     <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
@@ -25,7 +27,7 @@
             background: #fff;
             border-radius: 12px;
             padding: 2rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
             border: 1px solid #f0ede8;
             margin-bottom: 2rem;
         }
@@ -110,7 +112,7 @@
 <body>
     <header>
         <div class="nav-overlay"></div>
-        <a href="index.html" class="logo">영월방앗간</a>
+        <a href="index.html" class="logo">영월고향방앗간</a>
         <div class="nav-container">
             <nav class="gnb">
                 <a href="index.html">홈</a>
@@ -164,7 +166,8 @@
                 </div>
                 <div class="form-group">
                     <label>우편번호</label>
-                    <input type="text" id="postalCode" class="form-control" placeholder="12345" style="max-width: 150px;">
+                    <input type="text" id="postalCode" class="form-control" placeholder="12345"
+                        style="max-width: 150px;">
                 </div>
                 <div class="form-group">
                     <label>주소 *</label>
@@ -190,7 +193,8 @@
                 </div>
 
                 <div style="border-top: 1px solid #ddd; padding-top: 1rem; margin-bottom: 1.5rem;">
-                    <div style="display:flex; justify-size:space-between; justify-content:space-between; margin-bottom:0.5rem;">
+                    <div
+                        style="display:flex; justify-size:space-between; justify-content:space-between; margin-bottom:0.5rem;">
                         <span>총 상품 금액</span>
                         <span id="subtotalAmount">0원</span>
                     </div>
@@ -198,7 +202,8 @@
                         <span>배송비</span>
                         <span style="color:var(--color-primary, #915a28); font-weight:600;">무료배송</span>
                     </div>
-                    <div style="display:flex; justify-content:space-between; font-size:1.3rem; font-weight:700; color:#111; margin-top:1rem;">
+                    <div
+                        style="display:flex; justify-content:space-between; font-size:1.3rem; font-weight:700; color:#111; margin-top:1rem;">
                         <span>최종 결제 금액</span>
                         <span id="finalAmount" style="color:var(--color-primary, #915a28);">0원</span>
                     </div>
@@ -212,11 +217,11 @@
     <footer>
         <div class="footer-content">
             <div class="footer-info">
-                <span class="footer-logo">영월방앗간</span><br>
+                <span class="footer-logo">영월고향방앗간</span><br>
                 강원도 영월군 영월읍 방앗간길 123 | 고객센터: 1588-0000
             </div>
         </div>
-        <div class="copyright">&copy; 2026 영월방앗간. All rights reserved.</div>
+        <div class="copyright">&copy; 2026 영월고향방앗간. All rights reserved.</div>
     </footer>
 
     <script src="cart.js"></script>
@@ -327,7 +332,7 @@
                 const orderNumber = result.order_number;
 
                 // 2. Portone PG SDK V2 호출 (가상/테스트 모듈)
-                const paymentId = `pay_${Date.now()}_${Math.floor(Math.random()*1000)}`;
+                const paymentId = `pay_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
                 try {
                     // Portone.requestPayment 호출 (테스트 채널)
@@ -388,4 +393,5 @@
         document.addEventListener('DOMContentLoaded', initCheckout);
     </script>
 </body>
+
 </html>

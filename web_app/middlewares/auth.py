@@ -15,14 +15,29 @@ def check_password(password, password_hash):
     """비밀번호 검증"""
     return check_password_hash(password_hash, password)
 
-def generate_jwt_token(user_id, email, role='USER'):
-    """JWT 토큰 생성 (jti 및 role 포함)"""
+def validate_password_policy(password):
+    """
+    공통 비밀번호 검증 함수 (OWASP/NIST 권고 참고 서비스 정책):
+    - 최소 10자 이상, 최대 128자 이하
+    - 공백 및 특수문자 전면 허용
+    """
+    if not password or not isinstance(password, str):
+        return False, "비밀번호를 입력해 주세요."
+    if len(password) < 10:
+        return False, "비밀번호는 최소 10자 이상이어야 합니다."
+    if len(password) > 128:
+        return False, "비밀번호는 최대 128자 이하이어야 합니다."
+    return True, ""
+
+def generate_jwt_token(user_id, email, role='USER', token_version=0):
+    """JWT 토큰 생성 (jti, role 및 token_version 포함)"""
     jti = str(uuid.uuid4())
     payload = {
         'user_id': user_id,
         'email': email,
         'role': role,
         'jti': jti,
+        'token_version': token_version,
         'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=Config.JWT_EXPIRATION_HOURS),
         'iat': datetime.datetime.now(datetime.timezone.utc)
     }
@@ -30,7 +45,7 @@ def generate_jwt_token(user_id, email, role='USER'):
     return token
 
 def verify_jwt_token(token):
-    """JWT 토큰 검증 및 jti Blacklist 체크"""
+    """JWT 토큰 검증 (jti Blacklist, DB status == 'ACTIVE', token_version 실시간 비교)"""
     try:
         payload = jwt.decode(token, Config.JWT_SECRET_KEY, algorithms=['HS256'])
         jti = payload.get('jti')
@@ -38,6 +53,18 @@ def verify_jwt_token(token):
             revoked = query_db("SELECT * FROM revoked_access_tokens WHERE jti = %s", (jti,), one=True)
             if revoked:
                 return None
+        
+        # 일반 회원 유저인 경우 status='ACTIVE' 및 token_version 실시간 이중 검증
+        user_id = payload.get('user_id')
+        if user_id and payload.get('role') not in ('ADMIN', 'SUPER_ADMIN'):
+            db_user = query_db("SELECT status, token_version FROM users WHERE id = %s", (user_id,), one=True)
+            if not db_user:
+                return None
+            if db_user.get('status') != 'ACTIVE':
+                return None
+            if db_user.get('token_version', 0) != payload.get('token_version', 0):
+                return None
+                
         return payload
     except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
         return None

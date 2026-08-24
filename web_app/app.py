@@ -11,6 +11,7 @@ from cli import register_cli_commands
 
 # Blueprint Imports
 from routes.auth import auth_bp
+from routes.users import users_bp
 from routes.products import products_bp
 from routes.orders import orders_bp
 from routes.payment import payment_bp
@@ -21,8 +22,9 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 
-app = Flask(__name__, static_folder=None, template_folder=TEMPLATES_DIR)
+app = Flask(__name__, static_folder=STATIC_DIR, static_url_path='/static', template_folder=TEMPLATES_DIR)
 app.config.from_object(Config)
+
 
 # Nginx ProxyFix (trust exactly 1 hop for X-Forwarded-For)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
@@ -34,8 +36,10 @@ REQUEST_LOGS = defaultdict(list)
 
 @app.before_request
 def check_rate_limit():
-    # 로그인 및 보안 엔드포인트에 대한 IP Rate Limiting (1분 5회 제한)
-    if request.path in ['/api/auth/login', '/api/admin/login'] and request.method == 'POST':
+    if app.config.get('TESTING'):
+        return
+    # 로그인, 비밀번호 변경 및 회원탈퇴 엔드포인트에 대한 IP Rate Limiting (1분 5회 제한)
+    if request.path in ['/api/auth/login', '/api/admin/login', '/api/users/me/password', '/api/users/me/withdraw'] and request.method in ['POST', 'PUT']:
         client_ip = request.remote_addr or '127.0.0.1'
         now = time.time()
         REQUEST_LOGS[client_ip] = [t for t in REQUEST_LOGS[client_ip] if now - t < 60]
@@ -45,6 +49,7 @@ def check_rate_limit():
 
 # Register Blueprints
 app.register_blueprint(auth_bp)
+app.register_blueprint(users_bp)
 app.register_blueprint(products_bp)
 app.register_blueprint(orders_bp)
 app.register_blueprint(payment_bp)
@@ -59,6 +64,33 @@ register_cli_commands(app)
 def inject_config():
     return {'config': Config}
 
+@app.route('/admin')
+@app.route('/admin/<path:subpage>')
+def admin_page(subpage=None):
+    if subpage and any(subpage.endswith(ext) for ext in ['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf']):
+        return send_from_directory(os.path.join(STATIC_DIR, 'admin'), subpage)
+    admin_dir_index = os.path.join(STATIC_DIR, 'admin', 'index.html')
+    if os.path.exists(admin_dir_index):
+        return send_from_directory(os.path.join(STATIC_DIR, 'admin'), 'index.html')
+    if os.path.exists(os.path.join(TEMPLATES_DIR, 'admin.html')):
+        return render_template('admin.html')
+    return send_from_directory(STATIC_DIR, 'admin.html')
+
+
+
+# Favicon Routes
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(STATIC_DIR, 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+@app.route('/favicon.svg')
+def favicon_svg():
+    return send_from_directory(STATIC_DIR, 'favicon.svg', mimetype='image/svg+xml')
+
+@app.route('/favicon.png')
+def favicon_png():
+    return send_from_directory(STATIC_DIR, 'favicon.png', mimetype='image/png')
+
 # Static & Clean URL Route Handlers (확장자 없는 클린 URL 지원)
 @app.route('/')
 def index():
@@ -66,7 +98,13 @@ def index():
         return render_template('index.html')
     return send_from_directory(STATIC_DIR, 'index.html')
 
+@app.route('/static/<path:filename>')
+def serve_static_folder(filename):
+    return send_from_directory(STATIC_DIR, filename)
+
 @app.route('/<path:filename>')
+
+
 def serve_static(filename):
     # 1. 확장자가 없는 경우 .html 붙여서 templates / static 폴더 검색
     target_html = filename if filename.endswith('.html') else f"{filename}.html"

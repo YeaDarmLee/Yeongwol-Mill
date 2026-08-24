@@ -12,11 +12,14 @@ from db.db_connection import query_db, execute_db
 def setup_db():
     app.config['TESTING'] = True
     init_database()
-    # 테스트용 관리자 생성
+    from middlewares.auth import hash_password
+    execute_db("DELETE FROM admin_users WHERE email = 'admin@yeongwol.com'")
     execute_db("""
-        INSERT IGNORE INTO admin_users (email, name, password_hash, role)
+        INSERT INTO admin_users (email, name, password_hash, role)
         VALUES ('admin@yeongwol.com', '관리자', %s, 'ADMIN')
-    """, (generate_password_hash('admin1234'),))
+    """, (hash_password('admin1234'),))
+
+
 
 @pytest.fixture
 def client():
@@ -51,7 +54,11 @@ def test_admin_login_and_order_shipping_update(client):
     })
     order_id = order_res.get_json()['order_id']
 
+    # State Machine 준수: PENDING -> PREPARING 변경 후 SHIPPING 운송장 등록
+    execute_db("UPDATE orders SET order_status = 'PREPARING', payment_status = 'PAID' WHERE id = %s", (order_id,))
+
     # 4. 운송장 번호 등록 (SHIPPING 변경)
+
     shipping_res = client.post(f'/api/admin/orders/{order_id}/shipping', headers=headers, json={
         'courier_name': 'CJ대한통운',
         'tracking_number': '1234567890'

@@ -7,7 +7,9 @@
     <title>브랜드 소개 - 영월고향방앗간</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
         .brand-intro {
@@ -104,15 +106,17 @@
             padding: 5rem 5%;
             background-color: var(--color-point1);
             text-align: center;
-            border-top: 1px solid rgba(0,0,0,0.05);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
+
         .section-why-yeongwol h2 {
             font-size: 2.2rem;
             color: var(--color-primary);
             margin-bottom: 1.5rem;
             font-family: var(--font-heading);
         }
+
         .section-why-yeongwol p {
             font-size: 1.1rem;
             color: var(--color-text-sub);
@@ -128,12 +132,14 @@
             background-color: #ffffff;
             text-align: center;
         }
+
         .section-why-roasting h2 {
             font-size: 2.2rem;
             color: var(--color-primary);
             margin-bottom: 3rem;
             font-family: var(--font-heading);
         }
+
         .roasting-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -141,6 +147,7 @@
             max-width: 1100px;
             margin: 0 auto;
         }
+
         .roasting-card {
             background: var(--color-point1);
             padding: 2.5rem 1.5rem;
@@ -149,18 +156,21 @@
             text-align: center;
             transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;
         }
+
         @media (hover: hover) and (pointer: fine) {
             .roasting-card:hover {
                 transform: translateY(-5px);
-                box-shadow: 0 14px 28px rgba(0,0,0,0.06);
+                box-shadow: 0 14px 28px rgba(0, 0, 0, 0.06);
             }
         }
+
         .roasting-card h4 {
             font-size: 1.3rem;
             color: var(--color-point2);
             margin-bottom: 1rem;
             font-family: var(--font-heading);
         }
+
         .roasting-card p {
             font-size: 0.95rem;
             color: var(--color-text-sub);
@@ -174,17 +184,20 @@
             background-color: var(--color-secondary);
             text-align: center;
         }
+
         .section-promise h2 {
             font-size: 2.2rem;
             color: var(--color-point2);
             margin-bottom: 0.5rem;
             font-family: var(--font-heading);
         }
+
         .promise-sub {
             font-size: 1.1rem;
             color: var(--color-text-sub);
             margin-bottom: 3rem;
         }
+
         .promise-list {
             max-width: 720px;
             margin: 0 auto;
@@ -193,6 +206,7 @@
             flex-direction: column;
             gap: 1.2rem;
         }
+
         .promise-list li {
             display: flex;
             align-items: center;
@@ -203,9 +217,10 @@
             background: white;
             padding: 1.2rem 1.8rem;
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-            border: 1px solid rgba(0,0,0,0.04);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.04);
         }
+
         .promise-list svg {
             width: 24px;
             height: 24px;
@@ -216,21 +231,24 @@
         /* 4. CTA 섹션 */
         .section-cta {
             padding: 6rem 5%;
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url('assets/hero_banner.png') center/cover no-repeat;
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)), url('assets/hero_banner.png') center/cover no-repeat;
             color: white;
             text-align: center;
         }
+
         .section-cta h2 {
             font-size: 2.5rem;
             margin-bottom: 1rem;
             color: white;
             font-family: var(--font-heading);
         }
+
         .section-cta p {
             font-size: 1.15rem;
-            color: rgba(255,255,255,0.85);
+            color: rgba(255, 255, 255, 0.85);
             margin-bottom: 2.5rem;
         }
+
         .cta-btn {
             display: inline-block;
             padding: 1rem 3rem;
@@ -241,6 +259,7 @@
             border-radius: 4px;
             transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s ease, box-shadow 0.25s ease;
         }
+
         @media (hover: hover) and (pointer: fine) {
             .cta-btn:hover {
                 background-color: var(--color-primary-hover);
@@ -248,6 +267,7 @@
                 box-shadow: 0 6px 20px rgba(197, 155, 39, 0.4);
             }
         }
+
         .cta-btn:active {
             transform: translateY(-1px) scale(0.97);
         }
@@ -256,32 +276,39 @@
             .brand-intro {
                 padding: 3rem 0;
             }
+
             .brand-intro h2 {
                 font-size: 1.8rem;
                 margin-bottom: 1.5rem;
             }
+
             .brand-intro p {
                 font-size: 1.05rem;
                 padding: 0 1rem;
             }
+
             .value-grid {
                 grid-template-columns: 1fr;
                 gap: 1rem;
                 margin-top: 3rem;
                 margin-bottom: 3rem;
             }
+
             .machine-intro {
                 flex-direction: column;
                 text-align: center;
                 gap: 2rem;
             }
+
             .machine-img {
                 width: 100%;
                 height: 280px;
             }
+
             .machine-text {
                 padding: 1.5rem 1.5rem 2.5rem;
             }
+
             .promise-list li {
                 font-size: 0.95rem;
                 padding: 1rem 1.2rem;
@@ -389,31 +416,36 @@
         <ul class="promise-list">
             <li>
                 <svg viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                 </svg>
                 100% 최상급 국산 원재료만 사용합니다.
             </li>
             <li>
                 <svg viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                 </svg>
                 어떠한 수입산이나 이물질도 혼합하지 않습니다.
             </li>
             <li>
                 <svg viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                 </svg>
                 벤조피렌 걱정 없는 저온 로스팅만 고집합니다.
             </li>
             <li>
                 <svg viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                 </svg>
                 식약처 기준 이상의 깨끗한 스테인리스 설비에서 제조합니다.
             </li>
             <li>
                 <svg viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                 </svg>
                 단 한 번의 정직한 착유를 원칙으로 합니다.
             </li>
@@ -432,7 +464,7 @@
             <div class="footer-info">
                 <span class="footer-logo">영월고향방앗간</span>
                 강원도 영월군 영월읍 방앗간길 123<br>
-                대표자: 이예닮 | 사업자등록번호: 123-45-67890<br>
+                대표자: 홍길동 | 사업자등록번호: 123-45-67890<br>
                 고객센터: 033-000-0000 (평일 09:00 - 18:00)
             </div>
             <div class="footer-links">

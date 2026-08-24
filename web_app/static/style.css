@@ -1,22 +1,70 @@
 @charset "UTF-8";
 
-/* CSS Variables: 디자인 가이드 기반 컬러 시스템 */
+/* CSS Variables: 전통 프리미엄 / Warm Modern 디자인 시스템 토큰 */
 :root {
-    --color-primary: #C59B27; /* Gold Brown */
-    --color-primary-hover: #b08a20;
-    --color-secondary: #F3EBE1; /* Sesame Beige */
-    --color-point1: #FAF8F5; /* Warm Ivory */
-    --color-point2: #2E4A35; /* Dark Green */
-    --color-text-main: #222222;
-    --color-text-sub: #555555;
-    --color-border: #E5E5E5;
+    /* Brand Accent Colors */
+    --color-primary: #C59B27;           /* Gold Brown Accent */
+    --color-primary-hover: #B08A20;
+    --color-primary-active: #997619;
+    --color-primary-light: rgba(197, 155, 39, 0.08);
+    --color-focus-ring: rgba(197, 155, 39, 0.35);
+
+    /* Background & Surface Tokens */
+    --color-bg: #FFFCF8;                 /* Warm Page Background */
+    --color-surface: #FFFFFF;            /* Card / Modal Surface */
+    --color-surface-soft: #FAF8F5;       /* Muted Surface / Header */
+    --color-secondary: #F3EBE1;          /* Sesame Beige */
+    --color-point1: #FAF8F5;             /* Warm Ivory */
+    --color-point2: #2E4A35;             /* Dark Green */
+
+    /* Typography Color Hierarchy */
+    --color-text-main: #2C2925;          /* Main Titles & Headings & Normal Price */
+    --color-text-primary: #2C2925;      /* Main Titles & Warm Black Text */
+    --color-text-sub: #6F6860;          /* Body & Descriptions */
+    --color-text-secondary: #6F6860;    /* Body & Descriptions */
+    --color-text-muted: #928A81;        /* Captions & Secondary Text */
+
+    /* Border & Divider Tokens */
+    --color-border: #EBE6DF;
+    --color-border-subtle: #EBE6DF;     /* Subtle Card Divider */
+    --color-border-strong: #D5CFC5;     /* Input & Form Border */
+
+    /* Spacing Grid Tokens */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+
+    /* Shadow Hierarchy (Soft Warm Depth) */
+    --shadow-sm: 0 2px 8px rgba(44, 41, 37, 0.04);
+    --shadow-md: 0 6px 20px rgba(44, 41, 37, 0.06);
+    --shadow-lg: 0 12px 32px rgba(44, 41, 37, 0.08);
+
+    /* Radius Hierarchy */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-pill: 9999px;
+
+    /* Motion & Easing Tokens */
+    --motion-fast: 180ms;
+    --motion-standard: 240ms;
+    --motion-emphasis: 300ms;
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
     
     --font-heading: 'Noto Serif KR', serif;
     --font-body: 'Noto Sans KR', sans-serif;
 
-    /* Transition Tokens (Composite & Precision Animation) */
-    --transition-fast: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
-    --transition-smooth: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease, background-color 0.25s ease;
+    /* Transition Tokens */
+    --transition-fast: transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard), opacity var(--motion-fast) var(--ease-standard);
+    --transition-smooth: transform var(--motion-standard) var(--ease-standard), box-shadow var(--motion-standard) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard);
 }
 
 /* Reset & Base */
@@ -107,14 +155,14 @@ img { max-width: 100%; display: block; }
     margin-bottom: 4rem;
 }
 
-/* Buttons (Hover vs Active State Separation & Explicit Transition) */
+/* Buttons (Hover vs Active State Separation & Explicit Precision Transition) */
 .btn {
     display: inline-block;
-    padding: 1rem 2.5rem;
-    font-size: 1.1rem;
+    padding: 0.85rem 2.2rem;
+    font-size: 1rem;
     font-weight: 500;
-    border-radius: 4px;
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+    border-radius: var(--radius-sm);
+    transition: transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard);
     cursor: pointer;
     text-align: center;
 }
@@ -126,7 +174,7 @@ img { max-width: 100%; display: block; }
 .btn-outline {
     background-color: transparent;
     color: var(--color-text-main);
-    border: 1px solid var(--color-text-main);
+    border: 1px solid var(--color-border-strong);
 }
 .btn-outline-white {
     background-color: transparent;
@@ -138,29 +186,27 @@ img { max-width: 100%; display: block; }
 @media (hover: hover) and (pointer: fine) {
     .btn-primary:hover {
         background-color: var(--color-primary-hover);
-        transform: translateY(-3px);
-        box-shadow: 0 6px 16px rgba(197, 155, 39, 0.35);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
     }
     .btn-outline:hover {
         background-color: var(--color-text-main);
         color: white;
-        transform: translateY(-3px);
-        box-shadow: 0 6px 16px rgba(34, 34, 34, 0.15);
+        border-color: var(--color-text-main);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
     }
     .btn-outline-white:hover {
         background-color: white;
         color: var(--color-text-main);
-        transform: translateY(-3px);
+        transform: translateY(-1px);
     }
 }
 
 /* Active Press States */
-.btn-primary:active {
-    transform: translateY(-1px) scale(0.97);
-    box-shadow: 0 2px 8px rgba(197, 155, 39, 0.2);
-}
-.btn-outline:active, .btn-outline-white:active {
-    transform: translateY(-1px) scale(0.97);
+.btn-primary:active, .btn-outline:active, .btn-outline-white:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: none;
 }
 
 /* Header & Navigation */
@@ -218,8 +264,67 @@ header {
     transform: scaleX(1);
     transform-origin: left center;
 }
-.utility { display: flex; gap: 1.5rem; font-size: 0.9rem; font-weight: 500; }
-.utility a { transition: color 0.2s ease; }
+.utility {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+
+.user-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.85rem;
+    background: #f7f1e9;
+    color: var(--color-primary, #915a28);
+    border: 1px solid #ebdcc9;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.header-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem 0.85rem;
+    background: #ffffff;
+    color: #444444;
+    border: 1px solid var(--color-border-subtle, #e2e2e2);
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .header-btn:hover {
+        background: #f8f5f0;
+        color: var(--color-primary, #915a28);
+        border-color: var(--color-primary, #915a28);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+    }
+}
+
+.header-btn.btn-logout {
+    color: #d32f2f;
+    border-color: #f8d7da;
+    background: #ffffff;
+    margin-left: 0.2rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .header-btn.btn-logout:hover {
+        background: #fdeaea;
+        color: #c62828;
+        border-color: #f5c6cb;
+    }
+}
+
 .nav-overlay { display: none; }
 
 /* Cart Badge Pulse Animation Style */
@@ -408,11 +513,12 @@ footer {
 
 /* Product Card with Overflow Hidden & Image Zoom */
 .product-card {
-    background: white;
-    border-radius: 12px;
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border-subtle);
+    transition: transform var(--motion-standard) var(--ease-standard), box-shadow var(--motion-standard) var(--ease-standard);
 }
 .product-img {
     height: 350px;
@@ -422,22 +528,22 @@ footer {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    border-radius: 12px 12px 0 0;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 .product-img img {
     width: 80%;
     height: auto;
     object-fit: contain;
-    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform var(--motion-emphasis) var(--ease-standard);
 }
 
 @media (hover: hover) and (pointer: fine) {
     .product-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
     }
     .product-card:hover .product-img img {
-        transform: scale(1.06);
+        transform: scale(1.03);
     }
 }
 
@@ -446,38 +552,44 @@ footer {
     top: 20px; left: 20px;
     background-color: var(--color-primary);
     color: white;
-    padding: 5px 12px;
+    padding: 4px 10px;
     font-size: 0.8rem;
     font-weight: 700;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     z-index: 10;
 }
 .product-info {
-    padding: 2.5rem 2rem;
+    padding: var(--space-6) var(--space-5);
     text-align: center;
 }
 .product-info h3 {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.4rem;
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-2);
 }
 .product-info p {
-    color: var(--color-text-sub);
-    margin-bottom: 1.5rem;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-4);
     font-size: 0.95rem;
 }
-.price {
+/* Price Color Hierarchy: Standard (Warm Black) vs Emphasis (Gold) */
+.price, .product-price {
     display: block;
+    font-family: var(--font-heading);
     font-size: 1.3rem;
     font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-4);
+}
+.product-price--emphasis, .order-total {
     color: var(--color-primary);
-    margin-bottom: 1.5rem;
 }
 
 /* Keyframes */
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(24px);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
@@ -490,13 +602,50 @@ footer {
         transform: scale(1);
     }
     50% {
-        transform: scale(1.3);
-        box-shadow: 0 0 0 6px rgba(197, 155, 39, 0.3);
+        transform: scale(1.08);
+        box-shadow: 0 0 0 4px var(--color-focus-ring);
     }
     100% {
         transform: scale(1);
     }
 }
+
+/* Common Form Controls & Focus Ring System */
+.form-control, select, textarea {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    font-family: var(--font-body);
+    color: var(--color-text-primary);
+    transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard);
+}
+.form-control:focus, select:focus, textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+    outline: none;
+}
+.form-control:disabled, select:disabled, textarea:disabled {
+    background-color: var(--color-surface-soft);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+}
+
+/* 전역 Placeholder 은은하게 연한 회색 처리 (실제 입력값과 명확히 구분) */
+input::placeholder,
+textarea::placeholder,
+select::placeholder,
+.form-control::placeholder {
+    color: #b8b2aa !important;
+    opacity: 0.65 !important;
+    font-weight: 400 !important;
+}
+
+::-webkit-input-placeholder { color: #b8b2aa !important; opacity: 0.65 !important; font-weight: 400 !important; }
+::-moz-placeholder { color: #b8b2aa !important; opacity: 0.65 !important; font-weight: 400 !important; }
+:-ms-input-placeholder { color: #b8b2aa !important; opacity: 0.65 !important; font-weight: 400 !important; }
 
 /* Targeted prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {

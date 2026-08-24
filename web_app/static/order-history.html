@@ -7,18 +7,20 @@
     <title>주문 조회 - 영월고향방앗간</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
         .lookup-container {
             max-width: 800px;
-            margin: 120px auto 7rem;
+            margin: 140px auto 7rem;
             padding: 0 5%;
         }
 
         .tab-group {
             display: flex;
-            border-bottom: 2px solid #e0dcd5;
+            border-bottom: 2px solid var(--color-border-subtle);
             margin-bottom: 2rem;
         }
 
@@ -29,23 +31,44 @@
             border: none;
             font-size: 1.1rem;
             font-weight: 700;
-            color: #888;
+            color: var(--color-text-muted);
             cursor: pointer;
             border-bottom: 3px solid transparent;
             margin-bottom: -2px;
+            transition: color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard);
+        }
+
+        .tab-btn:hover {
+            color: var(--color-text-primary);
         }
 
         .tab-btn.active {
-            color: var(--color-primary, #915a28);
-            border-bottom-color: var(--color-primary, #915a28);
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+
+        .tab-pane {
+            animation: tabFadeIn 200ms var(--ease-out);
+        }
+
+        @keyframes tabFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(3px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .form-card {
-            background: #fff;
-            border: 1px solid #e8e3dc;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            background: var(--color-surface);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-md);
+            padding: var(--space-8, 2rem);
+            box-shadow: var(--shadow-sm);
             margin-bottom: 2rem;
         }
 
@@ -57,36 +80,135 @@
             display: block;
             font-weight: 600;
             margin-bottom: 0.4rem;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 1rem;
-            box-sizing: border-box;
+            color: var(--color-text-primary);
         }
 
         .btn-lookup {
             width: 100%;
             padding: 1rem;
-            background: var(--color-primary, #915a28);
+            background: var(--color-primary);
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: var(--radius-sm);
             font-size: 1.1rem;
             font-weight: 700;
             cursor: pointer;
             margin-top: 1rem;
+            transition: transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard);
+        }
+
+        .btn-lookup:hover {
+            background-color: var(--color-primary-hover);
         }
 
         .result-card {
-            background: #fff;
-            border: 1px solid #dcd7ce;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-md);
+            padding: var(--space-8, 2rem);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.5rem;
+            animation: tabFadeIn 200ms var(--ease-out);
+        }
+
+        /* 커스텀 Alert 모달 스타일 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: all 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .custom-alert-card {
+            background: #ffffff;
+            width: 90%;
+            max-width: 380px;
+            padding: 1.8rem 1.5rem;
             border-radius: 12px;
-            padding: 2rem;
-            margin-top: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            border: 1px solid var(--color-border-subtle, #eaeaea);
+            animation: alertPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes alertPop {
+            from {
+                opacity: 0;
+                transform: scale(0.85);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .custom-alert-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #f8f5f0;
+            color: var(--color-primary, #915a28);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto 1rem;
+        }
+
+        .custom-alert-icon.error {
+            background: #fdeaea;
+            color: #d32f2f;
+        }
+
+        .custom-alert-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #222;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .custom-alert-message {
+            font-size: 0.95rem;
+            color: #555;
+            margin: 0 0 1.5rem 0;
+            line-height: 1.5;
+            word-break: keep-all;
+            white-space: pre-line;
+        }
+
+        .btn-custom-alert-confirm {
+            width: 100%;
+            height: 44px;
+            background: var(--color-primary, #915a28);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .btn-custom-alert-confirm:hover {
+            background: var(--color-primary-hover, #77491f);
         }
     </style>
 </head>
@@ -111,15 +233,19 @@
     </header>
 
     <main class="lookup-container">
-        <h1 style="font-family: 'Noto Serif KR', serif; font-size: 2.2rem; text-align: center; margin-bottom: 2rem;">주문 내역 조회</h1>
+        <h1
+            style="font-family: 'Noto Serif KR', serif; font-size: 2.2rem; text-align: center; margin-bottom: 2rem; color: var(--color-text-primary);">
+            주문 내역 조회</h1>
 
-        <div class="tab-group">
-            <button class="tab-btn active" id="btnTabGuest" onclick="switchTab('guest')">비회원 주문 조회</button>
-            <button class="tab-btn" id="btnTabUser" onclick="switchTab('user')">회원 주문 내역</button>
+        <div class="tab-group" role="tablist">
+            <button class="tab-btn" id="btnTabGuest" role="tab" aria-selected="false" aria-controls="guestTabContent"
+                onclick="switchTab('guest')">비회원 주문 조회</button>
+            <button class="tab-btn" id="btnTabUser" role="tab" aria-selected="false" aria-controls="userTabContent"
+                onclick="switchTab('user')">회원 주문 내역</button>
         </div>
 
         <!-- 비회원 조회 폼 -->
-        <div id="guestTabContent">
+        <div id="guestTabContent" class="tab-pane" role="tabpanel" aria-labelledby="btnTabGuest" style="display: none;">
             <div class="form-card">
                 <div class="form-group">
                     <label>주문 번호 *</label>
@@ -127,7 +253,7 @@
                 </div>
                 <div class="form-group">
                     <label>주문자 연락처 *</label>
-                    <input type="tel" id="lookupGuestPhone" class="form-control" placeholder="010-0000-0000">
+                    <input type="tel" id="lookupGuestPhone" class="form-control" placeholder="예: 010-1234-5678">
                 </div>
                 <div class="form-group">
                     <label>비회원 비밀번호 *</label>
@@ -138,9 +264,9 @@
         </div>
 
         <!-- 회원 조회 폼 -->
-        <div id="userTabContent" style="display: none;">
+        <div id="userTabContent" class="tab-pane" role="tabpanel" aria-labelledby="btnTabUser" style="display: none;">
             <div id="memberOrderList">
-                <p style="text-align: center; color: #777;">로그인 정보를 확인 중입니다...</p>
+                <p style="text-align: center; color: #777;">주문 내역을 불러오는 중입니다...</p>
             </div>
         </div>
 
@@ -148,12 +274,43 @@
         <div id="lookupResult"></div>
     </main>
 
+    <!-- 모달: 커스텀 Alert -->
+    <div id="customAlertModal" class="modal-overlay">
+        <div class="custom-alert-card">
+            <div class="custom-alert-icon" id="customAlertIcon">✓</div>
+            <h3 id="customAlertTitle" class="custom-alert-title">알림</h3>
+            <p id="customAlertMessage" class="custom-alert-message"></p>
+            <button type="button" class="btn-custom-alert-confirm" onclick="closeCustomAlert()">확인</button>
+        </div>
+    </div>
+
+    <!-- 모달: 주문 상세 정보 -->
+    <div id="userOrderDetailModal" class="modal-overlay">
+        <div class="custom-alert-card"
+            style="max-width: 620px; text-align: left; padding: 2rem; border-radius: 16px; max-height: 85vh; overflow-y: auto;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--color-primary, #C59B27); padding-bottom: 0.8rem; margin-bottom: 1.2rem;">
+                <h3 style="margin: 0; font-family: 'Noto Serif KR', serif; color: #2c3e50; font-size: 1.25rem;">주문 상세
+                    정보</h3>
+                <button type="button" onclick="closeUserOrderDetailModal()"
+                    style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #888; line-height: 1;">&times;</button>
+            </div>
+            <div id="userOrderDetailBody">
+                <!-- JS에서 동적 구동 -->
+            </div>
+            <div style="text-align: right; margin-top: 1.5rem;">
+                <button type="button" onclick="closeUserOrderDetailModal()" class="btn-lookup"
+                    style="width: auto; padding: 0.6rem 2rem; margin: 0; font-size: 0.95rem;">닫기</button>
+            </div>
+        </div>
+    </div>
+
     <footer>
         <div class="footer-content">
             <div class="footer-info">
                 <span class="footer-logo">영월고향방앗간</span><br>
                 강원특별자치도 영월군 영월읍 방앗간길 12 | 고객센터: 033-000-0000<br>
-                대표자: 이예닮 | 사업자등록번호: 123-45-67890
+                대표자: 홍길동 | 사업자등록번호: 123-45-67890
             </div>
             <div class="footer-links">
                 <a href="/terms">이용약관</a>
@@ -165,6 +322,63 @@
 
     <script src="cart.js"></script>
     <script>
+        let alertCallback = null;
+
+        // 브랜드 감성 커스텀 Alert 모달
+        function customAlert(message, type = 'success', callback = null) {
+            const modal = document.getElementById('customAlertModal');
+            const titleEl = document.getElementById('customAlertTitle');
+            const msgEl = document.getElementById('customAlertMessage');
+            const iconEl = document.getElementById('customAlertIcon');
+
+            msgEl.innerHTML = message.replace(/\n/g, '<br>');
+            alertCallback = callback;
+
+            if (type === 'error') {
+                titleEl.innerText = '안내';
+                iconEl.innerText = '!';
+                iconEl.className = 'custom-alert-icon error';
+            } else {
+                titleEl.innerText = '완료';
+                iconEl.innerText = '✓';
+                iconEl.className = 'custom-alert-icon';
+            }
+
+            modal.classList.add('active');
+        }
+
+        function closeCustomAlert() {
+            const modal = document.getElementById('customAlertModal');
+            modal.classList.remove('active');
+            if (alertCallback) {
+                const cb = alertCallback;
+                alertCallback = null;
+                setTimeout(() => { cb(); }, 150);
+            }
+        }
+
+        function focusElement(elementId) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.focus();
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        window.alert = function (msg) {
+            const isErr = msg.includes('오류') || msg.includes('실패') || msg.includes('필수') || msg.includes('않습니다') || msg.includes('해 주세요') || msg.includes('찾을 수 없음');
+            customAlert(msg, isErr ? 'error' : 'success');
+        };
+
+        // 페이지 진입 시 로그인 여부에 따른 자동 탭 전환
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('yw_jwt_token');
+            if (token) {
+                switchTab('user');
+            } else {
+                switchTab('guest');
+            }
+        });
+
         function switchTab(tab) {
             const btnGuest = document.getElementById('btnTabGuest');
             const btnUser = document.getElementById('btnTabUser');
@@ -175,12 +389,16 @@
 
             if (tab === 'guest') {
                 btnGuest.classList.add('active');
+                btnGuest.setAttribute('aria-selected', 'true');
                 btnUser.classList.remove('active');
+                btnUser.setAttribute('aria-selected', 'false');
                 guestContent.style.display = 'block';
                 userContent.style.display = 'none';
             } else {
                 btnUser.classList.add('active');
+                btnUser.setAttribute('aria-selected', 'true');
                 btnGuest.classList.remove('active');
+                btnGuest.setAttribute('aria-selected', 'false');
                 guestContent.style.display = 'none';
                 userContent.style.display = 'block';
                 loadMemberOrders();
@@ -193,8 +411,16 @@
             const guestPassword = document.getElementById('lookupGuestPassword').value.trim();
             const resultDiv = document.getElementById('lookupResult');
 
-            if (!orderNumber || !guestPhone || !guestPassword) {
-                alert('주문번호, 연락처, 비밀번호를 모두 입력해 주세요.');
+            if (!orderNumber) {
+                customAlert('주문번호를 입력해 주세요.', 'error', () => { focusElement('lookupOrderNumber'); });
+                return;
+            }
+            if (!guestPhone) {
+                customAlert('주문자 연락처를 입력해 주세요.', 'error', () => { focusElement('lookupGuestPhone'); });
+                return;
+            }
+            if (!guestPassword) {
+                customAlert('비회원 비밀번호를 입력해 주세요.', 'error', () => { focusElement('lookupGuestPassword'); });
                 return;
             }
 
@@ -211,14 +437,15 @@
 
                 const data = await resp.json();
                 if (!resp.ok) {
-                    resultDiv.innerHTML = `<div class="result-card" style="color:red; text-align:center;">${data.error || '주문 정보를 찾지 못했습니다.'}</div>`;
+                    customAlert(data.error || '일치하는 비회원 주문 정보를 찾을 수 없습니다.', 'error');
+                    resultDiv.innerHTML = '';
                     return;
                 }
 
                 renderOrderCard(data.order, resultDiv);
             } catch (err) {
                 console.error(err);
-                alert('조회 중 오류가 발생했습니다.');
+                customAlert('조회 중 오류가 발생했습니다.', 'error');
             }
         }
 
@@ -236,37 +463,180 @@
                 return;
             }
 
-            memberContainer.innerHTML = '<p style="text-align:center;">회원 주문 목록을 불러오는 중입니다...</p>';
+            memberContainer.innerHTML = '<p style="text-align:center; padding: 2rem; color: #666;">회원 주문 목록을 불러오는 중입니다...</p>';
+
+            try {
+                const resp = await fetch('/api/orders/my-orders', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await resp.json();
+                if (!resp.ok) {
+                    customAlert(data.error || '회원 주문 내역을 불러오지 못했습니다.', 'error');
+                    memberContainer.innerHTML = '<p style="text-align:center; color:#d32f2f;">주문 목록을 불러오는데 실패했습니다.</p>';
+                    return;
+                }
+
+                const orders = data.orders || [];
+                if (orders.length === 0) {
+                    memberContainer.innerHTML = `
+                        <div class="form-card" style="text-align: center; padding: 3rem;">
+                            <p style="font-size: 1.1rem; color: #666; margin-bottom: 1.5rem;">아직 주문하신 내역이 없습니다.</p>
+                            <a href="/category" class="btn-lookup" style="display:inline-block; width:auto; padding:0.8rem 2rem; text-decoration:none;">인기 상품 둘러보기</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                memberContainer.innerHTML = '';
+                orders.forEach(order => {
+                    renderOrderCard(order, memberContainer);
+                });
+
+            } catch (err) {
+                console.error(err);
+                customAlert('회원 주문 조회 중 오류가 발생했습니다.', 'error');
+            }
         }
 
         function renderOrderCard(order, targetElement) {
-            const itemsHtml = order.items.map(item => `
-                <div style="display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid #eee;">
-                    <span>${item.product_name} (${item.capacity || ''}) x ${item.quantity}개</span>
-                    <strong>${Number(item.subtotal).toLocaleString()}원</strong>
+            if (!window.ordersCache) window.ordersCache = {};
+            window.ordersCache[order.order_number] = order;
+
+            const firstItem = order.items && order.items.length > 0 ? order.items[0] : null;
+            let summaryProdText = '주문 상품 정보 없음';
+            if (firstItem) {
+                const name = firstItem.product_name_snapshot || firstItem.product_name || '상품';
+                const cap = firstItem.capacity ? ` (${firstItem.capacity})` : '';
+                const qty = firstItem.quantity || 1;
+                if (order.items.length > 1) {
+                    summaryProdText = `${name}${cap} x ${qty}개 외 ${order.items.length - 1}건`;
+                } else {
+                    summaryProdText = `${name}${cap} x ${qty}개`;
+                }
+            }
+
+            let statusBadge = '<span style="background:#e8f5e9; color:#2e7d32; padding:4px 12px; border-radius:20px; font-size:0.85rem; font-weight:700;">결제 완료</span>';
+            if (order.order_status === 'SHIPPING' || order.shipping_status === 'SHIPPING') {
+                statusBadge = '<span style="background:#e3f2fd; color:#1565c0; padding:4px 12px; border-radius:20px; font-size:0.85rem; font-weight:700;">배송 중</span>';
+            } else if (order.order_status === 'DELIVERED' || order.shipping_status === 'DELIVERED') {
+                statusBadge = '<span style="background:#f3e5f5; color:#7b1fa2; padding:4px 12px; border-radius:20px; font-size:0.85rem; font-weight:700;">배송 완료</span>';
+            } else if (order.order_status === 'CANCELLED' || order.payment_status === 'CANCELLED') {
+                statusBadge = '<span style="background:#ffebee; color:#c62828; padding:4px 12px; border-radius:20px; font-size:0.85rem; font-weight:700;">주문 취소</span>';
+            } else if (order.payment_status === 'PAID') {
+                statusBadge = '<span style="background:#e8f5e9; color:#2e7d32; padding:4px 12px; border-radius:20px; font-size:0.85rem; font-weight:700;">결제 완료</span>';
+            } else {
+                statusBadge = '<span style="background:#fff3e0; color:#e65100; padding:4px 12px; border-radius:20px; font-size:0.85rem; font-weight:700;">결제 대기</span>';
+            }
+
+            const orderDate = order.created_at ? order.created_at.substring(0, 10) : '';
+
+            const card = document.createElement('div');
+            card.className = 'result-card order-summary-card';
+            card.style = 'cursor:pointer; transition:all 0.2s ease; margin-bottom:1.2rem; border-left:4px solid var(--color-primary, #C59B27); padding:1.2rem 1.5rem;';
+            card.onclick = function () { openUserOrderDetailModal(order.order_number); };
+
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:0.6rem; margin-bottom:0.8rem;">
+                    <div>
+                        <strong style="font-size:1.05rem; color:#222;">주문번호: ${order.order_number}</strong>
+                        ${orderDate ? `<span style="font-size:0.85rem; color:#888; margin-left:8px;">(${orderDate})</span>` : ''}
+                    </div>
+                    <div>${statusBadge}</div>
                 </div>
-            `).join('');
-
-            targetElement.innerHTML = `
-                <div class="result-card">
-                    <div style="display:flex; justify-content:space-between; border-bottom:2px solid #915a28; padding-bottom:0.8rem; margin-bottom:1rem;">
-                        <strong style="font-size:1.1rem;">주문번호: ${order.order_number}</strong>
-                        <span style="color:green; font-weight:700;">${order.payment_status === 'PAID' ? '결제 완료' : '결제 대기'}</span>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="flex:1; padding-right:1rem;">
+                        <div style="font-size:1.05rem; font-weight:700; color:#2c3e50; margin-bottom:4px;">${summaryProdText}</div>
                     </div>
-                    <p style="margin-bottom:0.4rem; color:#555;"><strong>수령인:</strong> ${order.recipient_name} (${order.recipient_phone})</p>
-                    <p style="margin-bottom:1rem; color:#555;"><strong>배송지:</strong> ${order.address} ${order.address_detail || ''}</p>
-                    
-                    <div style="margin: 1rem 0;">
-                        <h4 style="margin-bottom:0.5rem;">주문 상품</h4>
-                        ${itemsHtml}
-                    </div>
-
-                    <div style="text-align:right; font-size:1.3rem; font-weight:700; color:#915a28; margin-top:1rem;">
-                        총 결제 금액: ${Number(order.total_amount).toLocaleString()}원
+                    <div style="text-align:right; white-space:nowrap;">
+                        <span style="font-size:0.75rem; color:#888; display:block;">총 결제 금액</span>
+                        <strong style="font-size:1.2rem; color:var(--color-primary, #915a28);">${Number(order.total_amount).toLocaleString()}원</strong>
                     </div>
                 </div>
             `;
+            targetElement.appendChild(card);
+        }
+
+        function openUserOrderDetailModal(orderNum) {
+            const order = window.ordersCache ? window.ordersCache[orderNum] : null;
+            if (!order) return;
+
+            const bodyEl = document.getElementById('userOrderDetailBody');
+
+            const itemsHtml = (order.items || []).map(item => `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0; border-bottom:1px dashed #eee;">
+                    <div>
+                        <div style="font-weight:600; color:#333;">${item.product_name_snapshot || item.product_name}</div>
+                        <div style="font-size:0.8rem; color:#777;">옵션: ${item.option_name_snapshot || item.option_name || '기본'} (${item.capacity || ''}) | 수량: ${item.quantity}개</div>
+                    </div>
+                    <div style="font-weight:700; color:#2c3e50;">${Number(item.subtotal || (item.price * item.quantity)).toLocaleString()}원</div>
+                </div>
+            `).join('');
+
+            let statusBadge = '<span style="background:#e8f5e9; color:#2e7d32; padding:3px 10px; border-radius:12px; font-size:0.8rem; font-weight:700;">결제 완료</span>';
+            if (order.order_status === 'SHIPPING' || order.shipping_status === 'SHIPPING') {
+                statusBadge = '<span style="background:#e3f2fd; color:#1565c0; padding:3px 10px; border-radius:12px; font-size:0.8rem; font-weight:700;">배송 중</span>';
+            } else if (order.order_status === 'DELIVERED' || order.shipping_status === 'DELIVERED') {
+                statusBadge = '<span style="background:#f3e5f5; color:#7b1fa2; padding:3px 10px; border-radius:12px; font-size:0.8rem; font-weight:700;">배송 완료</span>';
+            } else if (order.order_status === 'CANCELLED' || order.payment_status === 'CANCELLED') {
+                statusBadge = '<span style="background:#ffebee; color:#c62828; padding:3px 10px; border-radius:12px; font-size:0.8rem; font-weight:700;">주문 취소</span>';
+            }
+
+            const trackingInfo = order.tracking_number
+                ? `<span style="color:#1565c0; font-weight:600;">[${order.courier_name || '택배사'}] ${order.tracking_number}</span>`
+                : '<span style="color:#888;">미발송 (배송 준비 중)</span>';
+
+            bodyEl.innerHTML = `
+                <div style="background:#faf8f5; padding:12px 16px; border-radius:8px; border:1px solid #ebe6df; margin-bottom:1.2rem; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:0.8rem; color:#777;">주문번호</div>
+                        <strong style="font-size:1.05rem; color:#2c3e50;">${order.order_number}</strong>
+                    </div>
+                    <div>${statusBadge}</div>
+                </div>
+
+                <div style="margin-bottom:1.2rem;">
+                    <h4 style="font-size:0.95rem; font-family:'Noto Serif KR', serif; margin:0 0 0.5rem 0; color:#555; border-bottom:1px solid #ddd; padding-bottom:4px;">주문 상품 정보</h4>
+                    ${itemsHtml}
+                </div>
+
+                <div style="margin-bottom:1.2rem; background:#fff; border:1px solid #eee; border-radius:8px; padding:12px 14px;">
+                    <h4 style="font-size:0.95rem; font-family:'Noto Serif KR', serif; margin:0 0 0.5rem 0; color:#555; border-bottom:1px solid #eee; padding-bottom:4px;">배송지 정보</h4>
+                    <div style="font-size:0.85rem; color:#444; line-height:1.7;">
+                        <div><strong>수령인:</strong> ${order.recipient_name} (${order.recipient_phone})</div>
+                        <div><strong>배송 주소:</strong> ${order.address} ${order.address_detail || ''}</div>
+                        <div><strong>배송 메모:</strong> ${order.delivery_memo || '없음'}</div>
+                        <div><strong>운송장 번호:</strong> ${trackingInfo}</div>
+                    </div>
+                </div>
+
+                <div style="background:#f8f9fa; border-radius:8px; padding:12px 14px;">
+                    <h4 style="font-size:0.95rem; font-family:'Noto Serif KR', serif; margin:0 0 0.5rem 0; color:#555; border-bottom:1px solid #eee; padding-bottom:4px;">결제 정보</h4>
+                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#555; margin-bottom:4px;">
+                        <span>상품 금액</span>
+                        <span>${Number(order.subtotal_amount || order.total_amount).toLocaleString()}원</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#555; margin-bottom:4px;">
+                        <span>배송비</span>
+                        <span>0원 (무료배송)</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:1.1rem; font-weight:700; color:var(--color-primary, #915a28); border-top:1px solid #ddd; padding-top:6px; margin-top:6px;">
+                        <span>최종 결제 금액</span>
+                        <span>${Number(order.total_amount).toLocaleString()}원</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('userOrderDetailModal').classList.add('active');
+        }
+
+        function closeUserOrderDetailModal() {
+            document.getElementById('userOrderDetailModal').classList.remove('active');
         }
     </script>
 </body>
+
 </html>

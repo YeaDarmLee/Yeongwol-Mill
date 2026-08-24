@@ -5,9 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>영월고향방앗간 - 정직하고 건강한 프리미엄 전통 방앗간</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="alternate icon" type="image/png" href="/favicon.png">
+    <link rel="shortcut icon" href="/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -61,7 +66,9 @@
         <div class="story-img"></div>
         <div class="story-content">
             <h2>전통 방앗간 감성,<br>영월의 진심을 담아</h2>
-            <p>영월고향방앗간은 단순한 기름이 아닌,<br class="pc-br"><br class="mo-br"> 영월 농산물을 기반으로 한 건강식품을 만듭니다.<br class="pc-br"> 대기업의 대량 생산 방식과 타협하지 않고,<br class="pc-br"><br class="mo-br"> 손맛과 정성, 그리고 전통 방식을 고집합니다.<br class="pc-br"> 투박하지만 가장 정직한 한 방울을<br class="mo-br"> 당신의 식탁에 올리겠습니다.</p>
+            <p>영월고향방앗간은 단순한 기름이 아닌,<br class="pc-br"><br class="mo-br"> 영월 농산물을 기반으로 한 건강식품을 만듭니다.<br class="pc-br">
+                대기업의 대량 생산 방식과 타협하지 않고,<br class="pc-br"><br class="mo-br"> 손맛과 정성, 그리고 전통 방식을 고집합니다.<br class="pc-br">
+                투박하지만 가장 정직한 한 방울을<br class="mo-br"> 당신의 식탁에 올리겠습니다.</p>
             <a href="/brand" class="btn btn-outline">브랜드 스토리 더보기</a>
         </div>
     </section>
@@ -74,7 +81,8 @@
             <img src="assets/gift_set.png" alt="영월고향방앗간 선물세트">
         </div>
 
-        <a href="/category" class="btn btn-primary" style="background-color: var(--color-primary); color: white; border: none;">선물세트 보러가기</a>
+        <a href="/category" class="btn btn-primary"
+            style="background-color: var(--color-primary); color: white; border: none;">선물세트 보러가기</a>
     </section>
 
     <footer>
@@ -82,7 +90,7 @@
             <div class="footer-info">
                 <span class="footer-logo">영월고향방앗간</span><br>
                 강원특별자치도 영월군 영월읍 방앗간길 12 | 고객센터: 033-000-0000<br>
-                대표자: 이예닮 | 사업자등록번호: 000-00-00000<br>
+                대표자: 홍길동 | 사업자등록번호: 000-00-00000<br>
                 통신판매업신고: 제2026-강원영월-0000호
             </div>
             <div class="footer-links">
@@ -134,11 +142,11 @@
                     <a href="/product?id=${product.id}" class="product-card">
                         <div class="product-img">
                             ${product.badge ? `<span class="badge">${product.badge}</span>` : ''}
-                            <img src="${product.image_url}" alt="${product.name}">
+                            <img src="${product.image_url || 'assets/product_sesame.png'}" alt="${product.name}">
                         </div>
                         <div class="product-info">
                             <h3>${product.name}</h3>
-                            <p>${product.description}</p>
+                            <p>${product.description && product.description !== 'null' ? product.description : ''}</p>
                             <span class="price">${Number(product.price).toLocaleString()}원</span>
                             <button class="btn btn-outline" style="width: 100%" onclick="event.preventDefault(); window.location.href='/product?id=${product.id}';">구매하기</button>
                         </div>
@@ -152,4 +160,5 @@
         document.addEventListener('DOMContentLoaded', loadMainProducts);
     </script>
 </body>
+
 </html>

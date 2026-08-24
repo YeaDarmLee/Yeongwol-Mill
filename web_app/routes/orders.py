@@ -4,7 +4,7 @@ import string
 from flask import Blueprint, request, jsonify
 from config import Config
 from db.db_connection import query_db, execute_db, execute_db_conn, get_db_connection
-from middlewares.auth import verify_jwt_token, hash_password, check_password
+from middlewares.auth import verify_jwt_token, hash_password, check_password, jwt_required
 
 orders_bp = Blueprint('orders', __name__, url_prefix='/api/orders')
 
@@ -239,3 +239,32 @@ def get_order_detail(order_number):
     order_data['refunds'] = refunds
 
     return jsonify({'order': order_data}), 200
+
+@orders_bp.route('/my-orders', methods=['GET'])
+@jwt_required
+def get_my_orders():
+    """로그인 회원 본인의 전체 주문 목록 조회 API"""
+    user_id = request.current_user.get('user_id')
+    if not user_id:
+        return jsonify({'error': '로그인이 필요합니다.'}), 401
+
+    orders = query_db("""
+        SELECT * FROM orders 
+        WHERE user_id = %s 
+        ORDER BY id DESC
+    """, (user_id,)) or []
+
+    result_orders = []
+    for order in orders:
+        items = query_db("SELECT * FROM order_items WHERE order_id = %s", (order['id'],)) or []
+        payments = query_db("SELECT * FROM payments WHERE order_id = %s", (order['id'],)) or []
+        refunds = query_db("SELECT * FROM refunds WHERE order_id = %s", (order['id'],)) or []
+        
+        order_data = dict(order)
+        order_data.pop('guest_password_hash', None)
+        order_data['items'] = items
+        order_data['payments'] = payments
+        order_data['refunds'] = refunds
+        result_orders.append(order_data)
+
+    return jsonify({'orders': result_orders}), 200
