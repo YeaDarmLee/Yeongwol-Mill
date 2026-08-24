@@ -38,7 +38,6 @@ def check_rate_limit():
     if request.path in ['/api/auth/login', '/api/admin/login'] and request.method == 'POST':
         client_ip = request.remote_addr or '127.0.0.1'
         now = time.time()
-        # 최근 60초 내 요청 기록 필터링
         REQUEST_LOGS[client_ip] = [t for t in REQUEST_LOGS[client_ip] if now - t < 60]
         if len(REQUEST_LOGS[client_ip]) >= 5:
             return jsonify({'error': '요청 횟수를 초과하였습니다. 잠시 후 다시 시도해 주세요.'}), 429
@@ -60,7 +59,7 @@ register_cli_commands(app)
 def inject_config():
     return {'config': Config}
 
-# Static & HTML Route Handlers
+# Static & Clean URL Route Handlers (확장자 없는 클린 URL 지원)
 @app.route('/')
 def index():
     if os.path.exists(os.path.join(TEMPLATES_DIR, 'index.html')):
@@ -69,12 +68,18 @@ def index():
 
 @app.route('/<path:filename>')
 def serve_static(filename):
-    if filename.endswith('.html'):
-        template_name = filename
-        if os.path.exists(os.path.join(TEMPLATES_DIR, template_name)):
-            return render_template(template_name)
+    # 1. 확장자가 없는 경우 .html 붙여서 templates / static 폴더 검색
+    target_html = filename if filename.endswith('.html') else f"{filename}.html"
+    
+    if os.path.exists(os.path.join(TEMPLATES_DIR, target_html)):
+        return render_template(target_html)
+    if os.path.exists(os.path.join(STATIC_DIR, target_html)):
+        return send_from_directory(STATIC_DIR, target_html)
+
+    # 2. CSS, JS, 이미지 등 정적 파일 직접 서비스
     if os.path.exists(os.path.join(STATIC_DIR, filename)):
         return send_from_directory(STATIC_DIR, filename)
+
     return jsonify({'error': '페이지 또는 리소스를 찾을 수 없습니다.'}), 404
 
 # DB Auto Initialization on Application Startup

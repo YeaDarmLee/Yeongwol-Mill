@@ -7,7 +7,7 @@ function updateCartCount() {
         totalCount += item.quantity;
     });
     
-    const cartNavs = document.querySelectorAll('a[href*="cart.html"], #cart-nav');
+    const cartNavs = document.querySelectorAll('a[href*="cart"], #cart-nav');
     cartNavs.forEach(nav => {
         if(nav.innerText.includes('장바구니') || nav.id === 'cart-nav') {
             if (totalCount > 0) {
@@ -37,7 +37,7 @@ function addToCart(item, redirect = true) {
     
     if (redirect) {
         if (confirm('장바구니에 상품이 담겼습니다. 장바구니로 이동하시겠습니까?')) {
-            window.location.href = 'cart.html';
+            window.location.href = '/cart';
         }
     }
 }
@@ -53,15 +53,15 @@ function updateHeaderAuthUI() {
     if (token && user) {
         utilityDiv.innerHTML = `
             <span style="font-size:0.9rem; font-weight:500; color:var(--color-primary, #915a28); margin-right:5px;">${user.name}님</span>
-            <a href="order-history.html">주문조회</a>
+            <a href="/order-history">주문조회</a>
             <a href="#" onclick="logoutUser(event)">로그아웃</a>
-            <a href="cart.html" id="cart-nav">장바구니 (0)</a>
+            <a href="/cart" id="cart-nav">장바구니 (0)</a>
         `;
     } else {
         utilityDiv.innerHTML = `
-            <a href="login.html">로그인</a>
-            <a href="order-history.html">주문조회</a>
-            <a href="cart.html" id="cart-nav">장바구니 (0)</a>
+            <a href="/login">로그인</a>
+            <a href="/order-history">주문조회</a>
+            <a href="/cart" id="cart-nav">장바구니 (0)</a>
         `;
     }
     updateCartCount();
@@ -72,7 +72,7 @@ function logoutUser(e) {
     localStorage.removeItem('yw_jwt_token');
     localStorage.removeItem('yw_user');
     alert('로그아웃되었습니다.');
-    window.location.href = 'index.html';
+    window.location.href = '/';
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -82,5 +82,5 @@ document.addEventListener('DOMContentLoaded', () => {
 // Login Modal Handlers
 function openLoginModal(e) {
     if(e) e.preventDefault();
-    window.location.href = 'login.html';
+    window.location.href = '/login';
 }

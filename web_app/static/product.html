@@ -193,18 +193,18 @@
 <body>
     <header>
         <div class="nav-overlay"></div>
-        <a href="index.html" class="logo">영월고향방앗간</a>
+        <a href="/" class="logo">영월고향방앗간</a>
         <div class="nav-container">
             <nav class="gnb">
-                <a href="index.html">홈</a>
-                <a href="brand.html">방앗간 소개</a>
-                <a href="process.html">착유 공정</a>
-                <a href="category.html">전체 상품</a>
+                <a href="/">홈</a>
+                <a href="/brand">방앗간 소개</a>
+                <a href="/process">착유 공정</a>
+                <a href="/category">전체 상품</a>
             </nav>
             <div class="utility">
-                <a href="login.html">로그인</a>
-                <a href="order-history.html">주문조회</a>
-                <a href="cart.html" id="cart-nav">장바구니 (0)</a>
+                <a href="/login">로그인</a>
+                <a href="/order-history">주문조회</a>
+                <a href="/cart" id="cart-nav">장바구니 (0)</a>
             </div>
         </div>
     </header>
@@ -371,7 +371,7 @@
                 quantity: quantity
             }];
             localStorage.setItem('yw_checkout_items', JSON.stringify(checkoutItems));
-            window.location.href = 'checkout.html';
+            window.location.href = '/checkout';
         }
 
         document.addEventListener('DOMContentLoaded', loadProductDetail);

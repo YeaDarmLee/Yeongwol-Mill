@@ -113,18 +113,18 @@
 
     <header>
         <div class="nav-overlay"></div>
-        <a href="index.html" class="logo">영월고향방앗간</a>
+        <a href="/" class="logo">영월고향방앗간</a>
         <div class="nav-container">
             <nav class="gnb">
-                <a href="index.html">홈</a>
-                <a href="brand.html">브랜드 소개</a>
-                <a href="process.html">생산과정</a>
-                <a href="category.html" style="color: var(--color-primary);">상품보기</a>
+                <a href="/">홈</a>
+                <a href="/brand">브랜드 소개</a>
+                <a href="/process">생산과정</a>
+                <a href="/category" style="color: var(--color-primary);">상품보기</a>
             </nav>
             <div class="utility">
-                <a href="login.html">로그인</a>
-                <a href="order-history.html">주문조회</a>
-                <a href="cart.html" id="cart-nav">장바구니 (0)</a>
+                <a href="/login">로그인</a>
+                <a href="/order-history">주문조회</a>
+                <a href="/cart" id="cart-nav">장바구니 (0)</a>
             </div>
         </div>
         <button class="mobile-menu-btn" aria-label="메뉴 열기">
@@ -178,7 +178,7 @@
                 }
 
                 grid.innerHTML = data.products.map(product => `
-                    <a href="product.html?id=${product.id}" class="product-card">
+                    <a href="/product?id=${product.id}" class="product-card">
                         <div class="product-img">
                             ${product.badge ? `<span class="badge">${product.badge}</span>` : ''}
                             <img src="${product.image_url}" alt="${product.name}">

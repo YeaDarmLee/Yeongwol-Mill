@@ -15,18 +15,18 @@
 
     <header>
         <div class="nav-overlay"></div>
-        <a href="index.html" class="logo">영월고향방앗간</a>
+        <a href="/" class="logo">영월고향방앗간</a>
         <div class="nav-container">
             <nav class="gnb">
-                <a href="index.html" style="color: var(--color-primary);">홈</a>
-                <a href="brand.html">방앗간 소개</a>
-                <a href="process.html">착유 공정</a>
-                <a href="category.html">전체 상품</a>
+                <a href="/" style="color: var(--color-primary);">홈</a>
+                <a href="/brand">방앗간 소개</a>
+                <a href="/process">착유 공정</a>
+                <a href="/category">전체 상품</a>
             </nav>
             <div class="utility">
-                <a href="login.html">로그인</a>
-                <a href="order-history.html">주문조회</a>
-                <a href="cart.html" id="cart-nav">장바구니 (0)</a>
+                <a href="/login">로그인</a>
+                <a href="/order-history">주문조회</a>
+                <a href="/cart" id="cart-nav">장바구니 (0)</a>
             </div>
         </div>
         <button class="mobile-menu-btn" aria-label="메뉴 열기">
@@ -41,8 +41,8 @@
             <h1>느리지만 바른 길,<br>영월의 정성을 담다</h1>
             <p>100% 국산 농산물, 저온 로스팅으로 짜낸 프리미엄 건강 참기름 & 들기름</p>
             <div class="hero-btns">
-                <a href="category.html" class="btn btn-primary">상품 둘러보기</a>
-                <a href="brand.html" class="btn btn-secondary">브랜드 스토리</a>
+                <a href="/category" class="btn btn-primary">상품 둘러보기</a>
+                <a href="/brand" class="btn btn-secondary">브랜드 스토리</a>
             </div>
         </div>
     </section>
@@ -62,7 +62,7 @@
         <div class="story-content">
             <h2>전통 방앗간 감성,<br>영월의 진심을 담아</h2>
             <p>영월고향방앗간은 단순한 기름이 아닌,<br class="pc-br"><br class="mo-br"> 영월 농산물을 기반으로 한 건강식품을 만듭니다.<br class="pc-br"> 대기업의 대량 생산 방식과 타협하지 않고,<br class="pc-br"><br class="mo-br"> 손맛과 정성, 그리고 전통 방식을 고집합니다.<br class="pc-br"> 투박하지만 가장 정직한 한 방울을<br class="mo-br"> 당신의 식탁에 올리겠습니다.</p>
-            <a href="brand.html" class="btn btn-outline">브랜드 스토리 더보기</a>
+            <a href="/brand" class="btn btn-outline">브랜드 스토리 더보기</a>
         </div>
     </section>
 
@@ -74,7 +74,7 @@
             <img src="assets/gift_set.png" alt="영월고향방앗간 선물세트">
         </div>
 
-        <a href="category.html" class="btn btn-primary" style="background-color: var(--color-primary); color: white; border: none;">선물세트 보러가기</a>
+        <a href="/category" class="btn btn-primary" style="background-color: var(--color-primary); color: white; border: none;">선물세트 보러가기</a>
     </section>
 
     <footer>
@@ -86,8 +86,8 @@
                 통신판매업신고: 제2026-강원영월-0000호
             </div>
             <div class="footer-links">
-                <a href="terms.html">이용약관</a>
-                <a href="privacy.html">개인정보처리방침</a>
+                <a href="/terms">이용약관</a>
+                <a href="/privacy">개인정보처리방침</a>
             </div>
         </div>
         <div class="copyright">
@@ -97,7 +97,6 @@
 
     <script src="cart.js"></script>
     <script>
-        // Header scroll & Mobile Menu
         window.addEventListener('scroll', () => {
             const header = document.querySelector('header');
             if (window.scrollY > 50) {
@@ -120,7 +119,6 @@
         if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleMenu);
         if (navOverlay) navOverlay.addEventListener('click', toggleMenu);
 
-        // Fetch Products for Main Page
         async function loadMainProducts() {
             const grid = document.getElementById('mainProductGrid');
             try {
@@ -133,7 +131,7 @@
                 }
 
                 grid.innerHTML = data.products.map(product => `
-                    <a href="product.html?id=${product.id}" class="product-card">
+                    <a href="/product?id=${product.id}" class="product-card">
                         <div class="product-img">
                             ${product.badge ? `<span class="badge">${product.badge}</span>` : ''}
                             <img src="${product.image_url}" alt="${product.name}">
@@ -142,7 +140,7 @@
                             <h3>${product.name}</h3>
                             <p>${product.description}</p>
                             <span class="price">${Number(product.price).toLocaleString()}원</span>
-                            <button class="btn btn-outline" style="width: 100%" onclick="event.preventDefault(); window.location.href='product.html?id=${product.id}';">구매하기</button>
+                            <button class="btn btn-outline" style="width: 100%" onclick="event.preventDefault(); window.location.href='/product?id=${product.id}';">구매하기</button>
                         </div>
                     </a>
                 `).join('');

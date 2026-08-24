@@ -85,18 +85,18 @@
 <body>
     <header>
         <div class="nav-overlay"></div>
-        <a href="index.html" class="logo">영월고향방앗간</a>
+        <a href="/" class="logo">영월고향방앗간</a>
         <div class="nav-container">
             <nav class="gnb">
-                <a href="index.html">홈</a>
-                <a href="brand.html">브랜드 소개</a>
-                <a href="process.html">생산과정</a>
-                <a href="category.html">상품보기</a>
+                <a href="/">홈</a>
+                <a href="/brand">브랜드 소개</a>
+                <a href="/process">생산과정</a>
+                <a href="/category">상품보기</a>
             </nav>
             <div class="utility">
-                <a href="login.html">로그인</a>
-                <a href="order-history.html">주문조회</a>
-                <a href="cart.html" id="cart-nav">장바구니 (0)</a>
+                <a href="/login">로그인</a>
+                <a href="/order-history">주문조회</a>
+                <a href="/cart" id="cart-nav">장바구니 (0)</a>
             </div>
         </div>
     </header>
@@ -120,8 +120,8 @@
         </form>
 
         <div class="auth-links">
-            <a href="register.html" style="color:var(--color-primary,#915a28); font-weight:600;">회원가입</a>
-            <a href="order-history.html">비회원 주문조회</a>
+            <a href="/register" style="color:var(--color-primary,#915a28); font-weight:600;">회원가입</a>
+            <a href="/order-history">비회원 주문조회</a>
         </div>
     </main>
 
@@ -154,7 +154,7 @@
                     localStorage.setItem('yw_jwt_token', data.token);
                     localStorage.setItem('yw_user', JSON.stringify(data.user));
                     alert(`${data.user.name}님, 환영합니다!`);
-                    window.location.href = 'index.html';
+                    window.location.href = '/';
                 } else {
                     alert(data.error || '로그인 실패');
                 }
