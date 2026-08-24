@@ -146,6 +146,15 @@
             border-radius: 12px;
             box-shadow: var(--card-shadow);
             border: 1px solid #eae5dd;
+            border-top: 3px solid transparent;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-top-color 0.25s ease;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .metric-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 14px 28px rgba(0,0,0,0.06);
+                border-top-color: var(--admin-primary);
+            }
         }
         .metric-card .title {
             font-size: 0.85rem;
@@ -192,11 +201,18 @@
         table.admin-table th, table.admin-table td {
             padding: 0.9rem 1rem;
             border-bottom: 1px solid #eee;
+            transition: background-color 0.2s ease;
         }
         table.admin-table th {
             background: #fcfbfa;
             color: #666;
             font-weight: 600;
+        }
+        table.admin-table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+        table.admin-table tbody tr:hover {
+            background-color: #faf8f5;
         }
         .status-badge {
             display: inline-block;

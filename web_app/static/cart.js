@@ -1,6 +1,14 @@
 // 영월고향방앗간 공통 스크립트 (장바구니 & JWT 로그인 상태 관리)
 
-function updateCartCount() {
+function triggerCartBadgePulse() {
+    const badge = document.querySelector('.cart-badge');
+    if (!badge) return;
+    badge.classList.remove('badge-pulse');
+    void badge.offsetWidth; // Reflow 유도로 애니메이션 리트리거
+    badge.classList.add('badge-pulse');
+}
+
+function updateCartCount(shouldPulse = false) {
     const cart = JSON.parse(localStorage.getItem('yw_cart')) || [];
     let totalCount = 0;
     cart.forEach(item => {
@@ -17,6 +25,10 @@ function updateCartCount() {
             }
         }
     });
+
+    if (shouldPulse) {
+        triggerCartBadgePulse();
+    }
 }
 
 function addToCart(item, redirect = true) {
@@ -33,7 +45,7 @@ function addToCart(item, redirect = true) {
     }
 
     localStorage.setItem('yw_cart', JSON.stringify(cart));
-    updateCartCount();
+    updateCartCount(true);
     
     if (redirect) {
         if (confirm('장바구니에 상품이 담겼습니다. 장바구니로 이동하시겠습니까?')) {
