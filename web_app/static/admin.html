@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 대시보드 - 영월고향방앗간</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --admin-primary: #915a28;
+            --admin-dark: #2c1810;
+            --admin-bg: #f8f6f2;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        body {
+            background-color: var(--admin-bg);
+            color: #333;
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .admin-header {
+            background: #fff;
+            border-bottom: 1px solid #eae5dd;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+        .admin-logo {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--admin-dark);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .badge-admin {
+            background: var(--admin-primary);
+            color: #fff;
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .admin-container {
+            max-width: 1280px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+        /* Login Card */
+        .login-wrapper {
+            max-width: 420px;
+            margin: 5rem auto;
+            background: #fff;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #eae5dd;
+            text-align: center;
+        }
+        .login-wrapper h2 {
+            font-family: 'Noto Serif KR', serif;
+            color: var(--admin-dark);
+            margin-bottom: 0.5rem;
+        }
+        .form-group {
+            margin-bottom: 1.2rem;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 0.4rem;
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        .form-control:focus {
+            border-color: var(--admin-primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(145, 90, 40, 0.1);
+        }
+        .btn-admin {
+            width: 100%;
+            padding: 0.85rem;
+            background: var(--admin-primary);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-admin:hover {
+            background: #76481f;
+        }
+        .btn-csv {
+            background: #2e7d32;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .btn-csv:hover {
+            background: #1b5e20;
+        }
+        /* Metric Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .metric-card {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #eae5dd;
+        }
+        .metric-card .title {
+            font-size: 0.85rem;
+            color: #777;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .metric-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--admin-dark);
+        }
+        /* Tables */
+        .admin-section {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #eae5dd;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+        }
+        .section-title {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--admin-dark);
+            margin: 0;
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table.admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        table.admin-table th, table.admin-table td {
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        table.admin-table th {
+            background: #fcfbfa;
+            color: #666;
+            font-weight: 600;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .status-PENDING { background: #fff3cd; color: #856404; }
+        .status-CONFIRMED { background: #d1ecf1; color: #0c5460; }
+        .status-PREPARING { background: #c3e6cb; color: #155724; }
+        .status-SHIPPING { background: #d6d8d9; color: #1b1e21; }
+        .status-DELIVERED { background: #e2e3e5; color: #383d41; }
+        .status-CANCELLED { background: #f8d7da; color: #721c24; }
+        
+        .shipping-form {
+            display: flex;
+            gap: 6px;
+        }
+        .shipping-form select, .shipping-form input {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .shipping-form button {
+            background: var(--admin-primary);
+            color: #fff;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="admin-header">
+        <a href="admin.html" class="admin-logo">
+            영월고향방앗간 <span class="badge-admin">ADMIN</span>
+        </a>
+        <div id="admin-user-info" style="display:none;">
+            <span id="admin-name" style="font-weight: 600; margin-right: 15px; color: #555;"></span>
+            <button onclick="logoutAdmin()" style="background:none; border:1px solid #ccc; padding: 6px 12px; border-radius:4px; cursor:pointer;">로그아웃</button>
+        </div>
+    </header>
+
+    <!-- 1. 로그인 폼 (토큰 없을 때) -->
+    <div id="login-section" class="login-wrapper">
+        <h2>관리자 로그인</h2>
+        <p style="font-size:0.9rem; color:#777; margin-bottom:1.5rem;">영월고향방앗간 통합 관리자 시스템</p>
+        <form id="admin-login-form" onsubmit="handleAdminLogin(event)">
+            <div class="form-group">
+                <label>관리자 이메일</label>
+                <input type="email" id="admin-email" class="form-control" placeholder="admin@example.com" required>
+            </div>
+            <div class="form-group">
+                <label>비밀번호</label>
+                <input type="password" id="admin-password" class="form-control" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-admin">로그인</button>
+        </form>
+    </div>
+
+    <!-- 2. 관리자 메인 대시보드 (토큰 있을 때) -->
+    <div id="dashboard-section" class="admin-container" style="display:none;">
+        <!-- Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="title">오늘 매출</div>
+                <div class="value" id="val-today-sales">0원</div>
+            </div>
+            <div class="metric-card">
+                <div class="title">이번 달 매출</div>
+                <div class="value" id="val-month-sales">0원</div>
+            </div>
+            <div class="metric-card">
+                <div class="title">배송 준비중 주문</div>
+                <div class="value" id="val-preparing-count">0건</div>
+            </div>
+            <div class="metric-card">
+                <div class="title">누적 총 매출</div>
+                <div class="value" id="val-total-sales">0원</div>
+            </div>
+        </div>
+
+        <!-- Orders Section -->
+        <div class="admin-section">
+            <div class="section-header">
+                <h3 class="section-title">주문 및 운송장 관리</h3>
+                <button class="btn-csv" onclick="exportOrdersCSV()">
+                    📄 택배 발송용 CSV 내보내기
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>주문번호</th>
+                            <th>주문자/수령인</th>
+                            <th>연락처</th>
+                            <th>주소</th>
+                            <th>총금액</th>
+                            <th>주문상태</th>
+                            <th>결제상태</th>
+                            <th>운송장 등록 (배송처리)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-tbody">
+                        <tr><td colspan="8" style="text-align:center;">주문 데이터를 불러오는 중입니다...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Low Stock Section -->
+        <div class="admin-section">
+            <div class="section-header">
+                <h3 class="section-title">재고 현황 및 품절 임박 상품</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>상품명</th>
+                            <th>옵션명</th>
+                            <th>보유 재고(stock)</th>
+                            <th>예약 재고(reserved)</th>
+                            <th>구매 가능 재고(available)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stock-tbody">
+                        <tr><td colspan="5" style="text-align:center;">재고 데이터를 불러오는 중입니다...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const TOKEN_KEY = 'yw_admin_jwt_token';
+
+        function checkAuth() {
+            const token = localStorage.getItem(TOKEN_KEY);
+            if (token) {
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('dashboard-section').style.display = 'block';
+                document.getElementById('admin-user-info').style.display = 'block';
+                loadDashboardData();
+            } else {
+                document.getElementById('login-section').style.display = 'block';
+                document.getElementById('dashboard-section').style.display = 'none';
+                document.getElementById('admin-user-info').style.display = 'none';
+            }
+        }
+
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('admin-email').value.trim();
+            const password = document.getElementById('admin-password').value.trim();
+
+            try {
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.token) {
+                    localStorage.setItem(TOKEN_KEY, data.token);
+                    document.getElementById('admin-name').innerText = data.admin.name + ' 님';
+                    checkAuth();
+                } else {
+                    alert(data.error || '로그인 실패: 이메일과 비밀번호를 확인해 주세요.');
+                }
+            } catch (err) {
+                alert('로그인 통신 중 오류가 발생했습니다.');
+            }
+        }
+
+        function logoutAdmin() {
+            localStorage.removeItem(TOKEN_KEY);
+            checkAuth();
+        }
+
+        async function loadDashboardData() {
+            const token = localStorage.getItem(TOKEN_KEY);
+            try {
+                const res = await fetch('/api/admin/dashboard', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.status === 401 || res.status === 403) {
+                    alert('세션이 만료되었습니다. 다시 로그인해 주세요.');
+                    logoutAdmin();
+                    return;
+                }
+                const data = await res.json();
+                const dash = data.dashboard;
+
+                // Render metrics
+                document.getElementById('val-today-sales').innerText = (dash.sales.today || 0).toLocaleString() + '원';
+                document.getElementById('val-month-sales').innerText = (dash.sales.month || 0).toLocaleString() + '원';
+                document.getElementById('val-total-sales').innerText = (dash.sales.all || 0).toLocaleString() + '원';
+                document.getElementById('val-preparing-count').innerText = (dash.order_counts.PREPARING || 0) + '건';
+
+                // Render recent orders
+                const tbody = document.getElementById('orders-tbody');
+                if (dash.recent_orders && dash.recent_orders.length > 0) {
+                    tbody.innerHTML = dash.recent_orders.map(o => `
+                        <tr>
+                            <td><strong>${o.order_number}</strong></td>
+                            <td>${o.recipient_name}</td>
+                            <td>${o.recipient_phone}</td>
+                            <td>${o.address} ${o.address_detail || ''}</td>
+                            <td><strong>${(o.total_amount || 0).toLocaleString()}원</strong></td>
+                            <td><span class="status-badge status-${o.order_status}">${o.order_status}</span></td>
+                            <td><span class="status-badge">${o.payment_status}</span></td>
+                            <td>
+                                ${o.tracking_number ? `
+                                    <span style="font-size:0.8rem; color:#555;">${o.courier_name || 'CJ대한통운'}: ${o.tracking_number}</span>
+                                ` : `
+                                    <form class="shipping-form" onsubmit="updateShipping(event, ${o.id})">
+                                        <select id="courier-${o.id}">
+                                            <option value="CJ대한통운">CJ대한통운</option>
+                                            <option value="우체국택배">우체국택배</option>
+                                            <option value="한진택배">한진택배</option>
+                                            <option value="롯데택배">롯데택배</option>
+                                        </select>
+                                        <input type="text" id="tracking-${o.id}" placeholder="운송장번호" required style="width:110px;">
+                                        <button type="submit">등록</button>
+                                    </form>
+                                `}
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">주문 내역이 없습니다.</td></tr>';
+                }
+
+                // Render stock
+                const stockBody = document.getElementById('stock-tbody');
+                if (dash.low_stock_products && dash.low_stock_products.length > 0) {
+                    stockBody.innerHTML = dash.low_stock_products.map(s => {
+                        const avail = s.stock - s.reserved_stock;
+                        return `
+                            <tr>
+                                <td>${s.product_name}</td>
+                                <td>${s.option_name}</td>
+                                <td>${s.stock}개</td>
+                                <td>${s.reserved_stock}개</td>
+                                <td><strong style="color:${avail <= 5 ? '#d9534f' : '#2e7d32'};">${avail}개</strong></td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    stockBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">등록된 재고 옵션이 없습니다.</td></tr>';
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function updateShipping(e, orderId) {
+            e.preventDefault();
+            const token = localStorage.getItem(TOKEN_KEY);
+            const courier_name = document.getElementById(`courier-${orderId}`).value;
+            const tracking_number = document.getElementById(`tracking-${orderId}`).value.trim();
+
+            try {
+                const res = await fetch(`/api/admin/orders/${orderId}/shipping`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ courier_name, tracking_number })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert('운송장 번호가 등록되었으며 배송 상태가 SHIPPING으로 업데이트되었습니다.');
+                    loadDashboardData();
+                } else {
+                    alert(data.error || '운송장 등록 실패');
+                }
+            } catch (err) {
+                alert('운송장 등록 중 오류가 발생했습니다.');
+            }
+        }
+
+        async function exportOrdersCSV() {
+            const token = localStorage.getItem(TOKEN_KEY);
+            try {
+                const res = await fetch('/api/admin/orders/export', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `order_export_${new Date().toISOString().slice(0,10)}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                } else {
+                    alert('CSV 다운로드 실패');
+                }
+            } catch (err) {
+                alert('CSV 내보내기 중 오류가 발생했습니다.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', checkAuth);
+    </script>
+</body>
+</html>
