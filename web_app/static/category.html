@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품보기 - 영월방앗간</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .products {
+            padding: 5rem 5% 8rem;
+            background-color: var(--color-point1, #f9f7f4);
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 3rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+        }
+
+        .product-img {
+            height: 320px;
+            background-color: #f2eee9;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .product-img img {
+            width: 80%;
+            height: auto;
+            max-height: 260px;
+            object-fit: contain;
+            transition: transform 0.5s ease;
+        }
+
+        .product-card:hover .product-img img {
+            transform: scale(1.05);
+        }
+
+        .badge {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: var(--color-primary, #915a28);
+            color: white;
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border-radius: 4px;
+            z-index: 10;
+        }
+
+        .product-info {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .product-info h3 {
+            font-size: 1.35rem;
+            margin-bottom: 0.5rem;
+            color: var(--color-text-main, #222);
+        }
+
+        .product-info p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1.2rem;
+            line-height: 1.4;
+        }
+
+        .price {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--color-primary, #915a28);
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="nav-overlay"></div>
+        <a href="index.html" class="logo">영월방앗간</a>
+        <div class="nav-container">
+            <nav class="gnb">
+                <a href="index.html">홈</a>
+                <a href="brand.html">브랜드 소개</a>
+                <a href="process.html">생산과정</a>
+                <a href="category.html" style="color: var(--color-primary);">상품보기</a>
+            </nav>
+            <div class="utility">
+                <a href="login.html">로그인</a>
+                <a href="order-history.html">주문조회</a>
+                <a href="cart.html" id="cart-nav">장바구니 (0)</a>
+            </div>
+        </div>
+        <button class="mobile-menu-btn" aria-label="메뉴 열기">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+
+    <div class="page-header" style="text-align: center; padding: 4rem 1rem 2rem;">
+        <h1 style="font-family: 'Noto Serif KR', serif; font-size: 2.5rem; margin-bottom: 0.5rem;">영월방앗간 상품보기</h1>
+        <p style="color: #666;">정성으로 짜낸 우리 농산물 100% 프리미엄 먹거리</p>
+    </div>
+
+    <section class="products">
+        <div class="product-grid" id="productGrid">
+            <!-- Dynamic Product Items from MySQL DB -->
+            <p style="grid-column: 1/-1; text-align: center; color: #888; padding: 3rem 0;">상품 목록을 불러오는 중입니다...</p>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-info">
+                <span class="footer-logo">영월방앗간</span><br>
+                강원도 영월군 영월읍 방앗간길 123<br>
+                대표자: 홍길동 | 사업자등록번호: 123-45-67890<br>
+                고객센터: 1588-0000 (평일 09:00 - 18:00)
+            </div>
+            <div class="footer-links">
+                <a href="#">이용약관</a>
+                <a href="#">개인정보처리방침</a>
+                <a href="#">입점문의</a>
+            </div>
+        </div>
+        <div class="copyright">&copy; 2026 영월방앗간. All rights reserved.</div>
+    </footer>
+
+    <script src="cart.js"></script>
+    <script>
+        // MySQL API에서 4개 초기 상품 데이터 로드
+        async function fetchProducts() {
+            const grid = document.getElementById('productGrid');
+            try {
+                const response = await fetch('/api/products');
+                const data = await response.json();
+
+                if (!data.products || data.products.length === 0) {
+                    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">등록된 상품이 없습니다.</p>';
+                    return;
+                }
+
+                grid.innerHTML = data.products.map(product => `
+                    <a href="product.html?id=${product.id}" class="product-card">
+                        <div class="product-img">
+                            ${product.badge ? `<span class="badge">${product.badge}</span>` : ''}
+                            <img src="${product.image_url}" alt="${product.name}">
+                        </div>
+                        <div class="product-info">
+                            <div>
+                                <h3>${product.name}</h3>
+                                <p>${product.description}</p>
+                            </div>
+                            <span class="price">${Number(product.price).toLocaleString()}원</span>
+                        </div>
+                    </a>
+                `).join('');
+            } catch (err) {
+                console.error("Product load error:", err);
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: red;">상품 목록을 불러오지 못했습니다.</p>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchProducts);
+    </script>
+</body>
+</html>

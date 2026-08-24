@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주문 완료 - 영월방앗간</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .complete-container {
+            max-width: 700px;
+            margin: 4rem auto 7rem;
+            padding: 0 5%;
+            text-align: center;
+        }
+
+        .complete-icon {
+            width: 80px;
+            height: 80px;
+            background: #fdf6ec;
+            color: var(--color-primary, #915a28);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .complete-title {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            color: #222;
+        }
+
+        .complete-subtitle {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .order-card {
+            background: #fff;
+            border: 1px solid #eadece;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: left;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            margin-bottom: 2.5rem;
+        }
+
+        .order-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.7rem 0;
+            border-bottom: 1px solid #f5f3ef;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn-action {
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--color-primary, #915a28);
+            color: white;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: #f0ece6;
+            color: #444;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="nav-overlay"></div>
+        <a href="index.html" class="logo">영월방앗간</a>
+        <div class="nav-container">
+            <nav class="gnb">
+                <a href="index.html">홈</a>
+                <a href="brand.html">브랜드 소개</a>
+                <a href="process.html">생산과정</a>
+                <a href="category.html">상품보기</a>
+            </nav>
+            <div class="utility">
+                <a href="login.html">로그인</a>
+                <a href="order-history.html">주문조회</a>
+                <a href="cart.html" id="cart-nav">장바구니 (0)</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="complete-container">
+        <div class="complete-icon">&#10003;</div>
+        <h1 class="complete-title">주문이 성공적으로 완료되었습니다</h1>
+        <p class="complete-subtitle">정성을 다해 정직하게 짜낸 기름을 정성껏 포장하여 전달해 드리겠습니다.</p>
+
+        <div class="order-card" id="orderDetailContent">
+            <p style="text-align: center; color: #888;">주문 정보를 확인하는 중입니다...</p>
+        </div>
+
+        <div class="btn-group">
+            <a href="order-history.html" class="btn-action btn-secondary">주문 조회하기</a>
+            <a href="index.html" class="btn-action btn-primary">쇼핑 계속하기</a>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-info">
+                <span class="footer-logo">영월방앗간</span><br>
+                강원도 영월군 영월읍 방앗간길 123 | 고객센터: 1588-0000
+            </div>
+        </div>
+        <div class="copyright">&copy; 2026 영월방앗간. All rights reserved.</div>
+    </footer>
+
+    <script src="cart.js"></script>
+    <script>
+        async function loadOrderComplete() {
+            const params = new URLSearchParams(window.location.search);
+            const orderNumber = params.get('order_number');
+
+            const container = document.getElementById('orderDetailContent');
+            if (!orderNumber) {
+                container.innerHTML = '<p style="text-align: center; color: red;">주문 번호가 존재하지 않습니다.</p>';
+                return;
+            }
+
+            try {
+                const resp = await fetch(`/api/orders/${orderNumber}`);
+                if (!resp.ok) throw new Error("Order lookup failed");
+
+                const data = await resp.json();
+                const order = data.order;
+
+                const itemsHtml = order.items.map(item => `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem; font-size:0.95rem;">
+                        <span>${item.product_name} (${item.capacity || ''}) x ${item.quantity}개</span>
+                        <strong>${Number(item.subtotal).toLocaleString()}원</strong>
+                    </div>
+                `).join('');
+
+                container.innerHTML = `
+                    <div class="order-info-row" style="border-bottom: 2px solid #ddd;">
+                        <span style="color:#777;">주문 번호</span>
+                        <strong style="color:var(--color-primary, #915a28); font-size:1.1rem;">${order.order_number}</strong>
+                    </div>
+                    <div class="order-info-row">
+                        <span style="color:#777;">결제 상태</span>
+                        <span style="color:green; font-weight:700;">${order.payment_status === 'PAID' ? '결제 완료' : '결제 대기'}</span>
+                    </div>
+                    <div class="order-info-row">
+                        <span style="color:#777;">수령인 / 연락처</span>
+                        <span>${order.recipient_name} (${order.recipient_phone})</span>
+                    </div>
+                    <div class="order-info-row">
+                        <span style="color:#777;">배송지 주소</span>
+                        <span style="text-align:right; max-width:60%;">${order.address} ${order.address_detail || ''}</span>
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed #ccc;">
+                        <h3 style="font-size:1rem; margin-bottom:0.8rem; color:#444;">주문 품목</h3>
+                        ${itemsHtml}
+                    </div>
+
+                    <div class="order-info-row" style="border-top: 2px solid #ddd; margin-top:1rem; padding-top:1rem; font-size:1.2rem;">
+                        <strong>총 결제 금액</strong>
+                        <strong style="color:var(--color-primary, #915a28);">${Number(order.total_amount).toLocaleString()}원</strong>
+                    </div>
+                `;
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<p style="text-align: center; color: red;">주문 상세 정보를 조회하지 못했습니다.</p>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadOrderComplete);
+    </script>
+</body>
+</html>

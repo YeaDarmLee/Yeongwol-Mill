@@ -1,0 +1,550 @@
+@charset "UTF-8";
+
+/* ==========================================================================
+   영월방앗간 Draft 02 - Design System (Celadon & Hanji - 3rd iteration)
+   ========================================================================== */
+
+:root {
+  /* Color Palette (청자색 중심의 완전히 새로운 배색) */
+  --color-primary: #45735b; /* Celadon Green: 가독성을 높인 진하고 깊은 옥색 */
+  --color-primary-dark: #2a4d3a;
+  --color-secondary: #f6f5f0; /* Hanji White: 밝은 한지 베이스 */
+  --color-accent: #c48f56; /* 따뜻한 모래색 포인트 */
+  --color-bg-white: #ffffff;
+  --color-text-main: #16201a; /* 더 어둡고 선명한 먹색으로 가독성 강화 */
+  --color-text-muted: #4a5750; /* 대비를 높인 서브 텍스트 */
+  
+  /* Typography - 5060 맞춤 가독성 유지 */
+  --font-family-serif: 'Noto Serif KR', 'Nanum Myeongjo', serif;
+  --font-family-sans: 'Pretendard', 'Noto Sans KR', sans-serif;
+  
+  --font-size-xs: 16px;
+  --font-size-sm: 18px; 
+  --font-size-md: 20px;
+  --font-size-lg: 26px;
+  --font-size-xl: 36px;
+  --font-size-xxl: 56px;
+
+  /* Spacing */
+  --spacing-xs: 8px;
+  --spacing-sm: 16px;
+  --spacing-md: 32px;
+  --spacing-lg: 64px;
+  --spacing-xl: 120px;
+
+  /* Curves & Depth (도자기 같은 우아한 곡선) */
+  --radius-md: 16px;
+  --radius-lg: 24px; /* 살짝 줄여서 덜 극단적인 둥근 모서리로 변경 */
+  --radius-full: 999px;
+  --shadow-soft: 0 10px 40px rgba(125, 155, 139, 0.08); /* 청자색이 감도는 부드러운 그림자 */
+}
+
+/* ==========================================================================
+   Reset & Base with Hanji Texture
+   ========================================================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+  background-color: var(--color-secondary);
+  /* 텍스처를 제거하고 부드러운 그라데이션만 남겨 가독성을 확보 */
+  background-image: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.8) 0%, transparent 100%);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+h1, h2, h3, .font-serif {
+  font-family: var(--font-family-serif);
+  font-weight: 600; /* 5060 타겟층 가독성을 위해 두께 강화 */
+  line-height: 1.3;
+  color: var(--color-text-main);
+}
+
+h1 { font-size: var(--font-size-xxl); letter-spacing: -0.02em; }
+h2 { font-size: var(--font-size-xl); margin-bottom: var(--spacing-sm); letter-spacing: -0.02em; }
+h3 { font-size: var(--font-size-lg); }
+
+.section-title {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+.section {
+  padding: var(--spacing-xl) 0;
+}
+
+.bg-white {
+  background-color: var(--color-bg-white);
+  /* 한지 텍스처를 덮어쓰지 않으려면 background-image none을 하거나 투명도를 조절 */
+  background-image: none;
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(69, 115, 91, 0.2), transparent);
+  border: none;
+  margin: var(--spacing-lg) 0;
+}
+
+/* ==========================================================================
+   UI Components
+   ========================================================================== */
+
+/* Buttons - 정갈하고 부드러운 사각 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 40px;
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  border-radius: 8px; /* 너무 과했던 곡률 완화 */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-bg-white);
+  box-shadow: 0 4px 16px rgba(125, 155, 139, 0.3);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-2px);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.btn-outline:hover {
+  background-color: var(--color-primary);
+  color: var(--color-bg-white);
+}
+
+/* Cards (달항아리 같은 부드러운 곡선) */
+.card {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255,255,255,0.8);
+}
+
+.card:hover {
+  transform: translateY(-8px);
+}
+
+/* Gift Card */
+.gift-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-lg);
+  background: white;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+.gift-card-img {
+  flex: 1;
+  min-width: 300px;
+}
+.gift-card-content {
+  flex: 1;
+  min-width: 300px;
+  padding: 0 var(--spacing-md);
+}
+
+/* Badge (모던하고 부드러운 타원) */
+.badge {
+  display: inline-flex;
+  background-color: var(--color-accent);
+  color: var(--color-text-main);
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+}
+
+/* ==========================================================================
+   Header & Navigation
+   ========================================================================== */
+.header {
+  position: sticky;
+  top: 0;
+  background-color: rgba(246, 245, 240, 0.85);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid rgba(125, 155, 139, 0.1);
+}
+
+.header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-family: var(--font-family-serif);
+  font-size: 28px;
+  font-weight: 700; /* 로고 두께 추가 */
+  color: var(--color-primary); /* 로고도 옥색으로 맑게 */
+}
+
+/* 햄버거 메뉴 추가 */
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  z-index: 101;
+}
+
+.hamburger span {
+  display: block;
+  width: 28px;
+  height: 2px;
+  background-color: var(--color-primary-dark);
+  transition: all 0.3s ease;
+}
+
+.nav-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.nav-links {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.nav-links a {
+  font-size: var(--font-size-md);
+  color: var(--color-text-main);
+  transition: color 0.3s;
+}
+
+.nav-links a:hover {
+  color: var(--color-primary);
+}
+
+.header-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.header-actions a {
+  font-size: 15px;
+  color: var(--color-text-muted);
+  transition: color 0.3s;
+}
+
+.header-actions a:hover {
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Form Elements (Login, Cart, etc.)
+   ========================================================================== */
+.form-group {
+  margin-bottom: var(--spacing-md);
+  text-align: left;
+}
+
+.form-label {
+  display: block;
+  font-size: 15px;
+  color: var(--color-primary-dark);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid rgba(69, 115, 91, 0.3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  background-color: var(--color-bg-white);
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Cart Table Elements
+   ========================================================================== */
+.cart-list {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid rgba(69, 115, 91, 0.1);
+}
+
+.cart-item-img {
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  margin-right: var(--spacing-md);
+}
+
+.cart-item-info {
+  flex: 1;
+  text-align: left;
+}
+
+.qty-control {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(69, 115, 91, 0.3);
+  border-radius: 8px; /* 버튼과 통일 */
+  overflow: hidden;
+  background-color: var(--color-bg-white);
+}
+
+.qty-btn {
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  color: var(--color-primary);
+  font-size: 18px;
+}
+
+.qty-input {
+  width: 40px;
+  text-align: center;
+  border: none;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+}
+
+/* ==========================================================================
+   Footer (draft_01 스타일)
+   ========================================================================== */
+.footer {
+  background-color: #1a1a1a;
+  color: #888;
+  padding: 4rem 5%;
+  font-size: 0.9rem;
+  margin-top: auto;
+  width: 100%;
+  overflow: hidden;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  border-bottom: 1px solid #333;
+  padding-bottom: 3rem;
+  margin-bottom: 2rem;
+}
+
+.footer-logo {
+  font-family: var(--font-family-serif);
+  font-size: 1.5rem;
+  color: white;
+  margin-bottom: 1rem;
+  display: block;
+  font-weight: 700;
+}
+
+.footer-info {
+  line-height: 1.8;
+}
+
+.footer-links {
+  display: flex;
+  gap: 2rem;
+}
+
+.footer-links a {
+  color: #888;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer-links a:hover {
+  color: white;
+}
+
+.copyright {
+  text-align: center;
+}
+
+/* ==========================================================================
+   Responsive (Mobile & Tablet)
+   ========================================================================== */
+@media (max-width: 768px) {
+  :root {
+    --font-size-xl: 28px;
+    --font-size-xxl: 36px;
+    --spacing-xl: 60px;
+  }
+  
+  .header .container {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .hamburger {
+    display: flex;
+  }
+  
+  .nav-wrapper {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: rgba(246, 245, 240, 0.98);
+    backdrop-filter: blur(12px);
+    flex-direction: column;
+    padding: var(--spacing-lg) var(--spacing-md);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    display: none;
+    border-bottom: 1px solid rgba(125, 155, 139, 0.1);
+  }
+  
+  .nav-wrapper.active {
+    display: flex;
+  }
+  
+  .nav-links {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .header-actions {
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+    gap: var(--spacing-lg);
+  }
+  
+  /* hamburger active animation */
+  .hamburger.active span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+  }
+  .hamburger.active span:nth-child(2) {
+    opacity: 0;
+  }
+  .hamburger.active span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+  }
+  
+  .hero {
+    padding: 80px 0;
+  }
+  
+  .product-img {
+    height: 300px !important;
+  }
+  
+  .brand-banner {
+    padding: 60px 20px !important;
+  }
+  
+  .card {
+    padding: 24px !important;
+  }
+  
+  .gift-card {
+    padding: var(--spacing-md) !important;
+    gap: var(--spacing-md) !important;
+  }
+  .gift-card-img, .gift-card-content {
+    min-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* Footer 모바일 최적화 */
+  .footer {
+    padding: 3rem 20px;
+  }
+  .footer-content {
+    flex-direction: column;
+    gap: 32px;
+  }
+  
+  .footer-links {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+}
+
+
+/* Cart Badge */
+.cart-badge {
+    background-color: var(--color-accent);
+    color: var(--color-bg-white);
+    font-size: 12px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 12px;
+    margin-left: 4px;
+    vertical-align: middle;
+}

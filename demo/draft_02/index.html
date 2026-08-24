@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영월방앗간 - 맑고 우아한 자연</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    
+    <style>
+        .hero {
+            padding: 140px 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .hero p {
+            font-size: var(--font-size-lg);
+            color: var(--color-text-main);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        /* 둥근 도자기 곡선의 상품 그리드 */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-md);
+        }
+
+        .product-card {
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+            padding-bottom: var(--spacing-sm);
+        }
+
+        .product-img {
+            background-color: var(--color-bg-white);
+            height: 280px;
+            margin-bottom: var(--spacing-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-primary);
+        }
+
+        .product-card h3 {
+            font-family: var(--font-family-sans);
+            font-size: 26px;
+            font-weight: 500;
+        }
+
+        .product-card .price {
+            font-size: var(--font-size-md);
+            font-weight: 700;
+            color: var(--color-text-muted);
+            margin: var(--spacing-xs) 0 var(--spacing-sm);
+        }
+
+        /* 브랜드 배너 - 둥근 라운드 배경 */
+        .brand-banner {
+            background-color: var(--color-bg-white);
+            padding: 120px 0;
+            text-align: center;
+            border-radius: var(--radius-lg);
+            margin: var(--spacing-xl) 0;
+            box-shadow: var(--shadow-soft);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">영월방앗간</a>
+            <button class="hamburger" id="hamburger-menu" aria-label="메뉴 열기">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="nav-wrapper" id="nav-wrapper">
+                <nav class="nav-links">
+                    <a href="index.html" style="color: var(--color-primary);">홈</a>
+                    <a href="brand.html">브랜드 소개</a>
+                    <a href="process.html">생산과정</a>
+                    <a href="products.html">상품보기</a>
+                </nav>
+                <div class="header-actions">
+                    <a href="login.html">로그인</a>
+                    <a href="cart.html">장바구니</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" style="background: linear-gradient(rgba(246, 245, 240, 0.3), rgba(246, 245, 240, 1)), url('images/nature.png') center/cover no-repeat; padding: 140px 20px 100px;">
+        <div class="container" style="max-width: 800px; padding: 60px 40px; background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); border: 1px solid rgba(255,255,255,0.7); text-align: center;">
+            <h1 class="font-serif" style="color: var(--color-primary-dark); font-size: 46px; margin-bottom: 24px;">영월의 정성을 담은<br>건강한 기름</h1>
+            <p class="font-serif" style="font-size: var(--font-size-md); color: var(--color-text-main); margin-bottom: 36px; line-height: 1.8;">100% 국산 원재료와 저온 로스팅으로 짜낸<br>프리미엄 전통 방앗간</p>
+            <a href="products.html" class="btn btn-primary" style="font-size: 18px; padding: 16px 40px;">제품 둘러보기</a>
+        </div>
+    </section>
+
+    <!-- Best Products -->
+    <section class="section bg-white">
+        <div class="container">
+            <div class="section-title">
+            <h2 class="font-serif">가장 사랑받는 영월방앗간의 맛</h2>
+            <p style="font-size: var(--font-size-md); color: var(--color-text-muted); margin-top: 10px; font-family: var(--font-family-serif);">청정 영월에서 자란 우리 농산물로 정직하게 만들었습니다.</p>
+        </div>
+
+        <div class="product-grid">
+            <article class="card product-card">
+                <a href="product-detail.html" style="display:block; text-decoration:none; color:inherit;">
+                <div class="product-img" style="background-image: url('images/sesame_oil.png'); background-size: cover; background-position: center;"></div>
+                </a>
+                <div style="padding: 0 24px;">
+                    <h3>들기름 & 들기름 세트</h3>
+                    <div class="price">50,000원</div>
+                    <a href="product-detail.html" class="btn btn-outline" style="width: 100%;">자세히 보기</a>
+                </div>
+            </article>
+
+            <article class="card product-card">
+                <a href="product-detail.html" style="display:block; text-decoration:none; color:inherit;">
+                <div class="product-img" style="background-image: url('images/sesame_oil.png'); background-size: cover; background-position: center;"></div>
+                </a>
+                <div style="padding: 0 24px;">
+                    <h3>참기름 & 들기름 세트</h3>
+                    <div class="price">60,000원</div>
+                    <a href="product-detail.html" class="btn btn-outline" style="width: 100%;">자세히 보기</a>
+                </div>
+            </article>
+
+            <article class="card product-card">
+                <a href="product-detail.html" style="display:block; text-decoration:none; color:inherit;">
+                <div class="product-img" style="background-image: url('images/gift_set.png'); background-size: cover; background-position: center;"></div>
+                </a>
+                <div style="padding: 0 24px;">
+                    <h3>참기름 & 참기름 세트</h3>
+                    <div class="price">70,000원</div>
+                    <a href="product-detail.html" class="btn btn-outline" style="width: 100%;">자세히 보기</a>
+                </div>
+            </article>
+
+            <article class="card product-card">
+                <a href="product-detail.html" style="display:block; text-decoration:none; color:inherit;">
+                <div class="product-img" style="background-image: url('images/nature.png'); background-size: cover; background-position: center;"></div>
+                </a>
+                <div style="padding: 0 24px;">
+                    <h3>최상급 영월 고춧가루</h3>
+                    <div class="price">30,000원</div>
+                    <a href="product-detail.html" class="btn btn-outline" style="width: 100%;">자세히 보기</a>
+                </div>
+            </article>
+        </div>
+        </div>
+    </section>
+
+    <!-- Brand Teaser -->
+    <section style="background: linear-gradient(rgba(42, 77, 58, 0.85), rgba(42, 77, 58, 0.95)), url('images/nature.png') center/cover fixed; padding: 160px 0; text-align: center; color: white;">
+        <div class="container">
+            <h2 class="font-serif" style="color: white; font-size: var(--font-size-xl); margin-bottom: var(--spacing-md);">전통 방앗간 감성,<br>영월의 진심을 담아</h2>
+            <p style="font-size: var(--font-size-md); margin-bottom: var(--spacing-lg); line-height: 1.8; color: rgba(255,255,255,0.85);">
+                영월방앗간은 단순한 기름이 아닌, 영월 농산물을 기반으로 한 건강식품을 만듭니다.<br>
+                대기업의 대량 생산 방식과 타협하지 않고, 손맛과 정성, 그리고 전통 방식을 고집합니다.<br>
+                투박하지만 가장 정직한 한 방울을 당신의 식탁에 올리겠습니다.
+            </p>
+            <a href="brand.html" class="btn" style="background-color: transparent; border: 1px solid rgba(255,255,255,0.6); color: white;">브랜드 스토리 더보기</a>
+        </div>
+    </section>
+
+    <!-- Gift Set -->
+    <section class="section container">
+        <div class="gift-card">
+            <div class="gift-card-img">
+                <img src="images/gift_set.png" alt="영월방앗간 선물세트" style="width: 100%; height: 450px; object-fit: cover; border-radius: var(--radius-md);">
+            </div>
+            <div class="gift-card-content">
+                <span class="badge">추천 선물</span>
+                <h2 class="font-serif" style="font-size: 36px; margin: 16px 0; color: var(--color-primary);">감사의 마음을 전하는<br>프리미엄 선물</h2>
+                <p style="font-size: var(--font-size-md); color: var(--color-text-muted); line-height: 1.8; margin-bottom: 32px;">
+                    명절, 부모님 선물로 손색없는 정성을 담았습니다.<br>
+                    고급스러운 보자기 포장과 함께 영월방앗간의 진정성을 전달해 보세요.
+                </p>
+                <a href="products.html" class="btn btn-primary">선물세트 보러가기</a>
+            </div>
+        </div>
+    </section>
+
+        <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <span class="footer-logo">영월방앗간</span>
+                강원도 영월군 영월읍 하송로 123<br>
+                대표자: 이영월 | 사업자등록번호: 123-45-67890<br>
+                통신판매업신고: 2026-강원영월-0123<br>
+                고객센터: 033-123-4567 (평일 09:00 - 18:00)
+            </div>
+            <div class="footer-links">
+                <a href="#">이용약관</a>
+                <a href="#">개인정보처리방침</a>
+                <a href="#">입점문의</a>
+            </div>
+        </div>
+        <div class="copyright">
+            &copy; 2026 영월방앗간. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const hamburger = document.getElementById('hamburger-menu');
+            const navWrapper = document.getElementById('nav-wrapper');
+            
+            if (hamburger && navWrapper) {
+                hamburger.addEventListener('click', () => {
+                    hamburger.classList.toggle('active');
+                    navWrapper.classList.toggle('active');
+                });
+            }
+        });
+    </script>
+    <script src="cart.js"></script>
+</body>
+</html>

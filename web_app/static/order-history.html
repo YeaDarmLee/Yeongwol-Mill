@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주문 조회 - 영월방앗간</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .lookup-container {
+            max-width: 800px;
+            margin: 3rem auto 7rem;
+            padding: 0 5%;
+        }
+
+        .tab-group {
+            display: flex;
+            border-bottom: 2px solid #e0dcd5;
+            margin-bottom: 2rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #888;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab-btn.active {
+            color: var(--color-primary, #915a28);
+            border-bottom-color: var(--color-primary, #915a28);
+        }
+
+        .form-card {
+            background: #fff;
+            border: 1px solid #e8e3dc;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .btn-lookup {
+            width: 100%;
+            padding: 1rem;
+            background: var(--color-primary, #915a28);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .result-card {
+            background: #fff;
+            border: 1px solid #dcd7ce;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="nav-overlay"></div>
+        <a href="index.html" class="logo">영월방앗간</a>
+        <div class="nav-container">
+            <nav class="gnb">
+                <a href="index.html">홈</a>
+                <a href="brand.html">브랜드 소개</a>
+                <a href="process.html">생산과정</a>
+                <a href="category.html">상품보기</a>
+            </nav>
+            <div class="utility">
+                <a href="login.html">로그인</a>
+                <a href="order-history.html">주문조회</a>
+                <a href="cart.html" id="cart-nav">장바구니 (0)</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="lookup-container">
+        <h1 style="font-family: 'Noto Serif KR', serif; font-size: 2.2rem; text-align: center; margin-bottom: 2rem;">주문 내역 조회</h1>
+
+        <div class="tab-group">
+            <button class="tab-btn active" id="btnTabGuest" onclick="switchTab('guest')">비회원 주문 조회</button>
+            <button class="tab-btn" id="btnTabUser" onclick="switchTab('user')">회원 주문 내역</button>
+        </div>
+
+        <!-- 비회원 조회 폼 -->
+        <div id="guestTabContent">
+            <div class="form-card">
+                <div class="form-group">
+                    <label>주문 번호 *</label>
+                    <input type="text" id="lookupOrderNumber" class="form-control" placeholder="ORD-2026XXXX-XXXXXX">
+                </div>
+                <div class="form-group">
+                    <label>주문자 연락처 *</label>
+                    <input type="tel" id="lookupGuestPhone" class="form-control" placeholder="010-0000-0000">
+                </div>
+                <div class="form-group">
+                    <label>비회원 비밀번호 *</label>
+                    <input type="password" id="lookupGuestPassword" class="form-control" placeholder="주문 시 설정한 비밀번호">
+                </div>
+                <button class="btn-lookup" onclick="lookupGuestOrder()">주문 조회하기</button>
+            </div>
+        </div>
+
+        <!-- 회원 조회 폼 -->
+        <div id="userTabContent" style="display: none;">
+            <div id="memberOrderList">
+                <p style="text-align: center; color: #777;">로그인 정보를 확인 중입니다...</p>
+            </div>
+        </div>
+
+        <!-- 조회 결과 출력 영역 -->
+        <div id="lookupResult"></div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-info">
+                <span class="footer-logo">영월방앗간</span><br>
+                강원도 영월군 영월읍 방앗간길 123 | 고객센터: 1588-0000
+            </div>
+        </div>
+        <div class="copyright">&copy; 2026 영월방앗간. All rights reserved.</div>
+    </footer>
+
+    <script src="cart.js"></script>
+    <script>
+        function switchTab(tab) {
+            const btnGuest = document.getElementById('btnTabGuest');
+            const btnUser = document.getElementById('btnTabUser');
+            const guestContent = document.getElementById('guestTabContent');
+            const userContent = document.getElementById('userTabContent');
+            const resultDiv = document.getElementById('lookupResult');
+            resultDiv.innerHTML = '';
+
+            if (tab === 'guest') {
+                btnGuest.classList.add('active');
+                btnUser.classList.remove('active');
+                guestContent.style.display = 'block';
+                userContent.style.display = 'none';
+            } else {
+                btnUser.classList.add('active');
+                btnGuest.classList.remove('active');
+                guestContent.style.display = 'none';
+                userContent.style.display = 'block';
+                loadMemberOrders();
+            }
+        }
+
+        async function lookupGuestOrder() {
+            const orderNumber = document.getElementById('lookupOrderNumber').value.trim();
+            const guestPhone = document.getElementById('lookupGuestPhone').value.trim();
+            const guestPassword = document.getElementById('lookupGuestPassword').value.trim();
+            const resultDiv = document.getElementById('lookupResult');
+
+            if (!orderNumber || !guestPhone || !guestPassword) {
+                alert('주문번호, 연락처, 비밀번호를 모두 입력해 주세요.');
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/orders/guest-lookup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        order_number: orderNumber,
+                        guest_phone: guestPhone,
+                        guest_password: guestPassword
+                    })
+                });
+
+                const data = await resp.json();
+                if (!resp.ok) {
+                    resultDiv.innerHTML = `<div class="result-card" style="color:red; text-align:center;">${data.error || '주문 정보를 찾지 못했습니다.'}</div>`;
+                    return;
+                }
+
+                renderOrderCard(data.order, resultDiv);
+            } catch (err) {
+                console.error(err);
+                alert('조회 중 오류가 발생했습니다.');
+            }
+        }
+
+        async function loadMemberOrders() {
+            const token = localStorage.getItem('yw_jwt_token');
+            const memberContainer = document.getElementById('memberOrderList');
+
+            if (!token) {
+                memberContainer.innerHTML = `
+                    <div class="form-card" style="text-align: center; padding: 3rem;">
+                        <p style="font-size: 1.1rem; color: #666; margin-bottom: 1.5rem;">로그인이 필요한 서비스입니다.</p>
+                        <a href="login.html" class="btn-lookup" style="display:inline-block; width:auto; padding:0.8rem 2rem; text-decoration:none;">로그인 하러가기</a>
+                    </div>
+                `;
+                return;
+            }
+
+            memberContainer.innerHTML = '<p style="text-align:center;">회원 주문 목록을 불러오는 중입니다...</p>';
+        }
+
+        function renderOrderCard(order, targetElement) {
+            const itemsHtml = order.items.map(item => `
+                <div style="display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid #eee;">
+                    <span>${item.product_name} (${item.capacity || ''}) x ${item.quantity}개</span>
+                    <strong>${Number(item.subtotal).toLocaleString()}원</strong>
+                </div>
+            `).join('');
+
+            targetElement.innerHTML = `
+                <div class="result-card">
+                    <div style="display:flex; justify-content:space-between; border-bottom:2px solid #915a28; padding-bottom:0.8rem; margin-bottom:1rem;">
+                        <strong style="font-size:1.1rem;">주문번호: ${order.order_number}</strong>
+                        <span style="color:green; font-weight:700;">${order.payment_status === 'PAID' ? '결제 완료' : '결제 대기'}</span>
+                    </div>
+                    <p style="margin-bottom:0.4rem; color:#555;"><strong>수령인:</strong> ${order.recipient_name} (${order.recipient_phone})</p>
+                    <p style="margin-bottom:1rem; color:#555;"><strong>배송지:</strong> ${order.address} ${order.address_detail || ''}</p>
+                    
+                    <div style="margin: 1rem 0;">
+                        <h4 style="margin-bottom:0.5rem;">주문 상품</h4>
+                        ${itemsHtml}
+                    </div>
+
+                    <div style="text-align:right; font-size:1.3rem; font-weight:700; color:#915a28; margin-top:1rem;">
+                        총 결제 금액: ${Number(order.total_amount).toLocaleString()}원
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

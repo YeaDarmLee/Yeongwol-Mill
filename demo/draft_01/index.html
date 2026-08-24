@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영월방앗간 - 정직하고 건강한 프리미엄 방앗간</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <div class="nav-overlay"></div>
+        <a href="index.html" class="logo">영월방앗간</a>
+        <div class="nav-container">
+            <nav class="gnb">
+                <a href="index.html" style="color: var(--color-primary);">홈</a>
+                <a href="brand.html">브랜드 소개</a>
+                <a href="process.html">생산과정</a>
+                <a href="category.html">상품보기</a>
+            </nav>
+            <div class="utility">
+                <a href="login.html">로그인</a>
+                <a href="order-history.html">주문조회</a>
+                <a href="cart.html" id="cart-nav">장바구니 (0)</a>
+            </div>
+        </div>
+        <button class="mobile-menu-btn" aria-label="메뉴 열기">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>느리지만 바른 길,<br>영월의 정성을 담다</h1>
+            <p>100% 국산 농산물, 저온 로스팅으로 짜낸 프리미엄 건강 참기름 & 들기름</p>
+            <div class="hero-btns">
+                <a href="category.html" class="btn btn-primary">상품 둘러보기</a>
+                <a href="brand.html" class="btn btn-secondary">브랜드 스토리</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="product" class="products">
+        <h2 class="section-title">가장 사랑받는 영월방앗간의 맛</h2>
+        <p class="section-subtitle">청정 영월에서 자란 우리 농산물로 정직하게 만들었습니다.</p>
+
+        <div class="product-grid" id="mainProductGrid">
+            <!-- Dynamic Items from MySQL DB -->
+            <p style="grid-column: 1/-1; text-align: center; color: #888; padding: 3rem 0;">상품 목록을 로딩 중입니다...</p>
+        </div>
+    </section>
+
+    <section id="story" class="brand-story">
+        <div class="story-img"></div>
+        <div class="story-content">
+            <h2>전통 방앗간 감성,<br>영월의 진심을 담아</h2>
+            <p>영월방앗간은 단순한 기름이 아닌,<br class="pc-br"><br class="mo-br"> 영월 농산물을 기반으로 한 건강식품을 만듭니다.<br class="pc-br"> 대기업의
+                대량 생산 방식과 타협하지 않고,<br class="pc-br"><br class="mo-br"> 손맛과 정성, 그리고 전통 방식을 고집합니다.<br class="pc-br"> 투박하지만
+                가장 정직한 한 방울을<br class="mo-br"> 당신의 식탁에 올리겠습니다.</p>
+            <a href="brand.html" class="btn btn-outline">브랜드 스토리 더보기</a>
+        </div>
+    </section>
+
+    <section id="gift" class="gift-set">
+        <h2 class="section-title">감사의 마음을 전하는 프리미엄 선물</h2>
+        <p class="section-subtitle">명절, 부모님 선물로 손색없는 정성을 담았습니다.</p>
+
+        <div class="gift-showcase">
+            <img src="assets/gift_set.png" alt="영월방앗간 선물세트">
+        </div>
+
+        <a href="category.html" class="btn btn-primary"
+            style="background-color: var(--color-primary); color: white; border: none;">선물세트 보러가기</a>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-info">
+                <span class="footer-logo">영월방앗간</span><br>
+                강원도 영월군 영월읍 방앗간길 123<br>
+                대표자: 홍길동 | 사업자등록번호: 123-45-67890<br>
+                통신판매업신고: 제2023-강원영월-0000호<br>
+                고객센터: 1588-0000 (평일 09:00 - 18:00)
+            </div>
+            <div class="footer-links">
+                <a href="#">이용약관</a>
+                <a href="#">개인정보처리방침</a>
+                <a href="#">입점문의</a>
+            </div>
+        </div>
+        <div class="copyright">
+            &copy; 2026 영월방앗간. All rights reserved.
+        </div>
+    </footer>
+
+    <script src="cart.js"></script>
+    <script>
+        // Header scroll & Mobile Menu
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                header.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            } else {
+                header.style.boxShadow = 'none';
+            }
+        });
+
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const navContainer = document.querySelector('.nav-container');
+        const navOverlay = document.querySelector('.nav-overlay');
+
+        function toggleMenu() {
+            if (mobileMenuBtn) mobileMenuBtn.classList.toggle('active');
+            if (navContainer) navContainer.classList.toggle('active');
+            if (navOverlay) navOverlay.classList.toggle('active');
+        }
+
+        if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleMenu);
+        if (navOverlay) navOverlay.addEventListener('click', toggleMenu);
+
+        // Fetch MySQL Products for Main Page
+        async function loadMainProducts() {
+            const grid = document.getElementById('mainProductGrid');
+            try {
+                const response = await fetch('/api/products');
+                const data = await response.json();
+
+                if (!data.products || data.products.length === 0) {
+                    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">등록된 상품이 없습니다.</p>';
+                    return;
+                }
+
+                grid.innerHTML = data.products.map(product => `
+                    <a href="product.html?id=${product.id}" class="product-card">
+                        <div class="product-img">
+                            ${product.badge ? `<span class="badge">${product.badge}</span>` : ''}
+                            <img src="${product.image_url}" alt="${product.name}">
+                        </div>
+                        <div class="product-info">
+                            <h3>${product.name}</h3>
+                            <p>${product.description}</p>
+                            <span class="price">${Number(product.price).toLocaleString()}원</span>
+                            <button class="btn btn-outline" style="width: 100%" onclick="event.preventDefault(); window.location.href='product.html?id=${product.id}';">구매하기</button>
+                        </div>
+                    </a>
+                `).join('');
+            } catch (err) {
+                console.error("Main product fetch error:", err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadMainProducts);
+    </script>
+</body>
+</html>

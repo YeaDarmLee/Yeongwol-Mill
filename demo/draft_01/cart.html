@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>장바구니 - 영월방앗간</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .cart-container {
+            max-width: 1000px;
+            margin: 3rem auto 6rem;
+            padding: 0 5%;
+        }
+
+        .cart-title {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 2.2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .cart-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+
+        .cart-table th {
+            background-color: #f8f6f2;
+            padding: 1rem;
+            font-weight: 600;
+            border-bottom: 2px solid #ddd;
+            text-align: center;
+        }
+
+        .cart-table td {
+            padding: 1.2rem 1rem;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .cart-item-info {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            text-align: left;
+        }
+
+        .cart-item-img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            background: #fdfdfd;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .summary-card {
+            background: #fcfbfa;
+            border: 1px solid #eae6df;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 450px;
+            margin: 0 0 0 auto;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 1.05rem;
+        }
+
+        .summary-row.total {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--color-primary, #915a28);
+            border-top: 1px solid #ddd;
+            padding-top: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn-checkout {
+            width: 100%;
+            padding: 1.2rem;
+            background: var(--color-primary, #915a28);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 1.5rem;
+        }
+
+        .btn-checkout:hover {
+            background: #7a4a1f;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="nav-overlay"></div>
+        <a href="index.html" class="logo">영월방앗간</a>
+        <div class="nav-container">
+            <nav class="gnb">
+                <a href="index.html">홈</a>
+                <a href="brand.html">브랜드 소개</a>
+                <a href="process.html">생산과정</a>
+                <a href="category.html">상품보기</a>
+            </nav>
+            <div class="utility">
+                <a href="login.html">로그인</a>
+                <a href="order-history.html">주문조회</a>
+                <a href="cart.html" id="cart-nav">장바구니 (0)</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="cart-container">
+        <h1 class="cart-title">장바구니</h1>
+        <div id="cartContent">
+            <!-- Dynamic Cart Items Table -->
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-info">
+                <span class="footer-logo">영월방앗간</span><br>
+                강원도 영월군 영월읍 방앗간길 123 | 고객센터: 1588-0000
+            </div>
+        </div>
+        <div class="copyright">&copy; 2026 영월방앗간. All rights reserved.</div>
+    </footer>
+
+    <script src="cart.js"></script>
+    <script>
+        function renderCart() {
+            const cart = JSON.parse(localStorage.getItem('yw_cart')) || [];
+            const container = document.getElementById('cartContent');
+
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 5rem 0;">
+                        <p style="font-size: 1.2rem; color: #888; margin-bottom: 2rem;">장바구니에 담긴 상품이 없습니다.</p>
+                        <a href="category.html" class="btn-checkout" style="display: inline-block; width: auto; padding: 0.8rem 2rem; text-decoration: none;">상품 둘러보기</a>
+                    </div>
+                `;
+                return;
+            }
+
+            let subtotal = 0;
+            const rows = cart.map((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                return `
+                    <tr>
+                        <td>
+                            <div class="cart-item-info">
+                                <img src="${item.image_url}" class="cart-item-img" alt="${item.name}">
+                                <div>
+                                    <strong style="display:block; font-size:1.05rem;">${item.name}</strong>
+                                    <span style="color:#777; font-size:0.85rem;">${item.capacity || ''}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${Number(item.price).toLocaleString()}원</td>
+                        <td>
+                            <button onclick="changeCartQty(${index}, -1)" style="padding:2px 8px;">-</button>
+                            <span style="margin: 0 8px; font-weight:600;">${item.quantity}</span>
+                            <button onclick="changeCartQty(${index}, 1)" style="padding:2px 8px;">+</button>
+                        </td>
+                        <td style="font-weight:700;">${Number(itemTotal).toLocaleString()}원</td>
+                        <td>
+                            <button onclick="removeCartItem(${index})" style="color:red; background:none; border:none; cursor:pointer;">&times; 삭제</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <table class="cart-table">
+                    <thead>
+                        <tr>
+                            <th>상품 정보</th>
+                            <th>판매가</th>
+                            <th>수량</th>
+                            <th>합계</th>
+                            <th>관리</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+
+                <div class="summary-card">
+                    <div class="summary-row">
+                        <span>상품 합계</span>
+                        <span>${Number(subtotal).toLocaleString()}원</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>배송비</span>
+                        <span>FREE (무료배송)</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>총 결제 예상금액</span>
+                        <span>${Number(subtotal).toLocaleString()}원</span>
+                    </div>
+                    <button class="btn-checkout" onclick="proceedToCheckout()">주문하기</button>
+                </div>
+            `;
+        }
+
+        function changeCartQty(index, delta) {
+            let cart = JSON.parse(localStorage.getItem('yw_cart')) || [];
+            if (cart[index]) {
+                cart[index].quantity += delta;
+                if (cart[index].quantity <= 0) {
+                    cart.splice(index, 1);
+                }
+                localStorage.setItem('yw_cart', JSON.stringify(cart));
+                updateCartCount();
+                renderCart();
+            }
+        }
+
+        function removeCartItem(index) {
+            let cart = JSON.parse(localStorage.getItem('yw_cart')) || [];
+            cart.splice(index, 1);
+            localStorage.setItem('yw_cart', JSON.stringify(cart));
+            updateCartCount();
+            renderCart();
+        }
+
+        function proceedToCheckout() {
+            const cart = JSON.parse(localStorage.getItem('yw_cart')) || [];
+            if (cart.length === 0) {
+                alert('장바구니가 비어 있습니다.');
+                return;
+            }
+            localStorage.setItem('yw_checkout_items', JSON.stringify(cart));
+            window.location.href = 'checkout.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', renderCart);
+    </script>
+</body>
+</html>

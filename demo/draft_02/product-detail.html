@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>제품 상세 - 영월방앗간</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .product-main {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 60px;
+        }
+        .product-gallery {
+            flex: 1;
+            min-width: 320px;
+        }
+        .product-gallery img {
+            width: 100%;
+            height: auto;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-soft);
+        }
+        .product-details {
+            flex: 1;
+            min-width: 320px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .detail-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background-color: var(--color-accent);
+            color: var(--color-bg-white);
+            font-size: 14px;
+            border-radius: var(--radius-full);
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+        .detail-title {
+            font-size: 36px;
+            margin-bottom: 16px;
+            color: var(--color-primary-dark);
+            line-height: 1.4;
+        }
+        .detail-price {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 32px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid rgba(69,115,91,0.2);
+            color: var(--color-text-main);
+        }
+        .detail-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 40px 0;
+            font-size: 16px;
+            line-height: 2;
+        }
+        .detail-features li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .detail-actions {
+            display: flex;
+            gap: 16px;
+        }
+        .product-description-section {
+            margin-top: 80px;
+            padding-top: 80px;
+            border-top: 1px solid rgba(69,115,91,0.2);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">영월방앗간</a>
+            <button class="hamburger" id="hamburger-menu" aria-label="메뉴 열기">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="nav-wrapper" id="nav-wrapper">
+                <nav class="nav-links">
+                <a href="index.html">홈</a>
+                <a href="brand.html">브랜드 소개</a>
+                <a href="process.html">생산과정</a>
+                <a href="products.html">상품보기</a>
+            </nav>
+                <div class="header-actions">
+                <a href="login.html">로그인</a>
+                <a href="cart.html">장바구니</a>
+            </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="section container">
+        <div class="product-main">
+            <!-- Left: Image -->
+            <div class="product-gallery">
+                <img src="images/gift_set.png" alt="참기름 세트">
+            </div>
+            
+            <!-- Right: Details -->
+            <div class="product-details">
+                <div>
+                    <span class="detail-badge">선물세트 추천</span>
+                    <h1 class="font-serif detail-title">프리미엄 참기름 & 들기름 세트</h1>
+                    <p style="color: var(--color-text-muted); font-size: 16px; margin-bottom: 24px; line-height: 1.8;">고소한 참기름과 건강한 생들기름을 함께 즐길 수 있는 영월방앗간 베스트셀러 세트입니다. 명절 선물, 부모님 선물로 가장 많이 찾으시는 실속 있는 구성입니다.</p>
+                    <div class="detail-price">75,000원</div>
+                    
+                    <ul class="detail-features">
+                        <li><span style="color: var(--color-primary);">✔</span> 100% 영월산 최상급 참깨/들깨 사용</li>
+                        <li><span style="color: var(--color-primary);">✔</span> 벤조피렌 걱정 없는 저온 로스팅 공법</li>
+                        <li><span style="color: var(--color-primary);">✔</span> 단 한 번만 착유한 맑고 진한 첫기름</li>
+                        <li><span style="color: var(--color-primary);">✔</span> 고급스러운 보자기 포장 (옵션 선택 가능)</li>
+                    </ul>
+                    
+                    <div style="margin-bottom: 32px; display: flex; align-items: center; gap: 16px;">
+                        <span style="font-weight: 500;">수량</span>
+                        <div class="qty-control">
+                            <button class="qty-btn" onclick="updateQty(-1)">-</button>
+                            <input type="text" id="productQty" class="qty-input" value="1" readonly>
+                            <button class="qty-btn" onclick="updateQty(1)">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-actions">
+                        <button onclick="handleAddToCart()" class="btn btn-outline" style="flex: 1;">장바구니 담기</button>
+                        <button onclick="alert('결제 기능은 지원하지 않습니다.')" class="btn btn-primary" style="flex: 2;">바로 구매하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="product-description-section">
+            <h2 class="font-serif" style="margin-bottom: 24px; font-size: 32px;">상세 설명</h2>
+            <img src="images/sesame_oil.png" alt="상세설명 이미지" style="width: 100%; max-width: 800px; margin: 0 auto 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft);">
+            <p style="font-size: 18px; line-height: 1.8; max-width: 800px; margin: 0 auto; color: var(--color-text-main);">
+                <strong style="color: var(--color-primary-dark); font-size: 22px; display: block; margin-bottom: 16px;">단 한 번의 착유로 담아낸 맑은 풍미</strong>
+                수십 번 씻어내어 흙먼지를 완벽히 제거한 참깨와 들깨를<br>
+                160도 이하의 낮은 온도에서 서서히 볶아냅니다.<br>
+                이는 기름이 타면서 생길 수 있는 쓴맛과 발암물질을 원천적으로 차단하고,<br>
+                재료 본연의 부드럽고 깊은 고소함만을 남기기 위한 영월방앗간만의 고집입니다.
+            </p>
+        </div>
+    </main>
+
+        <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <span class="footer-logo">영월방앗간</span>
+                강원도 영월군 영월읍 하송로 123<br>
+                대표자: 이영월 | 사업자등록번호: 123-45-67890<br>
+                통신판매업신고: 2026-강원영월-0123<br>
+                고객센터: 033-123-4567 (평일 09:00 - 18:00)
+            </div>
+            <div class="footer-links">
+                <a href="#">이용약관</a>
+                <a href="#">개인정보처리방침</a>
+                <a href="#">입점문의</a>
+            </div>
+        </div>
+        <div class="copyright">
+            &copy; 2026 영월방앗간. All rights reserved.
+        </div>
+    </footer>
+    <script src="cart.js"></script>
+    <script>
+        // 수량 변경
+        function updateQty(change) {
+            const qtyInput = document.getElementById('productQty');
+            let currentQty = parseInt(qtyInput.value) || 1;
+            
+            let newQty = currentQty + change;
+            if (newQty < 1) newQty = 1;
+            if (newQty > 99) newQty = 99;
+            
+            qtyInput.value = newQty;
+        }
+
+        // 장바구니 담기
+        function handleAddToCart() {
+            const qty = parseInt(document.getElementById('productQty').value) || 1;
+            const product = {
+                id: 'item_01', // 실제로는 동적으로 가져와야 함
+                name: '프리미엄 참기름 & 들기름 세트',
+                price: 75000,
+                quantity: qty,
+                img: 'images/gift_set.png',
+                option: '기본포장'
+            };
+
+            // cart.js에 정의된 addToCart 호출
+            if (typeof addToCart === 'function') {
+                addToCart(product);
+            } else {
+                alert('장바구니 스크립트를 찾을 수 없습니다.');
+            }
+        }
+    </script>
+</body>
+</html>
