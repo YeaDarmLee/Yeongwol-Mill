@@ -10,7 +10,7 @@ from config import Config
 
 SQLITE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'yeongwol_mill.db')
 
-def get_db_connection():
+def get_db_connection(autocommit=False):
     """MySQL 커넥션을 반환하고, 연결 실패 시 SQLite로 폴백합니다."""
     try:
         conn = pymysql.connect(
@@ -21,12 +21,11 @@ def get_db_connection():
             database=Config.MYSQL_DB,
             charset='utf8mb4',
             cursorclass=DictCursor,
-            autocommit=True
+            autocommit=autocommit
         )
         conn._db_type = 'mysql'
         return conn
     except Exception as e:
-        # MySQL 연결 불가 시 SQLite 연결
         conn = sqlite3.connect(SQLITE_PATH)
         conn.row_factory = sqlite3.Row
         conn._db_type = 'sqlite'
@@ -51,9 +50,16 @@ def _adapt_query(query, db_type):
         return query.replace('%s', '?')
     return query
 
+def execute_db_conn(conn, query, args=()):
+    """동일 DB 커넥션 상에서 쿼리를 실행하고 영향을 받은 행 수(rowcount) 및 lastrowid를 반환합니다."""
+    adapted_query = _adapt_query(query, conn._db_type)
+    cursor = conn.cursor()
+    cursor.execute(adapted_query, args)
+    return cursor.rowcount, cursor.lastrowid
+
 def query_db(query, args=(), one=False):
     """SELECT 쿼리를 실행하고 결과를 반환합니다."""
-    conn = get_db_connection()
+    conn = get_db_connection(autocommit=True)
     try:
         adapted_query = _adapt_query(query, conn._db_type)
         cursor = conn.cursor()
@@ -71,8 +77,8 @@ def query_db(query, args=(), one=False):
         conn.close()
 
 def execute_db(query, args=()):
-    """INSERT, UPDATE, DELETE 쿼리를 실행하고 lastrowid를 반환합니다."""
-    conn = get_db_connection()
+    """INSERT, UPDATE, DELETE 쿼리를 실행하고 영향을 받은 행 수 또는 lastrowid를 반환합니다."""
+    conn = get_db_connection(autocommit=True)
     try:
         adapted_query = _adapt_query(query, conn._db_type)
         cursor = conn.cursor()
@@ -82,6 +88,6 @@ def execute_db(query, args=()):
             last_id = cursor.lastrowid
         else:
             last_id = cursor.lastrowid
-        return last_id
+        return last_id if last_id else cursor.rowcount
     finally:
         conn.close()

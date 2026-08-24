@@ -1,9 +1,11 @@
 import datetime
+import uuid
 from functools import wraps
 from flask import request, jsonify
 import jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config
+from db.db_connection import query_db
 
 def hash_password(password):
     """비밀번호 단방향 암호화 (Werkzeug/pbkdf2:sha256)"""
@@ -14,21 +16,28 @@ def check_password(password, password_hash):
     return check_password_hash(password_hash, password)
 
 def generate_jwt_token(user_id, email, role='USER'):
-    """JWT 토큰 생성 (role 포함)"""
+    """JWT 토큰 생성 (jti 및 role 포함)"""
+    jti = str(uuid.uuid4())
     payload = {
         'user_id': user_id,
         'email': email,
         'role': role,
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=Config.JWT_EXPIRATION_HOURS),
-        'iat': datetime.datetime.utcnow()
+        'jti': jti,
+        'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=Config.JWT_EXPIRATION_HOURS),
+        'iat': datetime.datetime.now(datetime.timezone.utc)
     }
     token = jwt.encode(payload, Config.JWT_SECRET_KEY, algorithm='HS256')
     return token
 
 def verify_jwt_token(token):
-    """JWT 토큰 검증"""
+    """JWT 토큰 검증 및 jti Blacklist 체크"""
     try:
         payload = jwt.decode(token, Config.JWT_SECRET_KEY, algorithms=['HS256'])
+        jti = payload.get('jti')
+        if jti:
+            revoked = query_db("SELECT * FROM revoked_access_tokens WHERE jti = %s", (jti,), one=True)
+            if revoked:
+                return None
         return payload
     except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
         return None

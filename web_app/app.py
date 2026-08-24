@@ -1,6 +1,10 @@
 import os
-from flask import Flask, send_from_directory, jsonify, render_template
+import time
+from collections import defaultdict
+from flask import Flask, send_from_directory, jsonify, render_template, request
 from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 from config import Config
 from db.init_db import init_database
 from cli import register_cli_commands
@@ -19,7 +23,26 @@ TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 
 app = Flask(__name__, static_folder=STATIC_DIR, template_folder=TEMPLATES_DIR, static_url_path='')
 app.config.from_object(Config)
+
+# Nginx ProxyFix (trust exactly 1 hop for X-Forwarded-For)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+
 CORS(app)
+
+# 경량 내장 IP Rate Limiter (Flask-Limiter 모듈 미설치 시 폴백)
+REQUEST_LOGS = defaultdict(list)
+
+@app.before_request
+def check_rate_limit():
+    # 로그인 및 보안 엔드포인트에 대한 IP Rate Limiting (1분 5회 제한)
+    if request.path in ['/api/auth/login', '/api/admin/login'] and request.method == 'POST':
+        client_ip = request.remote_addr or '127.0.0.1'
+        now = time.time()
+        # 최근 60초 내 요청 기록 필터링
+        REQUEST_LOGS[client_ip] = [t for t in REQUEST_LOGS[client_ip] if now - t < 60]
+        if len(REQUEST_LOGS[client_ip]) >= 5:
+            return jsonify({'error': '요청 횟수를 초과하였습니다. 잠시 후 다시 시도해 주세요.'}), 429
+        REQUEST_LOGS[client_ip].append(now)
 
 # Register Blueprints
 app.register_blueprint(auth_bp)
@@ -46,12 +69,10 @@ def index():
 
 @app.route('/<path:filename>')
 def serve_static(filename):
-    # 1. Templates 폴더 내 HTML 검색 및 렌더링
     if filename.endswith('.html'):
         template_name = filename
         if os.path.exists(os.path.join(TEMPLATES_DIR, template_name)):
             return render_template(template_name)
-    # 2. Static 파일 처리
     if os.path.exists(os.path.join(STATIC_DIR, filename)):
         return send_from_directory(STATIC_DIR, filename)
     return jsonify({'error': '페이지 또는 리소스를 찾을 수 없습니다.'}), 404

@@ -18,7 +18,6 @@ def setup_db():
     execute_db("DELETE FROM stock_reservations")
     execute_db("DELETE FROM order_items")
     execute_db("DELETE FROM orders")
-    # 재고 100개로 리셋
     execute_db("UPDATE product_options SET stock = 100, reserved_stock = 0 WHERE id = 1")
 
 @pytest.fixture
@@ -102,7 +101,7 @@ def test_duplicate_webhook_is_idempotent(client):
     assert '이미 처리된' in res2.get_json()['message']
 
 def test_payment_amount_mismatch(client):
-    """결제 금액 위변조 수신 시 400 거부 및 payment_status='FAILED' 검증"""
+    """결제 금액 위변조 수신 시 200 OK + integrity_status='AMOUNT_MISMATCH' 사고 기록 및 주문 미확정 검증"""
     option = query_db("SELECT * FROM product_options WHERE product_id = 1", one=True)
     res = client.post('/api/orders', json={
         'items': [{'product_id': 1, 'option_id': option['id'], 'quantity': 1}],
@@ -130,10 +129,11 @@ def test_payment_amount_mismatch(client):
     }
 
     webhook_res = client.post('/api/payment/webhook', json=payload)
-    assert webhook_res.status_code == 400
+    assert webhook_res.status_code == 200
 
     order = query_db("SELECT * FROM orders WHERE id = %s", (order_data['order_id'],), one=True)
-    assert order['payment_status'] == 'FAILED'
+    assert order['integrity_status'] == 'AMOUNT_MISMATCH'
+    assert order['order_status'] == 'PENDING'
 
 def test_unknown_webhook_event(client):
     """미정의 이벤트 수신 시 IGNORED 로깅 및 200 OK 반환 검증"""

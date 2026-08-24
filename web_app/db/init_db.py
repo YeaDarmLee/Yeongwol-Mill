@@ -36,12 +36,11 @@ def init_database():
             autocommit=True
         )
         with conn_db.cursor() as cursor:
-            # 컬럼 변경이 있을 경우 안전한 테이블 재생성을 시도합니다
             try:
-                cursor.execute("SELECT shelf_life_text FROM products LIMIT 1")
+                cursor.execute("SELECT refund_request_id FROM refunds LIMIT 1")
             except Exception:
                 cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
-                cursor.execute("DROP TABLE IF EXISTS order_items, stock_reservations, refunds, payments, webhook_events, remote_shipping_rules, product_options, products, categories, users, admin_users, orders;")
+                cursor.execute("DROP TABLE IF EXISTS refresh_tokens, revoked_access_tokens, order_items, stock_reservations, refunds, payments, webhook_events, remote_shipping_rules, product_options, products, categories, users, admin_users, orders;")
                 cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
 
             if os.path.exists(schema_path):
@@ -69,10 +68,11 @@ def init_database():
 
         # SQLite 테이블 스키마 검증
         try:
-            cursor.execute("SELECT shelf_life_text FROM products LIMIT 1")
+            cursor.execute("SELECT refund_request_id FROM refunds LIMIT 1")
         except Exception:
-            # 오래된 스키마 드롭 후 새 스키마 구성
             cursor.executescript("""
+                DROP TABLE IF EXISTS refresh_tokens;
+                DROP TABLE IF EXISTS revoked_access_tokens;
                 DROP TABLE IF EXISTS order_items;
                 DROP TABLE IF EXISTS stock_reservations;
                 DROP TABLE IF EXISTS refunds;
@@ -94,7 +94,6 @@ def init_database():
                 schema_sql = schema_sql.replace('AUTO_INCREMENT', 'AUTOINCREMENT')
                 schema_sql = schema_sql.replace('ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci', '')
                 schema_sql = schema_sql.replace('TINYINT(1)', 'INTEGER')
-                # MySQL 고유 제약조건/인덱스 필터링
                 clean_stmts = []
                 for statement in schema_sql.split(';'):
                     stmt = statement.strip()

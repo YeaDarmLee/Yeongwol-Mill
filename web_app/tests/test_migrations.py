@@ -1,7 +1,6 @@
 import pytest
 import sys
 import os
-import sqlite3
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app import app
@@ -31,8 +30,19 @@ def test_migration_preserves_existing_data():
     assert '저온착유' in product['name']
 
 def test_downgrade_upgrade_roundtrip():
-    """Alembic 마이그레이션 스크립트 존재 여부 감사 (현재 미구현 ➔ FAIL)"""
+    """Alembic 마이그레이션 스크립트 존재 여부 및 버전 전개 검증"""
     migrations_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'migrations')
-    # migrations/versions/ 디렉토리 존재 체크
     versions_dir = os.path.join(migrations_dir, 'versions')
     assert os.path.exists(versions_dir), "Alembic migrations/versions directory must exist"
+    
+    baseline_file = os.path.join(versions_dir, '001_baseline.py')
+    assert os.path.exists(baseline_file), "001_baseline.py must exist"
+    
+    integrity_file = os.path.join(versions_dir, '002_payment_integrity.py')
+    assert os.path.exists(integrity_file), "002_payment_integrity.py must exist"
+
+    refund_file = os.path.join(versions_dir, '003_refund_idempotency.py')
+    assert os.path.exists(refund_file), "003_refund_idempotency.py must exist"
+
+    auth_file = os.path.join(versions_dir, '004_auth_tokens.py')
+    assert os.path.exists(auth_file), "004_auth_tokens.py must exist"

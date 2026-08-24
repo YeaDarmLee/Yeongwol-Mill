@@ -3,7 +3,7 @@ import random
 import string
 from flask import Blueprint, request, jsonify
 from config import Config
-from db.db_connection import query_db, execute_db, get_db_connection
+from db.db_connection import query_db, execute_db, execute_db_conn, get_db_connection
 from middlewares.auth import verify_jwt_token, hash_password, check_password
 
 orders_bp = Blueprint('orders', __name__, url_prefix='/api/orders')
@@ -28,7 +28,7 @@ def calculate_remote_surcharge(postal_code):
 
 @orders_bp.route('', methods=['POST'])
 def create_order():
-    """회원 및 비회원 주문 생성 API (재고 예약 & 금액 스냅샷)"""
+    """회원 및 비회원 주문 생성 API (단일 트랜잭션 Atomic 재고 차감 & 금액 스냅샷)"""
     data = request.get_json() or {}
     
     items = data.get('items', [])
@@ -107,7 +107,6 @@ def create_order():
             'quantity': quantity
         })
 
-    # 배송비 계산
     base_shipping_fee = 0 if subtotal_amount >= Config.FREE_SHIPPING_THRESHOLD else Config.BASE_SHIPPING_FEE
     remote_area_surcharge = calculate_remote_surcharge(postal_code)
     discount_amount = 0
@@ -117,25 +116,44 @@ def create_order():
     guest_pw_hash = hash_password(guest_password) if guest_password else None
     expires_at = (datetime.datetime.now() + datetime.timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S')
 
-    conn = get_db_connection()
+    # 단일 Connection 트랜잭션 수행
+    conn = get_db_connection(autocommit=False)
     try:
-        # 1. Orders 테이블 저장
-        order_id = execute_db("""
+        if conn._db_type == 'mysql':
+            conn.begin()
+
+        # 1. 재고 원자적 차감 (Atomic UPDATE)
+        for res in reservation_targets:
+            affected, _ = execute_db_conn(conn, """
+                UPDATE product_options
+                SET reserved_stock = reserved_stock + %s
+                WHERE id = %s AND (stock - reserved_stock) >= %s
+            """, (res['quantity'], res['option_id'], res['quantity']))
+
+            if affected == 0:
+                if conn._db_type == 'sqlite':
+                    conn.rollback()
+                elif conn._db_type == 'mysql':
+                    conn.rollback()
+                return jsonify({'error': f"상품 옵션(ID: {res['option_id']})의 재고가 부족합니다."}), 400
+
+        # 2. Orders 테이블 저장
+        _, order_id = execute_db_conn(conn, """
             INSERT INTO orders (
                 order_number, user_id, guest_name, guest_phone, guest_password_hash,
                 subtotal_amount, base_shipping_fee, remote_area_surcharge, discount_amount, total_amount,
-                order_status, payment_status,
+                order_status, payment_status, integrity_status,
                 recipient_name, recipient_phone, postal_code, address, address_detail, delivery_memo
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PENDING', 'READY', %s, %s, %s, %s, %s, %s)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PENDING', 'READY', 'NORMAL', %s, %s, %s, %s, %s, %s)
         """, (
             order_number, user_id, guest_name, guest_phone, guest_pw_hash,
             subtotal_amount, base_shipping_fee, remote_area_surcharge, discount_amount, total_amount,
             recipient_name, recipient_phone, postal_code, address, address_detail, delivery_memo
         ))
 
-        # 2. Order Items 테이블 저장
+        # 3. Order Items 및 Stock Reservations 저장
         for item in order_items_to_insert:
-            execute_db("""
+            execute_db_conn(conn, """
                 INSERT INTO order_items (
                     order_id, product_id, option_id, product_name_snapshot, option_name_snapshot,
                     capacity, quantity, unit_price, option_price, final_unit_price, subtotal
@@ -146,18 +164,13 @@ def create_order():
                 item['unit_price'], item['option_price'], item['final_unit_price'], item['subtotal']
             ))
 
-        # 3. 재고 예약 & reserved_stock 원자적 증가 (reserved_stock += quantity)
         for res in reservation_targets:
-            execute_db("""
+            execute_db_conn(conn, """
                 INSERT INTO stock_reservations (order_id, product_option_id, quantity, expires_at, status)
                 VALUES (%s, %s, %s, %s, 'RESERVED')
             """, (order_id, res['option_id'], res['quantity'], expires_at))
 
-            execute_db("""
-                UPDATE product_options
-                SET reserved_stock = reserved_stock + %s
-                WHERE id = %s AND (stock - reserved_stock) >= %s
-            """, (res['quantity'], res['option_id'], res['quantity']))
+        conn.commit()
 
         return jsonify({
             'message': '주문서가 성공적으로 생성되었습니다. (15분간 재고 예약)',
@@ -170,8 +183,12 @@ def create_order():
             'expires_at': expires_at
         }), 201
     except Exception as e:
+        if conn._db_type in ('mysql', 'sqlite'):
+            conn.rollback()
         print(f"Order Creation Exception: {e}")
         return jsonify({'error': '주문 처리 중 오류가 발생했습니다.'}), 500
+    finally:
+        conn.close()
 
 @orders_bp.route('/guest-lookup', methods=['POST'])
 def guest_order_lookup():

@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS orders (
     total_amount INT NOT NULL,
     order_status VARCHAR(30) NOT NULL DEFAULT 'PENDING', -- PENDING, CONFIRMED, PREPARING, SHIPPING, DELIVERED, CANCELLED
     payment_status VARCHAR(30) NOT NULL DEFAULT 'READY', -- READY, PAY_PENDING, PAID, PARTIALLY_REFUNDED, REFUNDED, FAILED
+    integrity_status VARCHAR(50) NOT NULL DEFAULT 'NORMAL', -- NORMAL, AMOUNT_MISMATCH
     recipient_name VARCHAR(50) NOT NULL,
     recipient_phone VARCHAR(20) NOT NULL,
     postal_code VARCHAR(10),
@@ -145,18 +146,38 @@ CREATE TABLE IF NOT EXISTS refunds (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
     payment_id VARCHAR(100) NOT NULL,
-    cancellation_id VARCHAR(100) NOT NULL UNIQUE,
+    refund_request_id VARCHAR(255) NOT NULL UNIQUE,
+    cancellation_id VARCHAR(100) NULL UNIQUE,
     amount INT NOT NULL,
     reason VARCHAR(255) DEFAULT '',
     requester VARCHAR(50) DEFAULT 'ADMIN',
-    status VARCHAR(30) NOT NULL DEFAULT 'COMPLETED', -- COMPLETED, FAILED, PENDING
+    status VARCHAR(30) NOT NULL DEFAULT 'REQUESTED', -- REQUESTED, PENDING, COMPLETED, FAILED
     requested_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    pending_at DATETIME NULL,
     completed_at DATETIME NULL,
     failed_at DATETIME NULL,
+    error_code VARCHAR(100) DEFAULT '',
+    error_message TEXT,
     raw_response TEXT,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
     INDEX idx_refunds_order_id (order_id),
     INDEX idx_refunds_payment_id (payment_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token_hash VARCHAR(255) NOT NULL UNIQUE,
+    expires_at DATETIME NOT NULL,
+    revoked_at DATETIME NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS revoked_access_tokens (
+    jti VARCHAR(255) PRIMARY KEY,
+    expires_at DATETIME NOT NULL,
+    revoked_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS webhook_events (
