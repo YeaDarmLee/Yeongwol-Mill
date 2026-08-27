@@ -28,7 +28,10 @@ def get_db_connection(autocommit=False):
     except Exception as e:
         conn = sqlite3.connect(SQLITE_PATH)
         conn.row_factory = sqlite3.Row
-        conn._db_type = 'sqlite'
+        try:
+            conn._db_type = 'sqlite'
+        except AttributeError:
+            pass
         return conn
 
 def _serialize_row(row):
