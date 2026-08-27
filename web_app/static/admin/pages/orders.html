@@ -1,0 +1,101 @@
+<!-- PAGE 2: 주문 & CS 관리 (독립 라우트 뷰) -->
+<div id="view-orders" class="page-view">
+    <div class="page-header" style="margin-bottom:1rem;">
+        <div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <h1 class="page-title" id="orders-page-title" style="margin:0;">주문 및 배송 관리</h1>
+                <span id="orders-page-count-badge" style="font-size:0.9rem; font-weight:700; background:var(--admin-primary); color:#fff; padding:2px 10px; border-radius:12px;">0건</span>
+                <span id="reconcile-alert-badge" style="display:none; align-items:center; background:#ffebee; color:#c62828; border:1px solid #ffcdd2; padding:0.2rem 0.6rem; border-radius:4px; font-size:0.8rem; font-weight:bold;">
+                    <i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i> PG 대조필요 <span id="badge-reconcile_warning" style="margin-left:4px; background:#c62828; color:#fff; border-radius:10px; padding:2px 6px;">0</span>건
+                </span>
+            </div>
+            <div id="orders-page-desc" style="font-size:0.85rem; color:#666; margin-top:4px;">주문 처리 워크플로우 및 CS 관리 전용 뷰입니다.</div>
+        </div>
+        <div>
+            <button class="btn-action" style="background:#2e7d32; color:#fff;" onclick="exportOrdersCSV('excel')">관리자 Excel CSV</button>
+            <button class="btn-action" style="background:#1976d2; color:#fff;" onclick="exportOrdersCSV('shipping')">택배사 Import CSV</button>
+        </div>
+    </div>
+
+    <!-- 1. Filter Bar & Table View (상단 위치) -->
+    <div class="filter-bar">
+        <div class="filter-field">
+            <label>주문상태</label>
+            <select id="order-status-filter" style="width:120px;" onchange="filterOrders()">
+                <option value="">전체</option>
+                <option value="PENDING">주문대기</option>
+                <option value="CONFIRMED">주문확정</option>
+                <option value="PREPARING">상품준비중</option>
+                <option value="READY_TO_SHIP">배송준비중</option>
+                <option value="SHIPPING">배송중</option>
+                <option value="DELIVERED">배송완료</option>
+                <option value="CANCELLED">주문취소</option>
+            </select>
+        </div>
+        <div class="filter-field">
+            <label>결제상태</label>
+            <select id="payment-status-filter" style="width:120px;" onchange="filterOrders()">
+                <option value="">전체</option>
+                <option value="PENDING">결제대기</option>
+                <option value="PAID">결제완료</option>
+                <option value="PARTIALLY_REFUNDED">부분환불</option>
+                <option value="REFUNDED">전액환불</option>
+            </select>
+        </div>
+        <div class="filter-field">
+            <label>환불상태</label>
+            <select id="refund-status-filter" style="width:120px;" onchange="filterOrders()">
+                <option value="">전체</option>
+                <option value="PROCESSING">환불처리중</option>
+                <option value="RECONCILING">상태대조중</option>
+                <option value="COMPLETED">환불완료</option>
+            </select>
+        </div>
+        <div class="filter-field" style="flex:1; min-width:180px;">
+            <label>주문 검색어</label>
+            <input type="text" id="order-keyword-filter" class="form-control" placeholder="주문번호, 수령인, 연락처..." onkeydown="if(event.key==='Enter') filterOrders()">
+        </div>
+        <div class="filter-btn-group">
+            <button class="btn-filter-search" onclick="filterOrders()"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px;"></i> 검색</button>
+            <button class="btn-filter-reset" onclick="resetOrderFilters()">✕ 초기화</button>
+        </div>
+    </div>
+
+    <!-- 2. Batch Actions Toolbar (테이블 직전 위치) -->
+    <div id="batch-actions-toolbar" style="background:#fff3e0; border:1px solid #ffe0b2; border-radius:6px; padding:0.6rem 1rem; margin-bottom:1rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+        <div style="font-size:0.9rem; font-weight:600; color:#e65100; display:flex; align-items:center; gap:0.5rem;">
+            <input type="checkbox" id="order-select-all" onclick="toggleSelectAllOrders(this.checked)" style="width:16px; height:16px;">
+            <label for="order-select-all" style="cursor:pointer; margin:0;">전체 선택 (<span id="selected-orders-count">0</span>개 선택됨)</label>
+        </div>
+        <div id="batch-button-container" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <!-- Dynamic Batch Action Buttons rendered by JS -->
+        </div>
+    </div>
+
+    <div class="admin-section">
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr id="orders-table-thead-tr">
+                        <th style="width:40px; text-align:center;">선택</th>
+                        <th>ID</th>
+                        <th>주문번호</th>
+                        <th>수령인</th>
+                        <th>연락처</th>
+                        <th>결제금액</th>
+                        <th>주문상태</th>
+                        <th>결제상태</th>
+                        <th>송장번호</th>
+                        <th>상세 관리</th>
+                    </tr>
+                </thead>
+                <tbody id="orders-tbody">
+                    <tr>
+                        <td colspan="10" style="text-align:center; padding:1.5rem; color:#777;">주문 목록을 불러오는 중입니다...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="orders-pagination"></div>
+    </div>
+</div>

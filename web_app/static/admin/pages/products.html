@@ -1,0 +1,60 @@
+<!-- PAGE 3: 상품 & 재고 관리 -->
+<div id="view-products" class="page-view">
+    <div class="page-header">
+        <h1 class="page-title">상품 및 재고 관리</h1>
+        <button class="btn-action" style="background:var(--admin-primary); color:#fff;" onclick="openAddProductModal()">+ 신규 상품 등록</button>
+    </div>
+
+    <!-- 상품 필터 바 -->
+    <div class="filter-bar">
+        <div class="filter-field" style="flex:1; min-width:180px;">
+            <label>상품명 검색</label>
+            <input type="text" id="product-keyword-filter" class="form-control" placeholder="상품명..." onkeydown="if(event.key==='Enter') filterProducts()">
+        </div>
+        <div class="filter-field">
+            <label>카테고리</label>
+            <select id="product-category-filter" style="width:130px;">
+                <option value="">전체</option>
+                <option value="1">참기름 (1)</option>
+                <option value="2">들기름 (2)</option>
+                <option value="3">고춧가루 (3)</option>
+                <option value="4">선물세트 (4)</option>
+            </select>
+        </div>
+        <div class="filter-field">
+            <label>판매 상태</label>
+            <select id="product-active-filter" style="width:110px;">
+                <option value="">전체</option>
+                <option value="1">판매중</option>
+                <option value="0">판매중지</option>
+            </select>
+        </div>
+        <div class="filter-btn-group">
+            <button class="btn-filter-search" onclick="filterProducts()">검색</button>
+            <button class="btn-filter-reset" onclick="resetProductFilters()">✕ 초기화</button>
+        </div>
+    </div>
+
+    <div class="admin-section">
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>상품명</th>
+                        <th>판매가</th>
+                        <th>옵션 및 재고 현황</th>
+                        <th>판매 상태</th>
+                        <th>관리 및 수정</th>
+                    </tr>
+                </thead>
+                <tbody id="products-tbody">
+                    <tr>
+                        <td colspan="6" style="text-align:center; padding:1.5rem; color:#777;">상품 목록을 불러오는 중입니다...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="products-pagination"></div>
+    </div>
+</div>

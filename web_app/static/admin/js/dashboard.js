@@ -189,15 +189,26 @@ function setQueueCardValue(valElemId, cardElemId, count, isUrgentAlert = false) 
 
 function handleAlertClick(targetFilterStr) {
     if (!targetFilterStr) return;
-    navigatePage('orders');
     const params = new URLSearchParams(targetFilterStr);
-    loadOrders({
-        order_status: params.get('order_status') || '',
-        payment_status: params.get('payment_status') || '',
-        refund_status: params.get('refund_status') || '',
-        unregistered_tracking: params.get('unregistered_tracking') || '',
-        amount_mismatch: params.get('amount_mismatch') || ''
-    });
+    const orderStatus = params.get('order_status');
+    const refundStatus = params.get('refund_status');
+    const unreg = params.get('unregistered_tracking');
+
+    if (unreg) {
+        window.location.hash = '#orders/ready_to_ship';
+    } else if (refundStatus || params.get('amount_mismatch')) {
+        window.location.hash = '#cs/refund';
+    } else if (orderStatus === 'PENDING') {
+        window.location.hash = '#orders/pending';
+    } else if (orderStatus === 'CONFIRMED') {
+        window.location.hash = '#orders/confirmed';
+    } else if (orderStatus === 'PREPARING') {
+        window.location.hash = '#orders/preparing';
+    } else if (orderStatus === 'SHIPPING') {
+        window.location.hash = '#orders/shipping';
+    } else {
+        window.location.hash = '#orders/all';
+    }
 }
 
 function switchTrendPeriod(days) {

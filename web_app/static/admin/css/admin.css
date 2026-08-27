@@ -372,33 +372,125 @@ button {
     flex: 1;
 }
 
-.sidebar-menu li a {
+/* 사이드바 메뉴 1차 항목 공통 정렬 스타일 */
+.sidebar-menu li a,
+.menu-group-header {
+    width: 100%;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 0.9rem 1.5rem;
+    padding: 0.85rem 1.5rem;
     color: #a0978d;
     text-decoration: none;
     font-size: 0.95rem;
-    font-weight: 500;
+    font-weight: 600;
+    background: transparent;
+    border: none;
     border-left: 4px solid transparent;
+    cursor: pointer;
     transition: background 0.22s var(--ease-standard),
                 color 0.22s var(--ease-standard),
-                border-color 0.22s var(--ease-standard),
-                padding-left 0.22s var(--ease-standard);
+                border-color 0.22s var(--ease-standard);
 }
 
-.sidebar-menu li a:hover {
+.menu-title-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.menu-svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    flex-shrink: 0;
+}
+
+.menu-arrow-icon {
+    width: 14px;
+    height: 14px;
+    stroke: #f1e4d3;
+    flex-shrink: 0;
+    margin-left: auto;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu-group-header[aria-expanded="false"] .menu-arrow-icon {
+    transform: rotate(-90deg);
+}
+
+.sidebar-menu li a {
+    gap: 12px;
+}
+
+.sidebar-menu li a:hover,
+.menu-group-header:hover {
     background: rgba(255, 255, 255, 0.07);
     color: #ffffff;
-    padding-left: 1.75rem;
 }
 
-.sidebar-menu li.active a {
+.sidebar-menu > li.active > a {
     background: rgba(197, 155, 39, 0.14);
     color: #ffffff;
     border-left: 4px solid var(--admin-primary);
     font-weight: 600;
+}
+
+.menu-group-header {
+    justify-content: space-between;
+}
+
+/* 스르륵 열리고 닫히는 서브메뉴 트랜지션 (Smooth Slide Accordion) */
+.submenu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 500px;
+    opacity: 1;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                padding 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.submenu.collapsed {
+    max-height: 0 !important;
+    opacity: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    pointer-events: none;
+}
+
+.submenu li a {
+    padding-left: 2.8rem !important;
+    font-size: 0.86rem !important;
+    font-weight: 500 !important;
+    color: #a0978d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.submenu li a:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.submenu li.active a {
+    background: rgba(197, 155, 39, 0.18) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    border-left: 4px solid var(--admin-primary) !important;
+}
+
+.active-queue-badge {
+    background: #c62828;
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 10px;
+    margin-left: auto;
 }
 
 .sidebar-footer {
@@ -615,6 +707,28 @@ table.admin-table tbody tr:hover {
     transform: scale(1) translateY(0);
 }
 
+/* 모달 오른쪽 상하단 곡면(border-radius) 침범 방지 슬림 스크롤바 */
+.modal-card::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-card::-webkit-scrollbar-track {
+    background: transparent;
+    margin-top: 14px;
+    margin-bottom: 14px;
+    border-radius: 10px;
+}
+
+.modal-card::-webkit-scrollbar-thumb {
+    background: rgba(141, 110, 99, 0.35);
+    border-radius: 10px;
+    border: 2px solid #ffffff; /* 카드 테두리와 여백 형성 */
+}
+
+.modal-card::-webkit-scrollbar-thumb:hover {
+    background: var(--admin-primary);
+}
+
 /* ─────────────────────────────────────────────
    12. 대시보드 KPI & Work Queue
 ───────────────────────────────────────────── */
@@ -674,6 +788,7 @@ table.admin-table tbody tr:hover {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
+    align-items: stretch;
     margin-bottom: 1.5rem;
 }
 @media (max-width: 992px) { .dashboard-split-grid { grid-template-columns: 1fr; } }
@@ -717,8 +832,23 @@ table.admin-table tbody tr:hover {
 .queue-card.has-urgent .q-count { color: #d32f2f; }
 
 /* ─────────────────────────────────────────────
-   13. Alert & 운영 알림
+   13. Alert & 운영 알림 (동일 높이 및 스크롤바)
 ───────────────────────────────────────────── */
+#dashboard-alerts-container::-webkit-scrollbar {
+    width: 6px;
+}
+#dashboard-alerts-container::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+}
+#dashboard-alerts-container::-webkit-scrollbar-thumb {
+    background: rgba(141, 110, 99, 0.35);
+    border-radius: 4px;
+}
+#dashboard-alerts-container::-webkit-scrollbar-thumb:hover {
+    background: var(--admin-primary);
+}
+
 .alert-card-item {
     padding: 0.75rem 1rem;
     border-radius: 8px;

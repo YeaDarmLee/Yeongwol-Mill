@@ -1342,3 +1342,412 @@ def admin_update_option_stock(option_id):
         'option_id': option_id,
         'stock': int(new_stock)
     }), 200
+
+# ==============================================================================
+# 주문 단계별 Workflow Command & CS 관리 Batch APIs (100% Sealed Final Freeze)
+# ==============================================================================
+
+@admin_bp.route('/orders/counts', methods=['GET'])
+def admin_orders_subtab_counts():
+    """단계별 / CS별 서브 탭 실시간 건수 Badge 조회 API"""
+    payload = verify_admin_auth()
+    if not payload:
+        return jsonify({'error': '관리자 권한이 필요합니다.'}), 403
+
+    pending_cnt = int((query_db("""
+        SELECT COUNT(*) as c FROM orders o
+        WHERE o.order_status IN ('PENDING', 'CONFIRMED')
+          AND o.payment_status IN ('PAID', 'PARTIALLY_REFUNDED')
+          AND (
+              (SELECT COALESCE(SUM(quantity), 0) FROM order_items WHERE order_id = o.id) -
+              (SELECT COALESCE(SUM(si.quantity), 0) FROM shipment_items si JOIN shipments s ON si.shipment_id = s.id WHERE s.order_id = o.id AND s.purpose = 'FULFILLMENT')
+          ) > 0
+    """, one=True) or {}).get('c', 0))
+    confirmed_cnt = 0
+    preparing_cnt = int((query_db("SELECT COUNT(*) as c FROM orders WHERE order_status = 'PREPARING'", one=True) or {}).get('c', 0))
+    ready_to_ship_cnt = int((query_db("SELECT COUNT(*) as c FROM orders WHERE order_status = 'READY_TO_SHIP'", one=True) or {}).get('c', 0))
+    shipping_cnt = int((query_db("SELECT COUNT(*) as c FROM orders WHERE order_status = 'SHIPPING'", one=True) or {}).get('c', 0))
+    delivered_cnt = int((query_db("SELECT COUNT(*) as c FROM orders WHERE order_status = 'DELIVERED'", one=True) or {}).get('c', 0))
+
+    cs_cancel_cnt = int((query_db("SELECT COUNT(DISTINCT order_id) as c FROM cancellation_requests", one=True) or {}).get('c', 0))
+    if cs_cancel_cnt == 0:
+        cs_cancel_cnt = int((query_db("SELECT COUNT(*) as c FROM orders WHERE order_status = 'CANCELLED'", one=True) or {}).get('c', 0))
+
+    cs_return_cnt = int((query_db("SELECT COUNT(DISTINCT order_id) as c FROM return_requests", one=True) or {}).get('c', 0))
+    cs_exchange_cnt = int((query_db("SELECT COUNT(DISTINCT order_id) as c FROM exchange_requests", one=True) or {}).get('c', 0))
+    cs_refund_cnt = int((query_db("SELECT COUNT(DISTINCT order_id) as c FROM refund_requests WHERE status IN ('PENDING', 'PROCESSING', 'FAILED', 'RECONCILE_REQUIRED')", one=True) or {}).get('c', 0))
+    reconcile_warning_cnt = int((query_db("SELECT COUNT(DISTINCT order_id) as c FROM refund_requests WHERE status = 'RECONCILE_REQUIRED'", one=True) or {}).get('c', 0))
+
+    return jsonify({
+        'pending': pending_cnt,
+        'confirmed': confirmed_cnt,
+        'preparing': preparing_cnt,
+        'ready_to_ship': ready_to_ship_cnt,
+        'shipping': shipping_cnt,
+        'delivered': delivered_cnt,
+        'cs_cancel': cs_cancel_cnt,
+        'cs_return': cs_return_cnt,
+        'cs_exchange': cs_exchange_cnt,
+        'cs_refund': cs_refund_cnt,
+        'reconcile_warning': reconcile_warning_cnt
+    }), 200
+
+def _process_batch_order_command(order_ids, target_status, admin_payload, action_type, require_shipment=False):
+    conn = get_db_connection()
+    success_ids = []
+    failed_list = []
+    try:
+        for oid in order_ids:
+            try:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT * FROM orders WHERE id = %s FOR UPDATE", (oid,))
+                    order = cursor.fetchone()
+                    if not order:
+                        failed_list.append({'order_id': oid, 'reason': 'NOT_FOUND', 'message': '주문을 찾을 수 없습니다.'})
+                        continue
+
+                    qty_info = OrderStateMachine.compute_order_quantities(conn, oid)
+
+                    shipment = None
+                    if target_status == 'SHIPPING' or require_shipment:
+                        cursor.execute("SELECT * FROM shipments WHERE order_id = %s AND purpose = 'FULFILLMENT' ORDER BY id DESC LIMIT 1", (oid,))
+                        shipment = cursor.fetchone()
+                        if not shipment and order.get('tracking_number'):
+                            shipment = {
+                                'carrier_code': order.get('courier_name'),
+                                'tracking_number': order.get('tracking_number')
+                            }
+
+                    # Validate transition & 2-tier context guards
+                    OrderStateMachine.validate_transition(order['order_status'], target_status, order['payment_status'])
+                    OrderStateMachine.validate_guards(order, target_status, shipment=shipment, qty_info=qty_info)
+
+                    now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    extra_updates = ""
+                    if target_status == 'SHIPPING':
+                        extra_updates = f", shipped_at = '{now_str}'"
+                        if shipment and isinstance(shipment, dict) and shipment.get('id'):
+                            cursor.execute("UPDATE shipments SET status = 'SHIPPED', shipped_at = %s WHERE id = %s", (now_str, shipment['id']))
+                    elif target_status == 'DELIVERED':
+                        extra_updates = f", delivered_at = '{now_str}'"
+                        cursor.execute("UPDATE shipments SET status = 'DELIVERED', delivered_at = %s WHERE order_id = %s AND purpose = 'FULFILLMENT'", (now_str, oid))
+                    elif target_status == 'READY_TO_SHIP':
+                        cursor.execute("SELECT id FROM shipments WHERE order_id = %s AND purpose = 'FULFILLMENT'", (oid,))
+                        if not cursor.fetchone():
+                            cursor.execute("""
+                                INSERT INTO shipments (order_id, purpose, carrier_code, tracking_number, status)
+                                VALUES (%s, 'FULFILLMENT', %s, %s, 'READY')
+                            """, (oid, order.get('courier_name'), order.get('tracking_number')))
+                            ship_id = cursor.lastrowid
+                            cursor.execute("SELECT id, quantity FROM order_items WHERE order_id = %s", (oid,))
+                            o_items = cursor.fetchall() or []
+                            for oi in o_items:
+                                cursor.execute("""
+                                    INSERT INTO shipment_items (shipment_id, order_item_id, quantity)
+                                    VALUES (%s, %s, %s)
+                                """, (ship_id, oi['id'], oi['quantity']))
+
+                    cursor.execute(f"UPDATE orders SET order_status = %s {extra_updates} WHERE id = %s", (target_status, oid))
+                    conn.commit()
+                    success_ids.append(oid)
+
+                    log_admin_audit(
+                        admin_id=admin_payload['user_id'],
+                        admin_email=admin_payload.get('email') or admin_payload.get('sub', ''),
+                        action_type=action_type,
+                        target_type='ORDER',
+                        target_id=oid,
+                        reason=f"Batch transition to {target_status}"
+                    )
+            except OrderStateMachineError as err:
+                conn.rollback()
+                failed_list.append({'order_id': oid, 'reason': err.code, 'message': err.message})
+            except Exception as e:
+                conn.rollback()
+                failed_list.append({'order_id': oid, 'reason': 'INTERNAL_ERROR', 'message': str(e)})
+    finally:
+        conn.close()
+
+    return jsonify({
+        'success': success_ids,
+        'failed': failed_list
+    }), 200
+
+@admin_bp.route('/orders/confirm', methods=['POST'])
+def admin_batch_confirm_orders():
+    """신규 주문대기건 ➔ 주문확정(CONFIRMED) 일괄 처리 API"""
+    payload = verify_admin_auth()
+    if not payload:
+        return jsonify({'error': '관리자 권한이 필요합니다.'}), 403
+    order_ids = (request.get_json() or {}).get('order_ids', [])
+    return _process_batch_order_command(order_ids, 'CONFIRMED', payload, 'BATCH_CONFIRM_ORDERS')
+
+@admin_bp.route('/orders/prepare', methods=['POST'])
+def admin_batch_prepare_orders():
+    """주문확정건 ➔ 상품준비중(PREPARING) 일괄 처리 API"""
+    payload = verify_admin_auth()
+    if not payload:
+        return jsonify({'error': '관리자 권한이 필요합니다.'}), 403
+    order_ids = (request.get_json() or {}).get('order_ids', [])
+    return _process_batch_order_command(order_ids, 'PREPARING', payload, 'BATCH_PREPARE_ORDERS')
+
+@admin_bp.route('/orders/ready-to-ship', methods=['POST'])
+def admin_batch_ready_to_ship_orders():
+    """상품준비중 ➔ 배송준비중(READY_TO_SHIP) 전환 API (Shipment 할당 생성)"""
+    payload = verify_admin_auth()
+    if not payload:
+        return jsonify({'error': '관리자 권한이 필요합니다.'}), 403
+    order_ids = (request.get_json() or {}).get('order_ids', [])
+    return _process_batch_order_command(order_ids, 'READY_TO_SHIP', payload, 'BATCH_READY_TO_SHIP_ORDERS')
+
+@admin_bp.route('/orders/ship', methods=['POST'])
+def admin_batch_ship_orders():
+    """배송준비중 ➔ 배송중(SHIPPING) 일괄 전환 API (송장/택배사 필수 검증)"""
+    payload = verify_admin_auth()
+    if not payload:
+        return jsonify({'error': '관리자 권한이 필요합니다.'}), 403
+    order_ids = (request.get_json() or {}).get('order_ids', [])
+    return _process_batch_order_command(order_ids, 'SHIPPING', payload, 'BATCH_SHIP_ORDERS', require_shipment=True)
+
+@admin_bp.route('/orders/deliver', methods=['POST'])
+def admin_batch_deliver_orders():
+    """배송중 ➔ 배송완료(DELIVERED) 일괄 전환 API"""
+    payload = verify_admin_auth()
+    if not payload:
+        return jsonify({'error': '관리자 권한이 필요합니다.'}), 403
+    order_ids = (request.get_json() or {}).get('order_ids', [])
+    return _process_batch_order_command(order_ids, 'DELIVERED', payload, 'BATCH_DELIVER_ORDERS')
+
+@admin_bp.route('/orders/batch-tracking', methods=['POST'])
+def admin_batch_register_tracking():
+    """인라인 송장 번호 배열 일괄 등록 및 Shipment 저장 API"""
+    payload = verify_admin_auth()
+    if not payload:
+        return jsonify({'error': '관리자 권한이 필요합니다.'}), 403
+
+    data = request.get_json() or {}
+    items = data.get('items', [])
+    if not items or not isinstance(items, list):
+        return jsonify({'error': '송장 등록 항목 배열(items)이 올바르지 않습니다.'}), 400
+
+    conn = get_db_connection()
+    success_ids = []
+    failed_list = []
+
+    try:
+        for item in items:
+            oid = item.get('order_id')
+            carrier = str(item.get('carrier_code', '')).strip()
+            tracking = str(item.get('tracking_number', '')).strip()
+
+            if not oid or not carrier or not tracking:
+                failed_list.append({'order_id': oid, 'reason': 'INVALID_INPUT', 'message': '주문ID, 택배사명, 운송장번호가 모두 필요합니다.'})
+                continue
+
+            try:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT * FROM orders WHERE id = %s FOR UPDATE", (oid,))
+                    order = cursor.fetchone()
+                    if not order:
+                        failed_list.append({'order_id': oid, 'reason': 'NOT_FOUND', 'message': '주문을 찾을 수 없습니다.'})
+                        continue
+
+                    if order.get('fulfillment_hold'):
+                        failed_list.append({'order_id': oid, 'reason': 'FULFILLMENT_HELD', 'message': '주문이 보류 상태입니다.'})
+                        continue
+
+                    # Update order & shipment
+                    cursor.execute("UPDATE orders SET courier_name = %s, tracking_number = %s WHERE id = %s", (carrier, tracking, oid))
+                    
+                    cursor.execute("SELECT id FROM shipments WHERE order_id = %s AND purpose = 'FULFILLMENT'", (oid,))
+                    ship_row = cursor.fetchone()
+                    if ship_row:
+                        cursor.execute("UPDATE shipments SET carrier_code = %s, tracking_number = %s, status = 'READY' WHERE id = %s", (carrier, tracking, ship_row['id']))
+                    else:
+                        cursor.execute("""
+                            INSERT INTO shipments (order_id, purpose, carrier_code, tracking_number, status)
+                            VALUES (%s, 'FULFILLMENT', %s, %s, 'READY')
+                        """, (oid, carrier, tracking))
+                        ship_id = cursor.lastrowid
+                        cursor.execute("SELECT id, quantity FROM order_items WHERE order_id = %s", (oid,))
+                        o_items = cursor.fetchall() or []
+                        for oi in o_items:
+                            cursor.execute("""
+                                INSERT INTO shipment_items (shipment_id, order_item_id, quantity)
+                                VALUES (%s, %s, %s)
+                            """, (ship_id, oi['id'], oi['quantity']))
+
+                    conn.commit()
+                    success_ids.append(oid)
+            except Exception as e:
+                conn.rollback()
+                failed_list.append({'order_id': oid, 'reason': 'INTERNAL_ERROR', 'message': str(e)})
+    finally:
+        conn.close()
+
+    return jsonify({
+        'success': success_ids,
+        'failed': failed_list
+    }), 200
+
+@admin_bp.route('/orders/cancel', methods=['POST'])
+def admin_batch_cancel_orders():
+    """Saga 패턴 기반 결제완료/미결제 주문 안전 취소 및 RefundEngine 연동 API"""
+    payload = verify_admin_auth()
+    if not payload:
+        return jsonify({'error': '관리자 권한이 필요합니다.'}), 403
+
+    data = request.get_json() or {}
+    order_ids = data.get('order_ids', [])
+    reason = data.get('reason', '관리자 취소').strip()
+
+    if not order_ids or not isinstance(order_ids, list):
+        return jsonify({'error': '취소할 주문 ID 목록(order_ids)을 제공해 주세요.'}), 400
+
+    success_ids = []
+    failed_list = []
+
+    for oid in order_ids:
+        # Tx 1: Lock order, verify shipped_qty == 0, set fulfillment_hold = 1
+        conn_tx1 = get_db_connection()
+        try:
+            with conn_tx1.cursor() as cursor:
+                cursor.execute("SELECT * FROM orders WHERE id = %s FOR UPDATE", (oid,))
+                order = cursor.fetchone()
+                if not order:
+                    failed_list.append({'order_id': oid, 'reason': 'NOT_FOUND', 'message': '주문을 찾을 수 없습니다.'})
+                    conn_tx1.rollback()
+                    continue
+
+                qty_info = OrderStateMachine.compute_order_quantities(conn_tx1, oid)
+
+                if qty_info['shipped_qty'] > 0:
+                    failed_list.append({'order_id': oid, 'reason': 'SHIPPED_ITEMS_CANNOT_BE_CANCELLED', 'message': '이미 출고된 품목은 취소할 수 없습니다. 반품/교환 절차를 이용해 주세요.'})
+                    conn_tx1.rollback()
+                    continue
+
+                if order['order_status'] in ('CANCELLED', 'REFUNDED'):
+                    failed_list.append({'order_id': oid, 'reason': 'ALREADY_CANCELLED', 'message': '이미 취소/환불된 주문입니다.'})
+                    conn_tx1.rollback()
+                    continue
+
+                cursor.execute("UPDATE orders SET fulfillment_hold = 1, fulfillment_hold_reason = 'CANCELLATION_IN_PROGRESS' WHERE id = %s", (oid,))
+
+                cursor.execute("""
+                    INSERT INTO cancellation_requests (order_id, reason_code, reason_detail, status)
+                    VALUES (%s, 'ADMIN_CANCEL', %s, 'PENDING')
+                """, (oid, reason))
+                cancel_req_id = cursor.lastrowid
+
+                cursor.execute("SELECT id, quantity FROM order_items WHERE order_id = %s", (oid,))
+                o_items = cursor.fetchall() or []
+                for oi in o_items:
+                    cursor.execute("""
+                        INSERT INTO cancellation_request_items (cancellation_request_id, order_item_id, requested_qty, approved_qty)
+                        VALUES (%s, %s, %s, %s)
+                    """, (cancel_req_id, oi['id'], oi['quantity'], oi['quantity']))
+
+                # P0 Allocation Cleanup: Remove un-shipped shipment items
+                cursor.execute("""
+                    SELECT si.id
+                    FROM shipment_items si
+                    JOIN shipments s ON si.shipment_id = s.id
+                    WHERE s.order_id = %s AND s.purpose = 'FULFILLMENT' AND s.status IN ('CREATED', 'READY')
+                """, (oid,))
+                alloc_items = cursor.fetchall() or []
+                for ai in alloc_items:
+                    cursor.execute("DELETE FROM shipment_items WHERE id = %s", (ai['id'],))
+
+                conn_tx1.commit()
+        except Exception as e:
+            conn_tx1.rollback()
+            failed_list.append({'order_id': oid, 'reason': 'TX1_FAILED', 'message': str(e)})
+            conn_tx1.close()
+            continue
+        finally:
+            conn_tx1.close()
+
+        # Process Refund if PAID / PARTIALLY_REFUNDED
+        if order['payment_status'] in ('PAID', 'PARTIALLY_REFUNDED'):
+            try:
+                items = query_db("SELECT * FROM order_items WHERE order_id = %s", (oid,)) or []
+                items_payload = [{'order_item_id': it['id'], 'quantity': it['quantity'] - it['cancelled_qty']} for it in items if (it['quantity'] - it['cancelled_qty']) > 0]
+                op_id = f"CANCEL_BATCH_{oid}_{int(datetime.datetime.now().timestamp())}"
+                refund_res, http_code = process_refund_request(
+                    order_id=oid,
+                    operation_id=op_id,
+                    items=items_payload,
+                    reason=reason,
+                    admin_id=payload['user_id']
+                )
+                refund_status = refund_res.get('status') if isinstance(refund_res, dict) else None
+
+                conn_tx2 = get_db_connection()
+                try:
+                    with conn_tx2.cursor() as cursor:
+                        cursor.execute("SELECT * FROM orders WHERE id = %s FOR UPDATE", (oid,))
+                        curr_order = cursor.fetchone()
+
+                        if refund_status == 'SUCCEEDED' or http_code == 200:
+                            cursor.execute("UPDATE cancellation_requests SET status = 'COMPLETED' WHERE id = %s", (cancel_req_id,))
+                            cursor.execute("UPDATE cancellation_request_items SET approved_qty = requested_qty WHERE cancellation_request_id = %s", (cancel_req_id,))
+                            
+                            qty_info_after = OrderStateMachine.compute_order_quantities(conn_tx2, oid)
+                            new_pay_status = OrderStateMachine.calculate_payment_status(curr_order['total_amount'], curr_order['total_amount'])
+
+                            if qty_info_after['remaining_uncancelled_qty'] == 0 and qty_info_after['shipped_qty'] == 0:
+                                target_ord_status = 'CANCELLED'
+                            else:
+                                target_ord_status = curr_order['order_status']
+
+                            cursor.execute("""
+                                UPDATE orders
+                                SET order_status = %s, payment_status = %s, fulfillment_hold = 0, fulfillment_hold_reason = NULL
+                                WHERE id = %s
+                            """, (target_ord_status, new_pay_status, oid))
+                            conn_tx2.commit()
+                            success_ids.append(oid)
+                        elif refund_status == 'RECONCILE_REQUIRED':
+                            # P0 Invariant: Maintain fulfillment_hold = 1 during RECONCILE_REQUIRED!
+                            cursor.execute("UPDATE cancellation_requests SET status = 'RECONCILING' WHERE id = %s", (cancel_req_id,))
+                            cursor.execute("""
+                                UPDATE orders
+                                SET fulfillment_hold = 1, fulfillment_hold_reason = 'RECONCILE_REQUIRED'
+                                WHERE id = %s
+                            """, (oid,))
+                            conn_tx2.commit()
+                            failed_list.append({'order_id': oid, 'reason': 'RECONCILE_REQUIRED', 'message': 'PG 대조(RECONCILE_REQUIRED) 완료 전까지 출고가 차단됩니다.'})
+                        else:
+                            cursor.execute("UPDATE cancellation_requests SET status = 'FAILED' WHERE id = %s", (cancel_req_id,))
+                            cursor.execute("""
+                                UPDATE orders
+                                SET fulfillment_hold = 0, fulfillment_hold_reason = NULL
+                                WHERE id = %s
+                            """, (oid,))
+                            conn_tx2.commit()
+                            failed_list.append({'order_id': oid, 'reason': 'REFUND_FAILED', 'message': 'PG 환불 실패로 취소가 취소되었습니다.'})
+                finally:
+                    conn_tx2.close()
+            except Exception as ref_e:
+                failed_list.append({'order_id': oid, 'reason': 'REFUND_ENGINE_ERROR', 'message': str(ref_e)})
+        else:
+            # Unpaid cancellation
+            conn_tx2 = get_db_connection()
+            try:
+                with conn_tx2.cursor() as cursor:
+                    cursor.execute("UPDATE cancellation_requests SET status = 'COMPLETED' WHERE id = %s", (cancel_req_id,))
+                    cursor.execute("""
+                        UPDATE orders
+                        SET order_status = 'CANCELLED', payment_status = 'CANCELLED', fulfillment_hold = 0, fulfillment_hold_reason = NULL
+                        WHERE id = %s
+                    """, (oid,))
+                    conn_tx2.commit()
+                    success_ids.append(oid)
+            finally:
+                conn_tx2.close()
+
+    return jsonify({
+        'success': success_ids,
+        'failed': failed_list
+    }), 200
+

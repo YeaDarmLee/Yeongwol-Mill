@@ -67,7 +67,7 @@ def inject_config():
 @app.route('/admin')
 @app.route('/admin/<path:subpage>')
 def admin_page(subpage=None):
-    if subpage and any(subpage.endswith(ext) for ext in ['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf']):
+    if subpage and any(subpage.endswith(ext) for ext in ['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.html']):
         return send_from_directory(os.path.join(STATIC_DIR, 'admin'), subpage)
     admin_dir_index = os.path.join(STATIC_DIR, 'admin', 'index.html')
     if os.path.exists(admin_dir_index):

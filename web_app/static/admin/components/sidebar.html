@@ -1,0 +1,147 @@
+<!-- 사이드바 네비게이션 -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        영월고향방앗간
+        <span
+            style="font-size:0.7rem; background:var(--admin-primary); color:#fff; padding:2px 6px; border-radius:3px;">ADMIN</span>
+    </div>
+    <ul class="sidebar-menu" style="flex:1; overflow-y:auto;">
+        <li id="menu-dashboard" class="active">
+            <a href="#dashboard">
+                <svg class="menu-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                <span>대시보드</span>
+            </a>
+        </li>
+
+        <!-- 주문 처리 아코디언 그룹 (기본 닫힘) -->
+        <li class="menu-group">
+            <button type="button" class="menu-group-header" data-group="fulfillment" aria-expanded="false"
+                aria-controls="submenu-fulfillment">
+                <span class="menu-title-wrap">
+                    <svg class="menu-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                        </path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                    <span>주문 처리</span>
+                </span>
+                <svg class="menu-arrow-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f1e4d3"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <ul class="submenu collapsed" id="submenu-fulfillment">
+                <li id="menu-orders-all"><a href="#orders/all"><span>전체 주문</span></a></li>
+                <li id="menu-orders-pending"><a href="#orders/pending"><span>신규 주문</span> <span
+                            class="active-queue-badge" id="menu-badge-pending" style="display:none;"></span></a></li>
+                <li id="menu-orders-preparing"><a href="#orders/preparing"><span>상품 준비중</span> <span
+                            class="active-queue-badge" id="menu-badge-preparing" style="display:none;"></span></a></li>
+                <li id="menu-orders-ready_to_ship"><a href="#orders/ready_to_ship"><span>배송 준비중</span> <span
+                            class="active-queue-badge" id="menu-badge-ready_to_ship" style="display:none;"></span></a>
+                </li>
+                <li id="menu-orders-shipping"><a href="#orders/shipping"><span>배송중</span> <span
+                            class="active-queue-badge" id="menu-badge-shipping" style="display:none;"></span></a></li>
+                <li id="menu-orders-delivered"><a href="#orders/delivered"><span>배송 완료</span></a></li>
+            </ul>
+        </li>
+
+        <!-- CS 관리 아코디언 그룹 (기본 닫힘) -->
+        <li class="menu-group">
+            <button type="button" class="menu-group-header" data-group="cs" aria-expanded="false"
+                aria-controls="submenu-cs">
+                <span class="menu-title-wrap">
+                    <svg class="menu-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+                        <path
+                            d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z">
+                        </path>
+                    </svg>
+                    <span>CS 관리</span>
+                </span>
+                <svg class="menu-arrow-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f1e4d3"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <ul class="submenu collapsed" id="submenu-cs">
+                <li id="menu-cs-cancel"><a href="#cs/cancel"><span>취소 관리</span> <span class="active-queue-badge"
+                            id="menu-badge-cs_cancel" style="display:none;"></span></a></li>
+                <li id="menu-cs-exchange"><a href="#cs/exchange"><span>교환 관리</span> <span class="active-queue-badge"
+                            id="menu-badge-cs_exchange" style="display:none;"></span></a></li>
+                <li id="menu-cs-return"><a href="#cs/return"><span>반품 관리</span> <span class="active-queue-badge"
+                            id="menu-badge-cs_return" style="display:none;"></span></a></li>
+                <li id="menu-cs-refund"><a href="#cs/refund"><span>환불 관리</span> <span class="active-queue-badge"
+                            id="menu-badge-cs_refund" style="display:none;"></span></a></li>
+            </ul>
+        </li>
+
+        <li id="menu-products">
+            <a href="#products">
+                <svg class="menu-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                </svg>
+                <span>상품 & 재고 관리</span>
+            </a>
+        </li>
+        <li id="menu-customers">
+            <a href="#customers">
+                <svg class="menu-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 1-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>회원 관리</span>
+            </a>
+        </li>
+        <li id="menu-audit">
+            <a href="#audit">
+                <svg class="menu-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <span>운영 감사로그</span>
+            </a>
+        </li>
+    </ul>
+
+    <!-- 하단 관리자 프로필 & 로그아웃 푸터 -->
+    <div class="sidebar-footer" style="margin-top:auto; padding:1rem 1.2rem; border-top:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.15);">
+        <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <svg class="menu-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--admin-primary,#8D6E63)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <div style="display:flex; flex-direction:column; overflow:hidden;">
+                    <span style="font-weight:600; color:#eee; font-size:0.82rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;" id="admin-user-display">관리자 (ADMIN)</span>
+                    <span style="font-size:0.72rem; color:#888;">영월고향방앗간</span>
+                </div>
+            </div>
+            <button type="button" onclick="logoutAdmin()" class="btn-action" style="padding:5px 9px; font-size:0.75rem; background:rgba(211,47,47,0.18); border:1px solid rgba(211,47,47,0.35); color:#ff6b6b; cursor:pointer; border-radius:4px; font-weight:600; display:flex; align-items:center; gap:4px; flex-shrink:0;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span>로그아웃</span>
+            </button>
+        </div>
+    </div>
+</aside>

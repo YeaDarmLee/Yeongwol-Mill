@@ -1,6 +1,22 @@
-/* admin-core.js: 관리자 공통 인증, 탭 네비게이션, 모달 및 알림 유틸 */
-
-let adminToken = localStorage.getItem('yw_admin_token') || '';
+function initSidebarAccordions() {
+    document.querySelectorAll('.menu-group-header').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const group = btn.dataset.group;
+            const submenu = document.getElementById(`submenu-${group}`);
+            const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+            
+            btn.setAttribute('aria-expanded', !isExpanded);
+            if (submenu) {
+                if (isExpanded) {
+                    submenu.classList.add('collapsed');
+                } else {
+                    submenu.classList.remove('collapsed');
+                }
+            }
+        });
+    });
+}
 let dashboardPollInterval = null;
 
 function customAlert(message, type = 'info') {
@@ -22,6 +38,7 @@ function getOrderStatusKo(status) {
         'PENDING': '주문 대기',
         'CONFIRMED': '주문 확정',
         'PREPARING': '상품 준비중',
+        'READY_TO_SHIP': '배송 준비중',
         'SHIPPING': '배송 중',
         'DELIVERED': '배송 완료',
         'CANCELLED': '주문 취소'
@@ -56,8 +73,6 @@ let currentActivePage = '';
 function navigatePage(pageName, updateHash = true) {
     const targetHash = `#${pageName}`;
 
-    // updateHash가 true이고 현재 해시와 다를 경우 해시 변경
-    // 해시 변경 시 hashchange 이벤트 핸들러가 handleHashRouting()을 통해 1번만 안전하게 호출함
     if (updateHash && window.location.hash !== targetHash) {
         window.location.hash = pageName;
         return;
@@ -71,47 +86,172 @@ function navigatePage(pageName, updateHash = true) {
     document.querySelectorAll('.page-view').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.sidebar-menu li').forEach(el => el.classList.remove('active'));
 
-    const targetView = document.getElementById(`view-${pageName}`);
-    const targetMenu = document.getElementById(`menu-${pageName}`);
+    // orders/subtab 및 cs/subtab 파싱
+    let actualPage = pageName;
+    let subTab = null;
+    if (pageName.startsWith('orders/')) {
+        actualPage = 'orders';
+        subTab = pageName.split('/')[1];
+    } else if (pageName.startsWith('cs/')) {
+        actualPage = 'cs';
+        subTab = pageName.split('/')[1];
+    }
+
+    // 유효한 파서 매핑
+    const validOrderSubtabs = ['all', 'pending', 'confirmed', 'preparing', 'ready_to_ship', 'shipping', 'delivered'];
+    const validCsSubtabs = ['cancel', 'exchange', 'return', 'refund'];
+
+    if (actualPage === 'orders' && subTab && !validOrderSubtabs.includes(subTab)) {
+        window.location.hash = '#orders/all';
+        return;
+    }
+    if (actualPage === 'cs' && subTab && !validCsSubtabs.includes(subTab)) {
+        window.location.hash = '#cs/cancel';
+        return;
+    }
+
+    // 메인 View Target (orders와 cs 모두 view-orders 공유)
+    const targetViewId = (actualPage === 'orders' || actualPage === 'cs') ? 'view-orders' : `view-${actualPage}`;
+    const targetView = document.getElementById(targetViewId);
 
     if (targetView) {
         targetView.classList.remove('active');
         void targetView.offsetWidth; // trigger reflow for smooth animation
         targetView.classList.add('active');
     }
+
+    // Active 메뉴 및 아코디언 Auto Expand
+    let targetMenuId = `menu-${actualPage}`;
+    if (subTab) {
+        targetMenuId = `menu-${actualPage}-${subTab}`;
+    }
+    const targetMenu = document.getElementById(targetMenuId);
     if (targetMenu) targetMenu.classList.add('active');
 
-    currentActivePage = pageName;
+    if (actualPage === 'orders') {
+        const groupBtn = document.querySelector('.menu-group-header[data-group="fulfillment"]');
+        const submenu = document.getElementById('submenu-fulfillment');
+        if (groupBtn) groupBtn.setAttribute('aria-expanded', 'true');
+        if (submenu) submenu.classList.remove('collapsed');
+    } else if (actualPage === 'cs') {
+        const groupBtn = document.querySelector('.menu-group-header[data-group="cs"]');
+        const submenu = document.getElementById('submenu-cs');
+        if (groupBtn) groupBtn.setAttribute('aria-expanded', 'true');
+        if (submenu) submenu.classList.remove('collapsed');
+    }
+
+    currentActivePage = actualPage;
 
     // 페이지별 데이터 로드
-    if (pageName === 'dashboard') {
+    if (actualPage === 'dashboard') {
         if (typeof loadDashboardMetrics === 'function') loadDashboardMetrics();
         dashboardPollInterval = setInterval(() => {
             if (typeof loadDashboardMetrics === 'function') loadDashboardMetrics(true);
         }, 300000);
     }
-    else if (pageName === 'orders' && typeof loadOrders === 'function') loadOrders();
-    else if (pageName === 'products' && typeof loadProducts === 'function') loadProducts();
-    else if (pageName === 'customers' && typeof loadCustomers === 'function') loadCustomers();
-    else if (pageName === 'audit' && typeof loadAuditLogs === 'function') loadAuditLogs();
+    else if (actualPage === 'orders' || actualPage === 'cs') {
+        const pageKey = (actualPage === 'cs') ? `cs_${subTab}` : (subTab || 'all');
+        if (typeof switchOperationsPage === 'function') {
+            switchOperationsPage(pageKey);
+        } else if (typeof switchOrderSubTab === 'function') {
+            switchOrderSubTab(pageKey);
+        } else if (typeof loadOrders === 'function') {
+            loadOrders();
+        }
+    }
+    else if (actualPage === 'products' && typeof loadProducts === 'function') loadProducts();
+    else if (actualPage === 'customers' && typeof loadCustomers === 'function') loadCustomers();
+    else if (actualPage === 'audit' && typeof loadAuditLogs === 'function') loadAuditLogs();
 }
 
 function handleHashRouting() {
-    const hash = window.location.hash.replace('#', '') || 'dashboard';
-    navigatePage(hash, false);
+    let rawHash = window.location.hash.replace('#', '') || 'dashboard';
+
+    // Canonical Fallback
+    if (rawHash === 'orders') {
+        window.location.hash = '#orders/all';
+        return;
+    }
+    if (rawHash === 'cs') {
+        window.location.hash = '#cs/cancel';
+        return;
+    }
+
+    navigatePage(rawHash, false);
+}
+
+// 비동기 HTML 컴포넌트 및 페이지 모듈 로더
+async function fetchPartial(url) {
+    try {
+        const cacheBustUrl = `${url}?t=${Date.now()}`;
+        const resp = await fetch(cacheBustUrl);
+        if (resp.ok) {
+            return await resp.text();
+        }
+    } catch (e) {
+        console.error(`Error loading partial ${url}:`, e);
+    }
+    return null;
+}
+
+async function loadAdminPartials() {
+    // 1. 공통 컴포넌트 (로그인 폼, 사이드바)
+    const loginHtml = await fetchPartial('/static/admin/components/login.html');
+    if (loginHtml) {
+        const loginContainer = document.getElementById('login-container');
+        if (loginContainer) loginContainer.innerHTML = loginHtml;
+    }
+
+    const sidebarHtml = await fetchPartial('/static/admin/components/sidebar.html');
+    if (sidebarHtml) {
+        const sidebarContainer = document.getElementById('sidebar-container');
+        if (sidebarContainer) sidebarContainer.innerHTML = sidebarHtml;
+        initSidebarAccordions();
+    }
+
+    // 2. 페이지 뷰 모듈 (대시보드, 주문, 상품, 회원, 감사로그)
+    const pages = ['dashboard', 'orders', 'products', 'customers', 'audit'];
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+        const pageHtmls = await Promise.all(pages.map(p => fetchPartial(`/static/admin/pages/${p}.html`)));
+        pageHtmls.forEach(html => {
+            if (html) mainContent.insertAdjacentHTML('beforeend', html);
+        });
+    }
+
+    // 3. 팝업 모달 모듈 (주문상세, 환불확인, 회원수정, 상품수정, 상품생성)
+    const modals = ['order-detail', 'refund-confirm', 'customer-edit', 'product-edit', 'product-create'];
+    const modalContainer = document.getElementById('modal-container');
+    if (modalContainer) {
+        const modalHtmls = await Promise.all(modals.map(m => fetchPartial(`/static/admin/components/modals/${m}.html`)));
+        modalHtmls.forEach(html => {
+            if (html) modalContainer.insertAdjacentHTML('beforeend', html);
+        });
+    }
 }
 
 function showLoginForm() {
-    document.getElementById('login-section').style.display = 'block';
-    document.getElementById('admin-app').style.display = 'none';
+    const loginContainer = document.getElementById('login-container');
+    if (loginContainer) loginContainer.style.display = 'flex';
+    const loginSec = document.getElementById('login-section');
+    if (loginSec) loginSec.style.display = 'block';
+    const adminApp = document.getElementById('admin-app');
+    if (adminApp) adminApp.style.display = 'none';
 }
 
 function showDashboard() {
-    document.getElementById('login-section').style.display = 'none';
-    document.getElementById('admin-app').style.display = 'flex';
+    const loginContainer = document.getElementById('login-container');
+    if (loginContainer) loginContainer.style.display = 'none';
+    const loginSec = document.getElementById('login-section');
+    if (loginSec) loginSec.style.display = 'none';
+    const adminApp = document.getElementById('admin-app');
+    if (adminApp) adminApp.style.display = 'flex';
 
     const adminUser = JSON.parse(localStorage.getItem('yw_admin_user') || '{}');
-    document.getElementById('admin-user-display').innerText = `${adminUser.name || '관리자'} (${adminUser.role || 'ADMIN'})`;
+    const userDisplay = document.getElementById('admin-user-display');
+    if (userDisplay) {
+        userDisplay.innerText = `${adminUser.name || '관리자'} (${adminUser.role || 'ADMIN'})`;
+    }
 }
 
 async function handleAdminLogin(e) {
@@ -153,7 +293,17 @@ function logoutAdmin() {
 }
 
 // 이벤트 및 세션 초기화
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    adminToken = localStorage.getItem('yw_admin_token') || '';
+
+    // 토큰이 존재하면 partials 로딩 전에 즉시 대시보드 구조를 먼저 활성화하여 로그인 화면 튕김 방지
+    if (adminToken) {
+        showDashboard();
+    } else {
+        showLoginForm();
+    }
+
+    await loadAdminPartials();
     window.addEventListener('hashchange', () => handleHashRouting());
 
     if (adminToken) {

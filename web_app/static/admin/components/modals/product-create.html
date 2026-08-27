@@ -1,0 +1,80 @@
+<!-- 신규 상품 등록 모달 -->
+<div id="createProductModal" class="modal-overlay">
+    <div class="modal-card" style="max-width:780px; width:92%;">
+        <h3 style="font-family:'Noto Serif KR', serif; margin-top:0;">신규 상품 및 옵션 재고 등록</h3>
+        <div class="form-group">
+            <label>상품명</label>
+            <input type="text" id="create-prod-name" class="form-control" placeholder="예: 전통 저온착유 참기름" required>
+        </div>
+        <div class="form-group" style="display:flex; gap:12px;">
+            <div style="flex:1;">
+                <label>카테고리</label>
+                <select id="create-prod-category" class="form-control">
+                    <option value="1">참기름 (1)</option>
+                    <option value="2">들기름 (2)</option>
+                    <option value="3">고춧가루 (3)</option>
+                    <option value="4">선물세트 (4)</option>
+                </select>
+            </div>
+            <div style="flex:1;">
+                <label>기본 판매가(원)</label>
+                <input type="number" id="create-prod-price" class="form-control" placeholder="25000" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>대표 용량/규격 표현</label>
+            <input type="text" id="create-prod-capacity" class="form-control" placeholder="예: 300ml">
+        </div>
+
+        <hr style="border:none; border-top:1px solid #eee; margin:1.2rem 0;">
+        <h4 style="font-family:'Noto Serif KR', serif; margin:0 0 0.6rem 0; font-size:1.05rem;">식품 상품정보제공고시</h4>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; background:#faf8f5; padding:12px; border-radius:8px; border:1px solid #ebe6df;">
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:0.75rem; color:#555;">식품의 유형</label>
+                <input type="text" id="create-prod-foodtype" class="form-control" style="padding:6px 10px;" value="식용유지류">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:0.75rem; color:#555;">생산자 및 소재지</label>
+                <input type="text" id="create-prod-manufacturer" class="form-control" style="padding:6px 10px;" value="영월고향방앗간">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:0.75rem; color:#555;">제조연월일 및 소비기한</label>
+                <input type="text" id="create-prod-shelflife" class="form-control" style="padding:6px 10px;" value="제조일로부터 12개월">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:0.75rem; color:#555;">포장단위별 내용물의 용량</label>
+                <input type="text" id="create-prod-contentscap" class="form-control" style="padding:6px 10px;" placeholder="예: 300ml">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:0.75rem; color:#555;">원재료명 및 원산지</label>
+                <input type="text" id="create-prod-origin" class="form-control" style="padding:6px 10px;" value="참깨/들깨: 국산(강원도 영월군 100%)">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:0.75rem; color:#555;">소비자상담 관련 전화번호</label>
+                <input type="text" id="create-prod-csphone" class="form-control" style="padding:6px 10px;" value="033-000-0000">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:0.75rem; color:#555;">보관방법 또는 취급방법</label>
+                <input type="text" id="create-prod-storage" class="form-control" style="padding:6px 10px;" value="직사광선을 피하고 서늘한 곳 보관">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:0.75rem; color:#555;">알레르기 유발물질</label>
+                <input type="text" id="create-prod-allergy" class="form-control" style="padding:6px 10px;" value="참깨/들깨 함유">
+            </div>
+        </div>
+
+        <hr style="border:none; border-top:1px solid #eee; margin:1.2rem 0;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+            <h4 style="font-family:'Noto Serif KR', serif; margin:0;">상품 옵션 및 재고(stock) 구성</h4>
+            <button type="button" class="btn-action" style="background:#2e7d32; color:#fff;" onclick="addCreateOptionRow()">+ 옵션 추가</button>
+        </div>
+        <div id="create-prod-options-container" style="display:flex; flex-direction:column; gap:10px;">
+            <!-- JS 동적 생성 -->
+        </div>
+
+        <div style="text-align:right; gap:8px; display:flex; justify-content:flex-end; margin-top:1.5rem;">
+            <button onclick="closeModal('createProductModal')" class="btn-action">취소</button>
+            <button onclick="submitAddProduct(this)" class="btn-action" style="background:var(--admin-primary); color:#fff;">상품 등록</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,197 @@
+<!-- PAGE 1: 실운영 대시보드 -->
+<div id="view-dashboard" class="page-view active">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title" style="display:inline-block; margin-right:12px;">대시보드</h1>
+            <span style="font-size:0.85rem; color:rgba(255,255,255,0.85) !important;">오늘 실시간 운영 현황 (KST 기준)</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:0.8rem; color:rgba(255,255,255,0.85) !important;">마지막 갱신: <strong id="dash-as-of" style="color:#ffffff !important;">-</strong></span>
+            <button class="btn-action" style="background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4); color:#fff; font-weight:600; padding:5px 12px;" onclick="loadDashboardMetrics()">
+                ↻ 지금 새로고침
+            </button>
+        </div>
+    </div>
+
+    <!-- 1. 최상단 5개 KPI 카드 -->
+    <div class="dashboard-kpi-grid">
+        <div class="kpi-card" onclick="window.location.hash = '#orders/all'">
+            <div class="kpi-label">오늘 결제 완료 주문</div>
+            <div class="kpi-val" id="val-kpi-today-orders">0건</div>
+            <div class="kpi-sub">오늘 결제 승인 건수</div>
+        </div>
+        <div class="kpi-card highlight-success" onclick="window.location.hash = '#orders/all'">
+            <div class="kpi-label">오늘 순매출</div>
+            <div class="kpi-val" id="val-kpi-today-net" style="color:#2e7d32;">0원</div>
+            <div class="kpi-sub">
+                <span>총결제: <span id="val-kpi-gross-sub">0원</span></span>
+                <span style="color:#d32f2f;">환불: <span id="val-kpi-refund-sub">0원</span></span>
+            </div>
+        </div>
+        <div class="kpi-card highlight-warning" onclick="window.location.hash = '#orders/preparing'">
+            <div class="kpi-label">출고 대기</div>
+            <div class="kpi-val" id="val-kpi-preparing" style="color:#ed6c02;">0건</div>
+            <div class="kpi-sub">상품 준비중 상태</div>
+        </div>
+        <div class="kpi-card highlight-danger" onclick="window.location.hash = '#cs/refund'">
+            <div class="kpi-label">환불 / 대조 중</div>
+            <div class="kpi-val" id="val-kpi-reconciling" style="color:#d32f2f;">0건</div>
+            <div class="kpi-sub" id="val-kpi-reconcile-sub">처리/승인/대조 필요</div>
+        </div>
+        <div class="kpi-card" onclick="window.location.hash = '#products'">
+            <div class="kpi-label">재고 경고 상품</div>
+            <div class="kpi-val" id="val-kpi-lowstock">0개</div>
+            <div class="kpi-sub">가용 재고 10개 이하</div>
+        </div>
+    </div>
+
+    <!-- 2. 업무 Queue & 운영 주의사항 2분할 -->
+    <div class="dashboard-split-grid">
+        <!-- 좌측: 처리해야 할 업무 Queue (정상 주문 / CS 클레임 2단 분리) -->
+        <div class="admin-section" style="margin-bottom:0;">
+            <div class="section-header" style="margin-bottom:0.75rem;">
+                <h3 class="section-title">주문 & CS 현황</h3>
+            </div>
+            
+            <!-- 윗줄: 정상 주문 처리 워크플로우 -->
+            <div style="font-size:0.8rem; font-weight:700; color:#555; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-box" style="color:var(--admin-primary);"></i> 정상 주문 처리
+            </div>
+            <div class="work-queue-grid" style="margin-bottom:1rem;">
+                <div class="queue-card" onclick="window.location.hash = '#orders/pending'" id="qc-pending">
+                    <div class="q-title">신규 주문</div>
+                    <div class="q-count" id="q-val-pending">0</div>
+                </div>
+                <div class="queue-card" onclick="window.location.hash = '#orders/preparing'" id="qc-preparing">
+                    <div class="q-title">상품 준비중</div>
+                    <div class="q-count" id="q-val-preparing">0</div>
+                </div>
+                <div class="queue-card" onclick="window.location.hash = '#orders/ready_to_ship'" id="qc-ready_to_ship">
+                    <div class="q-title">배송 준비중</div>
+                    <div class="q-count" id="q-val-ready_to_ship">0</div>
+                </div>
+                <div class="queue-card" onclick="window.location.hash = '#orders/shipping'" id="qc-shipping">
+                    <div class="q-title">배송중</div>
+                    <div class="q-count" id="q-val-shipping">0</div>
+                </div>
+                <div class="queue-card" onclick="window.location.hash = '#orders/delivered'" id="qc-delivered">
+                    <div class="q-title">배송 완료</div>
+                    <div class="q-count" id="q-val-delivered">0</div>
+                </div>
+            </div>
+
+            <!-- 아래쪽: CS 및 클레임/운영 이슈 관리 -->
+            <div style="font-size:0.8rem; font-weight:700; color:#555; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-headset" style="color:#d32f2f;"></i> CS 클레임 및 미처리
+            </div>
+            <div class="work-queue-grid">
+                <div class="queue-card" onclick="window.location.hash = '#orders/ready_to_ship'" id="qc-stale-preparing">
+                    <div class="q-title">송장 미등록</div>
+                    <div class="q-count" id="q-val-stale-preparing">0</div>
+                </div>
+                <div class="queue-card" onclick="window.location.hash = '#cs/cancel'" id="qc-refund-req">
+                    <div class="q-title">취소/환불 접수</div>
+                    <div class="q-count" id="q-val-refund-req">0</div>
+                </div>
+                <div class="queue-card" onclick="window.location.hash = '#cs/refund'" id="qc-refund-proc">
+                    <div class="q-title">환불 처리중</div>
+                    <div class="q-count" id="q-val-refund-proc">0</div>
+                </div>
+                <div class="queue-card" onclick="window.location.hash = '#cs/refund'" id="qc-reconciling">
+                    <div class="q-title">상태 대조중</div>
+                    <div class="q-count" id="q-val-reconciling">0</div>
+                </div>
+                <div class="queue-card" onclick="window.location.hash = '#cs/refund'" id="qc-mismatch">
+                    <div class="q-title">금액 불일치</div>
+                    <div class="q-count" id="q-val-mismatch">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 우측: 운영 알림 (좌측 주문 & CS 현황과 100% 자동 높이 동기화) -->
+        <div class="admin-section" style="margin-bottom:0; height:100%; box-sizing:border-box; display:flex; flex-direction:column;">
+            <div class="section-header" style="margin-bottom:0.6rem; flex-shrink:0;">
+                <h3 class="section-title">운영 알림</h3>
+            </div>
+            <div id="dashboard-alerts-container" style="flex:1; min-height:0; overflow-y:auto; padding-right:4px;">
+                <div class="alert-empty-success">
+                    현재 긴급 운영 이슈가 없습니다.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 최근 주문 목록 테이블 -->
+    <div class="admin-section">
+        <div class="section-header">
+            <h3 class="section-title">최근 주문 목록</h3>
+            <button class="btn-action" style="font-size:0.8rem; background:none; border:none; color:var(--admin-primary); font-weight:600; cursor:pointer;" onclick="window.location.hash = '#orders/all'">
+                전체 주문 보기 &gt;
+            </button>
+        </div>
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>주문번호</th>
+                        <th>주문일시</th>
+                        <th>구매자</th>
+                        <th>결제금액</th>
+                        <th>주문상태</th>
+                        <th>결제상태</th>
+                        <th>송장 등록</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody id="dash-recent-orders-tbody">
+                    <tr>
+                        <td colspan="8" style="text-align:center; color:#777;">최근 주문을 불러오는 중...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 4. 7/30일 운영 추이 & 재고 경고 상품 2분할 -->
+    <div class="dashboard-split-grid">
+        <!-- 좌측: 최근 운영 추이 차트 -->
+        <div class="admin-section" style="margin-bottom:0;">
+            <div class="section-header">
+                <h3 class="section-title">운영 추이</h3>
+                <div class="chart-tab-group">
+                    <button id="btn-chart-7d" class="chart-tab-btn active" onclick="switchTrendPeriod(7)">7일</button>
+                    <button id="btn-chart-30d" class="chart-tab-btn" onclick="switchTrendPeriod(30)">30일</button>
+                </div>
+            </div>
+            <div style="position:relative; width:100%; height:220px; background:#faf8f5; border-radius:8px; padding:10px; box-sizing:border-box;">
+                <canvas id="dashTrendCanvas" style="width:100%; height:100%;"></canvas>
+            </div>
+        </div>
+
+        <!-- 우측: 품절 임박 및 재고 경고 상품 -->
+        <div class="admin-section" style="margin-bottom:0;">
+            <div class="section-header">
+                <h3 class="section-title">품절 임박 및 재고 경고 상품</h3>
+            </div>
+            <div id="dash-stock-wrapper" class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>상품명</th>
+                            <th>옵션명</th>
+                            <th>보유</th>
+                            <th>예약</th>
+                            <th>가용</th>
+                            <th>관리</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dash-stock-tbody">
+                        <tr>
+                            <td colspan="6" style="text-align:center; color:#777;">재고 데이터를 불러오는 중입니다...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

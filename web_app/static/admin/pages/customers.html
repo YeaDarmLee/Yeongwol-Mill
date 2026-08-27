@@ -1,0 +1,51 @@
+<!-- PAGE 4: 가입 회원 리스트 관리 -->
+<div id="view-customers" class="page-view">
+    <div class="page-header">
+        <h1 class="page-title">회원 관리</h1>
+    </div>
+
+    <!-- 회원 필터 바 -->
+    <div class="filter-bar">
+        <div class="filter-field" style="flex:1; min-width:180px;">
+            <label>이름 / 이메일 / 전화번호</label>
+            <input type="text" id="customer-search-input" class="form-control" placeholder="검색어 입력..." onkeydown="if(event.key==='Enter') filterCustomerList()">
+        </div>
+        <div class="filter-field">
+            <label>계정 상태</label>
+            <select id="customer-status-filter" style="width:130px;">
+                <option value="">전체</option>
+                <option value="ACTIVE">정상 (ACTIVE)</option>
+                <option value="SUSPENDED">정지 (SUSPENDED)</option>
+            </select>
+        </div>
+        <div class="filter-btn-group">
+            <button class="btn-filter-search" onclick="filterCustomerList()">검색</button>
+            <button class="btn-filter-reset" onclick="resetCustomerFilters()">✕ 초기화</button>
+        </div>
+    </div>
+
+    <div class="admin-section">
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>회원 ID</th>
+                        <th>회원 이름</th>
+                        <th>이메일 주소</th>
+                        <th>연락처</th>
+                        <th>계정 상태</th>
+                        <th>마케팅 동의(SMS/이메일)</th>
+                        <th>가입 일시</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody id="customers-tbody">
+                    <tr>
+                        <td colspan="8" style="text-align:center; padding:1.5rem; color:#777;">회원 데이터를 불러오는 중입니다...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="customers-pagination"></div>
+    </div>
+</div>

@@ -1,0 +1,72 @@
+<!-- PAGE 5: 운영 감사로그 -->
+<div id="view-audit" class="page-view">
+    <div class="page-header">
+        <h1 class="page-title">운영 감사로그</h1>
+    </div>
+
+    <!-- 감사로그 필터 바 -->
+    <div class="filter-bar">
+        <div class="filter-field" style="flex:1; min-width:180px;">
+            <label>키워드 검색</label>
+            <input type="text" id="audit-keyword-filter" class="form-control" placeholder="관리자 이메일, 대상ID, 사유..." onkeydown="if(event.key==='Enter') filterAuditLogs()">
+        </div>
+        <div class="filter-field">
+            <label>액션 유형</label>
+            <select id="audit-action-filter" style="width:160px;">
+                <option value="">전체 액션</option>
+                <option value="ADMIN_LOGIN_SUCCESS">로그인 성공</option>
+                <option value="ADMIN_LOGIN_FAILED">로그인 실패</option>
+                <option value="ORDER_STATUS_UPDATE">주문상태 변경</option>
+                <option value="TRACKING_REGISTERED">운송장 등록/수정</option>
+                <option value="SHIPPING_ADDRESS_UPDATE">배송지 변경</option>
+                <option value="REFUND_EXECUTE">환불 승인/실행</option>
+                <option value="USER_INFO_UPDATE">회원 정보 수정</option>
+                <option value="USER_STATUS_TOGGLE">계정 상태 변경</option>
+                <option value="PII_VIEW">개인정보 원문 조회</option>
+                <option value="PRODUCT_CREATE">상품 신규 등록</option>
+                <option value="PRODUCT_UPDATE">상품 정보 수정</option>
+                <option value="OPTION_STOCK_UPDATE">재고 조정</option>
+            </select>
+        </div>
+        <div class="filter-field">
+            <label>대상 유형</label>
+            <select id="audit-target-filter" style="width:120px;">
+                <option value="">전체 대상</option>
+                <option value="ORDER">주문 (ORDER)</option>
+                <option value="USER">회원 (USER)</option>
+                <option value="PRODUCT">상품 (PRODUCT)</option>
+                <option value="ADMIN">관리자 (ADMIN)</option>
+            </select>
+        </div>
+        <div class="filter-btn-group">
+            <button class="btn-filter-search" onclick="filterAuditLogs()">검색</button>
+            <button class="btn-filter-reset" onclick="resetAuditFilters()">✕ 초기화</button>
+        </div>
+    </div>
+
+    <div class="admin-section">
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>관리자 계정</th>
+                        <th>액션 구분</th>
+                        <th>대상 유형</th>
+                        <th>대상 ID</th>
+                        <th>사유/메모</th>
+                        <th>결과</th>
+                        <th>IP 주소</th>
+                        <th>발생 일시</th>
+                    </tr>
+                </thead>
+                <tbody id="audit-tbody">
+                    <tr>
+                        <td colspan="9" style="text-align:center; padding:1.5rem; color:#777;">감사로그를 불러오는 중입니다...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="audit-pagination"></div>
+    </div>
+</div>
