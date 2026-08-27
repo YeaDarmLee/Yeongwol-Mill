@@ -759,3 +759,234 @@ async function executeFinalAdminRefund(btnEl) {
     } catch (err) { console.error(err); customAlert('환불 요청 중 오류 발생', 'error'); }
     finally { btnEl.disabled = false; }
 }
+
+// ── 운송장 CSV 기능 ────────────────────────────────────────────────────────────
+
+async function exportOrdersCSV(type) {
+    try {
+        let url, filename;
+        if (type === 'shipping') {
+            // 송장 등록 양식 다운로드 → tracking-template API
+            url = '/api/admin/orders/tracking-template';
+            filename = `tracking_template_${new Date().toISOString().slice(0,10)}.csv`;
+        } else {
+            // 관리자 전체 주문 CSV
+            url = '/api/admin/orders/export?type=excel';
+            filename = `order_export_${new Date().toISOString().slice(0,10)}.csv`;
+        }
+
+        const resp = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            customAlert(err.error || 'CSV 다운로드에 실패했습니다.', 'error');
+            return;
+        }
+
+        const blob = await resp.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    } catch (err) {
+        console.error('CSV 다운로드 오류:', err);
+        customAlert('CSV 다운로드 중 오류가 발생했습니다.', 'error');
+    }
+}
+
+function importTrackingCSV() {
+    const input = document.getElementById('tracking-csv-file-input');
+    if (input) {
+        input.value = '';  // 동일 파일 재선택 허용
+        input.click();
+    }
+}
+
+async function handleTrackingCSVFile(file) {
+    if (!file) return;
+
+    // 클라이언트 사전 검사
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+        customAlert('.csv 파일만 업로드 가능합니다.', 'error');
+        return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+        customAlert('파일 크기는 5MB를 초과할 수 없습니다.', 'error');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        customAlert('송장 CSV를 처리 중입니다...', 'info');
+
+        const resp = await fetch('/api/admin/orders/import-tracking-csv', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${adminToken}` },
+            body: formData
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok) {
+            customAlert(data.error || 'CSV 업로드에 실패했습니다.', 'error');
+            return;
+        }
+
+        // 결과 리포트 팝업 렌더링 (XSS 방어: textContent만 사용)
+        _renderTrackingImportResult(data);
+
+        // 성공 건이 있으면 목록 갱신
+        if (data.success > 0) {
+            await loadOrders();
+            await loadOrderSubTabCounts();
+        }
+    } catch (err) {
+        console.error('송장 CSV 업로드 오류:', err);
+        customAlert('업로드 중 서버 오류가 발생했습니다.', 'error');
+    }
+}
+
+function _renderTrackingImportResult(data) {
+    // 모달 컨테이너 생성 (기존 있으면 제거 후 재생성)
+    const existing = document.getElementById('tracking-import-result-modal');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'tracking-import-result-modal';
+    overlay.style.cssText = `
+        position:fixed; inset:0; background:rgba(0,0,0,0.55);
+        display:flex; align-items:center; justify-content:center; z-index:9999;
+    `;
+
+    const box = document.createElement('div');
+    box.style.cssText = `
+        background:#fff; border-radius:12px; padding:28px 32px;
+        min-width:480px; max-width:680px; max-height:80vh;
+        overflow-y:auto; box-shadow:0 8px 40px rgba(0,0,0,0.25);
+        font-family:'Noto Sans KR', sans-serif;
+    `;
+
+    // 제목
+    const title = document.createElement('h3');
+    title.textContent = '송장 등록 결과';
+    title.style.cssText = 'margin:0 0 16px 0; font-size:1.1rem; color:#1a1a2e; font-family:"Noto Serif KR",serif;';
+    box.appendChild(title);
+
+    // 요약 테이블
+    const summary = document.createElement('div');
+    summary.style.cssText = 'display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:20px;';
+    [
+        ['전체', data.total, '#455a64'],
+        ['성공 ✅', data.success, '#2e7d32'],
+        ['실패 ❌', data.failed, '#c62828'],
+        ['건너뜀 ⏭', data.skipped, '#f57c00'],
+    ].forEach(([label, count, color]) => {
+        const cell = document.createElement('div');
+        cell.style.cssText = `background:#f5f5f5; border-radius:8px; padding:10px 14px;
+            display:flex; justify-content:space-between; align-items:center;`;
+        const lbl = document.createElement('span');
+        lbl.textContent = label;
+        lbl.style.cssText = 'font-size:0.85rem; color:#555;';
+        const val = document.createElement('strong');
+        val.textContent = `${count}건`;
+        val.style.color = color;
+        cell.appendChild(lbl);
+        cell.appendChild(val);
+        summary.appendChild(cell);
+    });
+    box.appendChild(summary);
+
+    // 실패 목록
+    const failedRows = (data.results || []).filter(r => r.success === false);
+    if (failedRows.length > 0) {
+        const failTitle = document.createElement('h4');
+        failTitle.textContent = '실패 내역';
+        failTitle.style.cssText = 'margin:0 0 8px 0; font-size:0.9rem; color:#c62828;';
+        box.appendChild(failTitle);
+
+        const failList = document.createElement('div');
+        failList.style.cssText = 'border:1px solid #ffcdd2; border-radius:8px; overflow:hidden; margin-bottom:16px;';
+        failedRows.forEach((r, i) => {
+            const item = document.createElement('div');
+            item.style.cssText = `padding:8px 12px; background:${i % 2 === 0 ? '#fff8f8' : '#fff'};
+                border-bottom:1px solid #ffcdd2; font-size:0.82rem;`;
+
+            const top = document.createElement('div');
+            top.style.cssText = 'display:flex; gap:8px; align-items:center; margin-bottom:2px;';
+
+            const orderNum = document.createElement('strong');
+            orderNum.textContent = r.order_number || '-';
+            orderNum.style.color = '#c62828';
+
+            const reason = document.createElement('span');
+            reason.textContent = r.reason || '';
+            reason.style.cssText = 'background:#ffebee; color:#b71c1c; padding:1px 6px; border-radius:4px; font-size:0.75rem;';
+
+            top.appendChild(orderNum);
+            top.appendChild(reason);
+
+            const msg = document.createElement('div');
+            msg.textContent = r.message || '';
+            msg.style.color = '#666';
+
+            item.appendChild(top);
+            item.appendChild(msg);
+            failList.appendChild(item);
+        });
+        box.appendChild(failList);
+    }
+
+    // 건너뜀 목록
+    const skippedRows = (data.results || []).filter(r => r.skipped === true);
+    if (skippedRows.length > 0) {
+        const skipTitle = document.createElement('h4');
+        skipTitle.textContent = '건너뜀';
+        skipTitle.style.cssText = 'margin:0 0 8px 0; font-size:0.9rem; color:#f57c00;';
+        box.appendChild(skipTitle);
+
+        const skipList = document.createElement('div');
+        skipList.style.cssText = 'border:1px solid #ffe0b2; border-radius:8px; overflow:hidden; margin-bottom:16px;';
+        skippedRows.forEach((r, i) => {
+            const item = document.createElement('div');
+            item.style.cssText = `padding:8px 12px; background:${i % 2 === 0 ? '#fffde7' : '#fff'};
+                border-bottom:1px solid #ffe0b2; font-size:0.82rem;`;
+
+            const orderNum = document.createElement('strong');
+            orderNum.textContent = r.order_number || '-';
+            orderNum.style.color = '#f57c00';
+            item.appendChild(orderNum);
+
+            const sep = document.createElement('span');
+            sep.textContent = '  ';
+            item.appendChild(sep);
+
+            const msg = document.createElement('span');
+            msg.textContent = r.message || '';
+            msg.style.color = '#666';
+            item.appendChild(msg);
+
+            skipList.appendChild(item);
+        });
+        box.appendChild(skipList);
+    }
+
+    // 확인 버튼
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '확인';
+    closeBtn.style.cssText = `
+        display:block; width:100%; padding:10px; margin-top:4px;
+        background:var(--admin-primary,#6d4c41); color:#fff; border:none;
+        border-radius:8px; font-size:0.95rem; font-weight:600; cursor:pointer;
+    `;
+    closeBtn.onclick = () => overlay.remove();
+    box.appendChild(closeBtn);
+
+    overlay.appendChild(box);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+}

@@ -1547,9 +1547,318 @@ def admin_batch_deliver_orders():
     order_ids = (request.get_json() or {}).get('order_ids', [])
     return _process_batch_order_command(order_ids, 'DELIVERED', payload, 'BATCH_DELIVER_ORDERS')
 
+
+# ── 운송장 CSV 기능 공용 상수 ─────────────────────────────────────────────────
+ALLOWED_CARRIERS = {'CJ', 'LOTTE', 'HANJIN', 'POST', 'LOGEN', 'EPOST'}
+CARRIER_DISPLAY = {
+    'CJ': 'CJ대한통운', 'LOTTE': '롯데택배', 'HANJIN': '한진택배',
+    'POST': '우체국택배', 'LOGEN': '로젠택배', 'EPOST': 'EMS(국제우편)'
+}
+MAX_TRACKING_CSV_ROWS = 2000
+MAX_TRACKING_CSV_BYTES = 5 * 1024 * 1024  # 5 MB
+
+
+def _apply_tracking_to_shipment(cursor, shipment_id, carrier_code, tracking_number):
+    """
+    Shipment에 carrier_code/tracking_number를 적용합니다.
+    Shipment = authoritative Source of Truth.
+    orders.tracking_number = Legacy compatibility mirror (같은 Tx에서 동기화).
+    cursor는 이미 열린 트랜잭션 내에서 호출해야 합니다.
+    """
+    # Source of Truth: Shipment
+    cursor.execute(
+        "UPDATE shipments SET carrier_code = %s, tracking_number = %s WHERE id = %s",
+        (carrier_code, tracking_number, shipment_id)
+    )
+    # Legacy Mirror: orders (업무 판정/Guard에서 절대 읽지 않음)
+    cursor.execute(
+        "UPDATE orders SET courier_name = %s, tracking_number = %s "
+        "WHERE id = (SELECT order_id FROM shipments WHERE id = %s)",
+        (carrier_code, tracking_number, shipment_id)
+    )
+
+
+@admin_bp.route('/orders/tracking-template', methods=['GET'])
+def admin_tracking_template():
+    """READY_TO_SHIP 주문의 송장 등록 양식 CSV 다운로드 (최대 2,000건)"""
+    payload = verify_admin_auth()
+    if not payload:
+        return jsonify({'error': '관리자 권한이 필요합니다.'}), 403
+
+    rows = query_db("""
+        SELECT s.id AS shipment_id, o.order_number,
+               o.recipient_name, o.recipient_phone
+        FROM shipments s
+        JOIN orders o ON o.id = s.order_id
+        WHERE o.order_status = 'READY_TO_SHIP'
+          AND s.purpose = 'FULFILLMENT'
+          AND s.status = 'READY'
+        ORDER BY s.id ASC
+    """) or []
+
+    if len(rows) > MAX_TRACKING_CSV_ROWS:
+        return jsonify({
+            'error': f"현재 {len(rows):,}건입니다. 필터를 적용하여 {MAX_TRACKING_CSV_ROWS:,}건 이하로 다운로드하세요."
+        }), 400
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # 주석 3행 (파서는 # 시작 행을 Skip)
+    writer.writerow(['# [주의] shipment_id와 order_number는 절대 수정하지 마세요. 수정 시 오등록됩니다.'])
+    writer.writerow([f'# carrier_code 허용값: {" / ".join(ALLOWED_CARRIERS)}'])
+    writer.writerow(['# tracking_number는 문자열로 입력하세요. 앞자리 0이 사라지지 않도록 주의하세요.'])
+
+    writer.writerow(['shipment_id', 'order_number', 'recipient_name', 'recipient_phone',
+                     'carrier_code', 'tracking_number'])
+
+    for r in rows:
+        writer.writerow([
+            r['shipment_id'],
+            r['order_number'],
+            escape_csv_formula(r['recipient_name'] or ''),
+            escape_csv_formula(r['recipient_phone'] or ''),
+            '',  # carrier_code — 관리자 입력
+            ''   # tracking_number — 관리자 입력
+        ])
+
+    log_admin_audit(
+        admin_id=payload['user_id'],
+        admin_email=payload.get('email') or payload.get('sub', ''),
+        action_type='TRACKING_TEMPLATE_EXPORT',
+        target_type='ORDER',
+        record_count=len(rows),
+        request_ip=request.remote_addr,
+        user_agent=request.user_agent.string
+    )
+
+    filename = f"tracking_template_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    return Response(
+        '\ufeff' + output.getvalue(),
+        mimetype='text/csv; charset=utf-8',
+        headers={'Content-Disposition': f'attachment; filename={filename}'}
+    )
+
+
+@admin_bp.route('/orders/import-tracking-csv', methods=['POST'])
+def admin_import_tracking_csv():
+    """
+    운송장 CSV 일괄 업로드 API.
+    - 송장 등록(carrier_code/tracking_number)만 수행.
+    - 배송 상태 전이(READY_TO_SHIP → SHIPPING)는 하지 않음.
+    - 관리자가 [선택 배송 시작] 버튼으로 별도 처리.
+    """
+    payload = verify_admin_auth()
+    if not payload:
+        return jsonify({'error': '관리자 권한이 필요합니다.'}), 403
+
+    if 'file' not in request.files:
+        return jsonify({'error': 'file 필드가 없습니다.'}), 400
+
+    f = request.files['file']
+
+    # 1. 확장자 검사 (.csv — MIME은 보조 참고만)
+    filename_lower = (f.filename or '').lower()
+    if not filename_lower.endswith('.csv'):
+        return jsonify({'error': '.csv 파일만 업로드 가능합니다.'}), 400
+
+    raw_bytes = f.read()
+
+    # 2. 파일 크기 검사 (5 MB)
+    if len(raw_bytes) > MAX_TRACKING_CSV_BYTES:
+        return jsonify({'error': f'파일 크기는 {MAX_TRACKING_CSV_BYTES // 1024 // 1024}MB를 초과할 수 없습니다.'}), 400
+
+    # 3. 인코딩 감지: utf-8-sig → cp949
+    raw_text = None
+    for enc in ('utf-8-sig', 'cp949'):
+        try:
+            raw_text = raw_bytes.decode(enc)
+            break
+        except (UnicodeDecodeError, LookupError):
+            continue
+    if raw_text is None:
+        return jsonify({'error': 'INVALID_ENCODING: utf-8 또는 cp949(EUC-KR) 인코딩만 지원합니다.'}), 400
+
+    # 4. # 주석 행 제거 후 csv.DictReader 파싱
+    lines = raw_text.splitlines()
+    data_lines = [l for l in lines if not l.strip().startswith('#')]
+    if not data_lines:
+        return jsonify({'error': 'CSV 내용이 비어 있습니다.'}), 400
+
+    reader = csv.DictReader(data_lines)
+    required_headers = {'shipment_id', 'order_number', 'carrier_code', 'tracking_number'}
+    if not reader.fieldnames or not required_headers.issubset(set(reader.fieldnames)):
+        missing = required_headers - set(reader.fieldnames or [])
+        return jsonify({'error': f'필수 헤더가 누락되었습니다: {", ".join(sorted(missing))}'}), 400
+
+    csv_rows = list(reader)
+
+    # 5. Data Row 수 제한 (2,000행)
+    if len(csv_rows) > MAX_TRACKING_CSV_ROWS:
+        return jsonify({
+            'error': f'행 수({len(csv_rows):,}건)가 최대 허용치({MAX_TRACKING_CSV_ROWS:,}건)를 초과합니다.'
+        }), 400
+
+    # 6. CSV 전체에서 shipment_id 중복 사전 검출
+    seen_shipment_ids = set()
+    duplicate_ids = set()
+    for row in csv_rows:
+        sid = (row.get('shipment_id') or '').strip()
+        if sid in seen_shipment_ids:
+            duplicate_ids.add(sid)
+        else:
+            seen_shipment_ids.add(sid)
+
+    # 7. 행별 처리
+    results = []
+    success_count = 0
+    failed_count = 0
+    skipped_count = 0
+
+    for row in csv_rows:
+        csv_shipment_id_str = (row.get('shipment_id') or '').strip()
+        csv_order_number    = (row.get('order_number') or '').strip()
+        carrier_code        = (row.get('carrier_code') or '').strip().upper()
+        tracking_number     = str(row.get('tracking_number') or '').strip()
+
+        def _fail(reason, message):
+            nonlocal failed_count
+            failed_count += 1
+            results.append({
+                'shipment_id': csv_shipment_id_str,
+                'order_number': csv_order_number,
+                'success': False,
+                'skipped': False,
+                'reason': reason,
+                'message': message
+            })
+
+        def _skip(reason, message):
+            nonlocal skipped_count
+            skipped_count += 1
+            results.append({
+                'shipment_id': csv_shipment_id_str,
+                'order_number': csv_order_number,
+                'success': None,
+                'skipped': True,
+                'reason': reason,
+                'message': message
+            })
+
+        # 사전 중복 검출된 shipment_id
+        if csv_shipment_id_str in duplicate_ids:
+            _fail('DUPLICATE_SHIPMENT', 'CSV에 같은 Shipment ID가 중복되어 있습니다.')
+            continue
+
+        # shipment_id 숫자 검증
+        try:
+            shipment_id = int(csv_shipment_id_str)
+        except (ValueError, TypeError):
+            _fail('INVALID_SHIPMENT_ID', 'shipment_id가 유효하지 않습니다.')
+            continue
+
+        # carrier_code 검증 (먼저 검사 — DB 조회 전에 빠르게 탈락)
+        if carrier_code not in ALLOWED_CARRIERS:
+            allowed_str = ' / '.join(sorted(ALLOWED_CARRIERS))
+            _fail('INVALID_CARRIER', f'지원하지 않는 택배사입니다. (허용값: {allowed_str})')
+            continue
+
+        # tracking_number 검증
+        if not tracking_number:
+            _fail('TRACKING_REQUIRED', '운송장 번호가 비어 있습니다.')
+            continue
+
+        # 행별 독립 Transaction
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                # P0-1: shipment_id 단독 FOR UPDATE → 단계별 순차 검증
+                cursor.execute("""
+                    SELECT s.id, s.purpose, s.status,
+                           o.order_number AS o_order_number,
+                           o.order_status, o.fulfillment_hold
+                    FROM shipments s
+                    JOIN orders o ON o.id = s.order_id
+                    WHERE s.id = %s
+                    FOR UPDATE
+                """, (shipment_id,))
+                db_row = cursor.fetchone()
+
+                if not db_row:
+                    conn.rollback()
+                    _fail('SHIPMENT_NOT_FOUND', '해당 Shipment를 찾을 수 없습니다.')
+                    continue
+
+                if db_row['o_order_number'] != csv_order_number:
+                    conn.rollback()
+                    _fail('ORDER_MISMATCH', f"주문번호가 일치하지 않습니다. (DB: {db_row['o_order_number']})")
+                    continue
+
+                if db_row['purpose'] != 'FULFILLMENT':
+                    conn.rollback()
+                    _fail('INVALID_SHIPMENT_PURPOSE', 'FULFILLMENT 용도의 Shipment가 아닙니다.')
+                    continue
+
+                if db_row['order_status'] != 'READY_TO_SHIP':
+                    conn.rollback()
+                    _skip('INVALID_ORDER_STATUS', f"처리 불가 주문 상태입니다. (현재: {db_row['order_status']})")
+                    continue
+
+                if db_row['status'] != 'READY':
+                    conn.rollback()
+                    _skip('INVALID_SHIPMENT_STATUS', f"이미 처리된 Shipment입니다. (현재 상태: {db_row['status']})")
+                    continue
+
+                if db_row['fulfillment_hold']:
+                    conn.rollback()
+                    _fail('FULFILLMENT_HELD', '주문이 이행 보류 상태입니다.')
+                    continue
+
+                # Shipment 업데이트 (Source of Truth) + orders Mirror (Legacy)
+                _apply_tracking_to_shipment(cursor, shipment_id, carrier_code, tracking_number)
+
+                conn.commit()
+
+            # AuditLog (커밋 후)
+            log_admin_audit(
+                admin_id=payload['user_id'],
+                admin_email=payload.get('email') or payload.get('sub', ''),
+                action_type='TRACKING_CSV_IMPORTED',
+                target_type='SHIPMENT',
+                target_id=shipment_id,
+                reason=f"CSV Import: {carrier_code} / {tracking_number} (주문: {csv_order_number})",
+                request_ip=request.remote_addr,
+                user_agent=request.user_agent.string
+            )
+
+            success_count += 1
+            results.append({
+                'shipment_id': csv_shipment_id_str,
+                'order_number': csv_order_number,
+                'success': True,
+                'skipped': False,
+                'reason': None,
+                'message': f'{CARRIER_DISPLAY.get(carrier_code, carrier_code)} {tracking_number} 등록 완료'
+            })
+
+        except Exception as e:
+            conn.rollback()
+            _fail('INTERNAL_ERROR', str(e))
+        finally:
+            conn.close()
+
+    return jsonify({
+        'total': len(csv_rows),
+        'success': success_count,
+        'failed': failed_count,
+        'skipped': skipped_count,
+        'results': results
+    }), 200
+
+
 @admin_bp.route('/orders/batch-tracking', methods=['POST'])
 def admin_batch_register_tracking():
-    """인라인 송장 번호 배열 일괄 등록 및 Shipment 저장 API"""
+    """인라인 송장 번호 배열 일괄 등록 및 Shipment 저장 API (헬퍼 재사용)"""
     payload = verify_admin_auth()
     if not payload:
         return jsonify({'error': '관리자 권한이 필요합니다.'}), 403
@@ -1585,19 +1894,23 @@ def admin_batch_register_tracking():
                         failed_list.append({'order_id': oid, 'reason': 'FULFILLMENT_HELD', 'message': '주문이 보류 상태입니다.'})
                         continue
 
-                    # Update order & shipment
-                    cursor.execute("UPDATE orders SET courier_name = %s, tracking_number = %s WHERE id = %s", (carrier, tracking, oid))
-                    
                     cursor.execute("SELECT id FROM shipments WHERE order_id = %s AND purpose = 'FULFILLMENT'", (oid,))
                     ship_row = cursor.fetchone()
                     if ship_row:
-                        cursor.execute("UPDATE shipments SET carrier_code = %s, tracking_number = %s, status = 'READY' WHERE id = %s", (carrier, tracking, ship_row['id']))
+                        # 헬퍼 재사용 (Source of Truth: Shipment, Mirror: orders)
+                        _apply_tracking_to_shipment(cursor, ship_row['id'], carrier, tracking)
+                        cursor.execute("UPDATE shipments SET status = 'READY' WHERE id = %s", (ship_row['id'],))
                     else:
                         cursor.execute("""
                             INSERT INTO shipments (order_id, purpose, carrier_code, tracking_number, status)
                             VALUES (%s, 'FULFILLMENT', %s, %s, 'READY')
                         """, (oid, carrier, tracking))
                         ship_id = cursor.lastrowid
+                        # Legacy Mirror
+                        cursor.execute(
+                            "UPDATE orders SET courier_name = %s, tracking_number = %s WHERE id = %s",
+                            (carrier, tracking, oid)
+                        )
                         cursor.execute("SELECT id, quantity FROM order_items WHERE order_id = %s", (oid,))
                         o_items = cursor.fetchall() or []
                         for oi in o_items:
@@ -1618,6 +1931,8 @@ def admin_batch_register_tracking():
         'success': success_ids,
         'failed': failed_list
     }), 200
+
+
 
 @admin_bp.route('/orders/cancel', methods=['POST'])
 def admin_batch_cancel_orders():

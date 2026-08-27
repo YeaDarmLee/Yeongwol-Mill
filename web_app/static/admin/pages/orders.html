@@ -12,8 +12,10 @@
             <div id="orders-page-desc" style="font-size:0.85rem; color:#666; margin-top:4px;">주문 처리 워크플로우 및 CS 관리 전용 뷰입니다.</div>
         </div>
         <div>
-            <button class="btn-action" style="background:#2e7d32; color:#fff;" onclick="exportOrdersCSV('excel')">관리자 Excel CSV</button>
-            <button class="btn-action" style="background:#1976d2; color:#fff;" onclick="exportOrdersCSV('shipping')">택배사 Import CSV</button>
+            <button class="btn-action" style="background:#2e7d32; color:#fff;" onclick="exportOrdersCSV('excel')"><i class="fa-solid fa-file-csv" style="margin-right:4px;"></i> 관리자 Excel CSV</button>
+            <button class="btn-action" style="background:#1565c0; color:#fff;" onclick="exportOrdersCSV('shipping')"><i class="fa-solid fa-file-arrow-down" style="margin-right:4px;"></i> 송장 등록 양식 다운로드</button>
+            <button class="btn-action" style="background:#6a1b9a; color:#fff;" onclick="importTrackingCSV()"><i class="fa-solid fa-file-arrow-up" style="margin-right:4px;"></i> 송장 CSV 업로드</button>
+            <input type="file" id="tracking-csv-file-input" accept=".csv" hidden onchange="handleTrackingCSVFile(this.files[0])">
         </div>
     </div>
 
