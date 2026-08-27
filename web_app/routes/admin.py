@@ -386,12 +386,24 @@ def admin_orders():
         args.append(refund_filter)
 
     if status_filter:
-        where_clauses.append("o.order_status = %s")
-        args.append(status_filter)
+        statuses = [s.strip() for s in status_filter.split(',') if s.strip()]
+        if len(statuses) == 1:
+            where_clauses.append("o.order_status = %s")
+            args.append(statuses[0])
+        elif len(statuses) > 1:
+            placeholders = ", ".join(["%s"] * len(statuses))
+            where_clauses.append(f"o.order_status IN ({placeholders})")
+            args.extend(statuses)
 
     if payment_filter:
-        where_clauses.append("o.payment_status = %s")
-        args.append(payment_filter)
+        payments = [p.strip() for p in payment_filter.split(',') if p.strip()]
+        if len(payments) == 1:
+            where_clauses.append("o.payment_status = %s")
+            args.append(payments[0])
+        elif len(payments) > 1:
+            placeholders = ", ".join(["%s"] * len(payments))
+            where_clauses.append(f"o.payment_status IN ({placeholders})")
+            args.extend(payments)
 
     if unregistered_tracking == 'true':
         where_clauses.append("o.order_status = 'PREPARING' AND (o.tracking_number IS NULL OR o.tracking_number = '')")
