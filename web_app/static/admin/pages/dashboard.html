@@ -6,8 +6,11 @@
             <span style="font-size:0.85rem; color:rgba(255,255,255,0.85) !important;">오늘 실시간 운영 현황 (KST 기준)</span>
         </div>
         <div style="display:flex; align-items:center; gap:10px;">
-            <span style="font-size:0.8rem; color:rgba(255,255,255,0.85) !important;">마지막 갱신: <strong id="dash-as-of" style="color:#ffffff !important;">-</strong></span>
-            <button class="btn-action" style="background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4); color:#fff; font-weight:600; padding:5px 12px;" onclick="loadDashboardMetrics()">
+            <span style="font-size:0.8rem; color:rgba(255,255,255,0.85) !important;">마지막 갱신: <strong id="dash-as-of"
+                    style="color:#ffffff !important;">-</strong></span>
+            <button class="btn-action"
+                style="background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4); color:#fff; font-weight:600; padding:5px 12px;"
+                onclick="loadDashboardMetrics()">
                 ↻ 지금 새로고침
             </button>
         </div>
@@ -52,10 +55,11 @@
             <div class="section-header" style="margin-bottom:0.75rem;">
                 <h3 class="section-title">주문 & CS 현황</h3>
             </div>
-            
+
             <!-- 윗줄: 정상 주문 처리 워크플로우 -->
-            <div style="font-size:0.8rem; font-weight:700; color:#555; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
-                <i class="fa-solid fa-box" style="color:var(--admin-primary);"></i> 정상 주문 처리
+            <div
+                style="font-size:0.8rem; font-weight:700; color:#555; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                정상 주문 처리
             </div>
             <div class="work-queue-grid" style="margin-bottom:1rem;">
                 <div class="queue-card" onclick="window.location.hash = '#orders/pending'" id="qc-pending">
@@ -81,11 +85,13 @@
             </div>
 
             <!-- 아래쪽: CS 및 클레임/운영 이슈 관리 -->
-            <div style="font-size:0.8rem; font-weight:700; color:#555; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
-                <i class="fa-solid fa-headset" style="color:#d32f2f;"></i> CS 클레임 및 미처리
+            <div
+                style="font-size:0.8rem; font-weight:700; color:#555; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                CS 클레임 및 미처리
             </div>
             <div class="work-queue-grid">
-                <div class="queue-card" onclick="window.location.hash = '#orders/ready_to_ship'" id="qc-stale-preparing">
+                <div class="queue-card" onclick="window.location.hash = '#orders/ready_to_ship'"
+                    id="qc-stale-preparing">
                     <div class="q-title">송장 미등록</div>
                     <div class="q-count" id="q-val-stale-preparing">0</div>
                 </div>
@@ -109,7 +115,8 @@
         </div>
 
         <!-- 우측: 운영 알림 (좌측 주문 & CS 현황과 100% 자동 높이 동기화) -->
-        <div class="admin-section" style="margin-bottom:0; height:100%; box-sizing:border-box; display:flex; flex-direction:column;">
+        <div class="admin-section"
+            style="margin-bottom:0; height:100%; box-sizing:border-box; display:flex; flex-direction:column;">
             <div class="section-header" style="margin-bottom:0.6rem; flex-shrink:0;">
                 <h3 class="section-title">운영 알림</h3>
             </div>
@@ -125,7 +132,9 @@
     <div class="admin-section">
         <div class="section-header">
             <h3 class="section-title">최근 주문 목록</h3>
-            <button class="btn-action" style="font-size:0.8rem; background:none; border:none; color:var(--admin-primary); font-weight:600; cursor:pointer;" onclick="window.location.hash = '#orders/all'">
+            <button class="btn-action"
+                style="font-size:0.8rem; background:none; border:none; color:var(--admin-primary); font-weight:600; cursor:pointer;"
+                onclick="window.location.hash = '#orders/all'">
                 전체 주문 보기 &gt;
             </button>
         </div>
@@ -163,7 +172,8 @@
                     <button id="btn-chart-30d" class="chart-tab-btn" onclick="switchTrendPeriod(30)">30일</button>
                 </div>
             </div>
-            <div style="position:relative; width:100%; height:220px; background:#faf8f5; border-radius:8px; padding:10px; box-sizing:border-box;">
+            <div
+                style="position:relative; width:100%; height:220px; background:#faf8f5; border-radius:8px; padding:10px; box-sizing:border-box;">
                 <canvas id="dashTrendCanvas" style="width:100%; height:100%;"></canvas>
             </div>
         </div>
