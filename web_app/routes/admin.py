@@ -137,11 +137,20 @@ def admin_dashboard():
     """) or []
     order_stat_map = {r['order_status']: int(r['cnt']) for r in order_stats_rows}
 
-    pending_orders_cnt = order_stat_map.get('PENDING', 0)
-    confirmed_orders_cnt = order_stat_map.get('CONFIRMED', 0)
-    preparing_orders_cnt = pending_shipping_count
-    shipping_orders_cnt = order_stat_map.get('SHIPPING', 0)
-    delivered_orders_cnt = order_stat_map.get('DELIVERED', 0)
+    pending_orders_cnt = int((query_db("""
+        SELECT COUNT(*) as c FROM orders o
+        WHERE o.order_status IN ('PENDING', 'CONFIRMED')
+          AND o.payment_status IN ('PAID', 'PARTIALLY_REFUNDED')
+          AND (
+              (SELECT COALESCE(SUM(quantity), 0) FROM order_items WHERE order_id = o.id) -
+              (SELECT COALESCE(SUM(si.quantity), 0) FROM shipment_items si JOIN shipments s ON si.shipment_id = s.id WHERE s.order_id = o.id AND s.purpose = 'FULFILLMENT')
+          ) > 0
+    """, one=True) or {}).get('c', 0))
+    confirmed_orders_cnt = 0
+    preparing_orders_cnt = int((query_db("SELECT COUNT(*) as c FROM orders WHERE order_status = 'PREPARING'", one=True) or {}).get('c', 0))
+    ready_to_ship_orders_cnt = int((query_db("SELECT COUNT(*) as c FROM orders WHERE order_status = 'READY_TO_SHIP'", one=True) or {}).get('c', 0))
+    shipping_orders_cnt = int((query_db("SELECT COUNT(*) as c FROM orders WHERE order_status = 'SHIPPING'", one=True) or {}).get('c', 0))
+    delivered_orders_cnt = int((query_db("SELECT COUNT(*) as c FROM orders WHERE order_status = 'DELIVERED'", one=True) or {}).get('c', 0))
 
     stale_preparing_threshold = (now_kst - datetime.timedelta(hours=24)).strftime('%Y-%m-%d %H:%M:%S')
     stale_unregistered_cnt = int((query_db("""
@@ -394,6 +403,14 @@ def admin_orders():
             placeholders = ", ".join(["%s"] * len(statuses))
             where_clauses.append(f"o.order_status IN ({placeholders})")
             args.extend(statuses)
+
+        if any(st in ('PENDING', 'CONFIRMED') for st in statuses):
+            where_clauses.append("""
+                (
+                    (SELECT COALESCE(SUM(quantity), 0) FROM order_items WHERE order_id = o.id) -
+                    (SELECT COALESCE(SUM(si.quantity), 0) FROM shipment_items si JOIN shipments s ON si.shipment_id = s.id WHERE s.order_id = o.id AND s.purpose = 'FULFILLMENT')
+                ) > 0
+            """)
 
     if payment_filter:
         payments = [p.strip() for p in payment_filter.split(',') if p.strip()]
