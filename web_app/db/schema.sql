@@ -401,4 +401,73 @@ CREATE TABLE IF NOT EXISTS admin_audit_logs (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS shipments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    courier VARCHAR(50) NOT NULL DEFAULT 'EPOST',
+    tracking_number VARCHAR(100) NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'SHIPPED',
+    shipped_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    delivered_at DATETIME NULL,
+    tracking_last_checked_at DATETIME NULL,
+    tracking_next_check_at DATETIME NULL,
+    tracking_error_count INT DEFAULT 0,
+    tracking_last_status VARCHAR(50) NULL,
+    tracking_last_error TEXT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    INDEX idx_shipments_tracking (courier, tracking_number),
+    INDEX idx_shipments_polling (status, courier, tracking_next_check_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS notification_jobs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    event_type VARCHAR(50) NOT NULL,
+    order_id INT NULL,
+    shipment_id INT NULL,
+    refund_id INT NULL,
+    recipient VARCHAR(20) NOT NULL,
+    provider VARCHAR(20) NOT NULL DEFAULT 'ALIGO',
+    template_code VARCHAR(50) NOT NULL,
+    fallback_template_key VARCHAR(50) NULL,
+    idempotency_key VARCHAR(100) NOT NULL UNIQUE,
+    payload_fingerprint VARCHAR(64) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    provider_message_id VARCHAR(100) NULL,
+    provider_fallback_message_id VARCHAR(100) NULL,
+    fallback_enabled TINYINT(1) DEFAULT 1,
+    fallback_used TINYINT(1) DEFAULT 0,
+    final_channel VARCHAR(20) NULL,
+    attempt_count INT DEFAULT 0,
+    dispatch_started_at DATETIME NULL,
+    next_attempt_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_attempt_at DATETIME NULL,
+    locked_at DATETIME NULL,
+    locked_until DATETIME NULL,
+    locked_by VARCHAR(50) NULL,
+    accepted_at DATETIME NULL,
+    sent_at DATETIME NULL,
+    failed_at DATETIME NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_worker_claim (status, next_attempt_at, locked_until)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS notification_attempts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    job_id INT NOT NULL,
+    attempt_no INT NOT NULL,
+    requested_at DATETIME NOT NULL,
+    responded_at DATETIME NULL,
+    provider_result_code VARCHAR(20) NULL,
+    provider_message VARCHAR(255) NULL,
+    error_code VARCHAR(50) NULL,
+    error_message TEXT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_job_attempt (job_id, attempt_no),
+    FOREIGN KEY (job_id) REFERENCES notification_jobs(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
 

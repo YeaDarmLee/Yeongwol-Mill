@@ -588,20 +588,30 @@ def admin_update_shipping(order_id):
                 WHERE id = %s
             """, (courier_name, tracking_number, now_str, order_id))
 
-
-            # Notification Outbox INSERT (1-Tx)
-            dedup_key = f"SHIP_NOTIF_{order_id}_{int(datetime.datetime.now().timestamp())}"
-            outbox_payload = json.dumps({
-                'order_id': order_id,
-                'order_number': order['order_number'],
-                'courier_name': courier_name,
-                'tracking_number': tracking_number
-            })
+            # shipments 테이블 생성/업데이트
             cursor.execute("""
-                INSERT INTO notification_outbox (event_type, channel, recipient, payload_json, status, dedup_key)
-                VALUES ('ORDER_SHIPPED', 'SMS', %s, %s, 'PENDING', %s)
-            """, (order.get('recipient_phone', ''), outbox_payload, dedup_key))
+                INSERT INTO shipments (order_id, courier, tracking_number, status, shipped_at)
+                VALUES (%s, %s, %s, 'SHIPPED', %s)
+            """, (order_id, courier_name, tracking_number, now_str))
+            shipment_id = cursor.lastrowid
 
+            # Notification Outbox & SMS Enqueue (SHIPPED:{shipment_id} 멱등키)
+            try:
+                from services.notification_service import NotificationService
+                recipient = order.get('recipient_phone') or order.get('guest_phone') or ''
+                if recipient:
+                    NotificationService().enqueue(
+                        event_type="SHIPPED",
+                        recipient=recipient,
+                        template_code="SHIPPED",
+                        message=f"[영월고향방앗간] 고객님의 상품이 우체국택배({tracking_number})로 배송 시작되었습니다.",
+                        idempotency_key=f"SHIPPED:{shipment_id}",
+                        fallback_template_key="SHIPPED_SMS",
+                        order_id=order_id,
+                        shipment_id=shipment_id
+                    )
+            except Exception as ex:
+                pass
 
             action_name = 'TRACKING_REGISTERED'
             conn.commit()

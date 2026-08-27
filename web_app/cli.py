@@ -71,3 +71,29 @@ def register_cli_commands(app):
         from routes.payment import reconcile_pending_refunds
         count = reconcile_pending_refunds()
         click.echo(f"성공: 총 {count}건의 환불 대사 및 상태 복구가 처리되었습니다.")
+
+    @app.cli.command("process-notifications")
+    @click.option("--batch-size", default=10, help="한 번에 발송할 notification_jobs 수")
+    @click.option("--worker-id", default="worker-1", help="Worker ID")
+    def process_notifications_cmd(batch_size, worker_id):
+        """PENDING 알림을 Claim하여 알리고 API로 1:1 발송합니다."""
+        from services.notification_service import NotificationService
+        count = NotificationService().process_pending_jobs(batch_size=batch_size, worker_id=worker_id)
+        click.echo(f"성공: 총 {count}건의 알림 발송 처리(Aligo Dispatched)가 완료되었습니다.")
+
+    @app.cli.command("reconcile-notifications")
+    @click.option("--batch-size", default=20, help="한 번에 대사할 notification_jobs 수")
+    def reconcile_notifications_cmd(batch_size):
+        """ACCEPTED 및 SEND_UNKNOWN 알림에 대한 2-Step Reconciliation을 수행합니다."""
+        from services.notification_service import NotificationService
+        count = NotificationService().reconcile_jobs(batch_size=batch_size)
+        click.echo(f"성공: 총 {count}건의 알림 수신 결과 대사(Reconciled)가 완료되었습니다.")
+
+    @app.cli.command("track-delivery")
+    @click.option("--batch-size", default=50, help="한 번에 조회할 우체국 운송장 수")
+    def track_delivery_cmd(batch_size):
+        """status='SHIPPED' 상태의 우체국 운송장 배송상태를 주기적으로 Polling합니다."""
+        from services.delivery.epost_provider import EPostDeliveryTracker
+        count = EPostDeliveryTracker().process_polling_shipments(batch_size=batch_size)
+        click.echo(f"성공: 총 {count}건의 배송완료(DELIVERED) 상태 업데이트 및 알림톡 큐 생성이 완료되었습니다.")
+

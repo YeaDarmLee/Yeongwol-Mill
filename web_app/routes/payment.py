@@ -32,7 +32,7 @@ def verify_webhook_signature(headers, body):
     return hmac.compare_digest(computed, signature)
 
 def create_outbox_notification(event_type, order_id, recipient, message_type='SMS', idempotency_key=None):
-    """Transactional Outbox 패턴 알림 이벤트 DB 등록"""
+    """Transactional Outbox 패턴 알림 이벤트 DB 등록 (NotificationService 멱등 Enqueue 연동)"""
     if not idempotency_key:
         idempotency_key = f"{event_type}:{order_id or str(uuid.uuid4())}"
     
@@ -46,7 +46,28 @@ def create_outbox_notification(event_type, order_id, recipient, message_type='SM
             ON DUPLICATE KEY UPDATE status=status
         """, (event_type, order_id, recipient, message_type, idempotency_key))
     except Exception as e:
-        # SQLite 또는 중복 키 무시
+        pass
+
+    # SMS NotificationService Enqueue
+    try:
+        from services.notification_service import NotificationService
+        sms_map = {
+            'ORDER_PAID':     ('ORDER_PAID_SMS',          '[영월고향방앗간] 주문 및 결제가 완료되었습니다.'),
+            'ORDER_SHIPPED':  ('SHIPPED_SMS',              '[영월고향방앗간] 상품 배송이 시작되었습니다.'),
+            'ORDER_REFUNDED': ('REFUND_COMPLETED_SMS',     '[영월고향방앗간] 환불이 완료되었습니다.')
+        }
+        if event_type in sms_map:
+            fallback_key, msg = sms_map[event_type]
+            NotificationService().enqueue(
+                event_type=event_type,
+                recipient=recipient,
+                template_code=event_type,
+                message=msg,
+                idempotency_key=idempotency_key,
+                fallback_template_key=fallback_key,
+                order_id=order_id
+            )
+    except Exception as ex:
         pass
 
 def get_portone_payment_details(payment_id):

@@ -42,3 +42,15 @@ class Config:
     # Refund Reconciliation Config
     REFUND_PROCESSING_STALE_SECONDS = int(os.getenv('REFUND_PROCESSING_STALE_SECONDS', 3600))
 
+    # Aligo API Config
+    ALIGO_API_KEY = os.getenv('ALIGO_API_KEY', '')
+    ALIGO_USER_ID = os.getenv('ALIGO_USER_ID', '')
+    ALIGO_SENDER = os.getenv('ALIGO_SENDER', '033-000-0000')
+
+    # Korea Post Tracking API Config
+    EPOST_API_SERVICE_KEY = os.getenv('EPOST_API_SERVICE_KEY', '')
+    EPOST_TRACKING_ENABLED = os.getenv('EPOST_TRACKING_ENABLED', 'true').lower() == 'true'
+    EPOST_TRACKING_INTERVAL_MINUTES = int(os.getenv('EPOST_TRACKING_INTERVAL_MINUTES', 60))
+    EPOST_TRACKING_TIMEOUT_SECONDS = int(os.getenv('EPOST_TRACKING_TIMEOUT_SECONDS', 10))
+
+

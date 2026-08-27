@@ -86,7 +86,7 @@ def init_database():
                             except Exception:
                                 pass
 
-            # v2.3 컬럼 안전 추가 (MySQL)
+            # v2.3 & v2.4 컬럼 안전 추가 (MySQL)
             mysql_alters = [
                 "ALTER TABLE orders ADD COLUMN refund_calculation_mode VARCHAR(20) NOT NULL DEFAULT 'AUTO'",
                 "ALTER TABLE order_items ADD COLUMN cancelled_qty INT NOT NULL DEFAULT 0",
@@ -99,7 +99,13 @@ def init_database():
                 "ALTER TABLE notification_outbox ADD COLUMN email VARCHAR(100) NULL",
                 "ALTER TABLE notification_outbox ADD COLUMN type VARCHAR(50) NULL",
                 "ALTER TABLE notification_outbox ADD COLUMN payload TEXT NULL",
-                "ALTER TABLE notification_outbox MODIFY COLUMN event_type VARCHAR(50) NULL DEFAULT 'EVENT'"
+                "ALTER TABLE notification_outbox MODIFY COLUMN event_type VARCHAR(50) NULL DEFAULT 'EVENT'",
+                "ALTER TABLE shipments ADD COLUMN courier VARCHAR(50) NOT NULL DEFAULT 'EPOST'",
+                "ALTER TABLE shipments ADD COLUMN tracking_last_checked_at DATETIME NULL",
+                "ALTER TABLE shipments ADD COLUMN tracking_next_check_at DATETIME NULL",
+                "ALTER TABLE shipments ADD COLUMN tracking_error_count INT DEFAULT 0",
+                "ALTER TABLE shipments ADD COLUMN tracking_last_status VARCHAR(50) NULL",
+                "ALTER TABLE shipments ADD COLUMN tracking_last_error TEXT NULL"
             ]
             for alt in mysql_alters:
                 try:
@@ -193,7 +199,7 @@ def init_database():
                     except Exception:
                         pass
 
-        # v2.3 컬럼 안전 추가 (SQLite)
+        # v2.3 & v2.4 컬럼 안전 추가 (SQLite)
         sqlite_alters = [
             "ALTER TABLE orders ADD COLUMN refund_calculation_mode VARCHAR(20) NOT NULL DEFAULT 'AUTO'",
             "ALTER TABLE order_items ADD COLUMN cancelled_qty INT NOT NULL DEFAULT 0",
@@ -205,7 +211,13 @@ def init_database():
             "ALTER TABLE notification_outbox ADD COLUMN user_id INT NULL",
             "ALTER TABLE notification_outbox ADD COLUMN email VARCHAR(100) NULL",
             "ALTER TABLE notification_outbox ADD COLUMN type VARCHAR(50) NULL",
-            "ALTER TABLE notification_outbox ADD COLUMN payload TEXT NULL"
+            "ALTER TABLE notification_outbox ADD COLUMN payload TEXT NULL",
+            "ALTER TABLE shipments ADD COLUMN courier VARCHAR(50) NOT NULL DEFAULT 'EPOST'",
+            "ALTER TABLE shipments ADD COLUMN tracking_last_checked_at DATETIME NULL",
+            "ALTER TABLE shipments ADD COLUMN tracking_next_check_at DATETIME NULL",
+            "ALTER TABLE shipments ADD COLUMN tracking_error_count INT DEFAULT 0",
+            "ALTER TABLE shipments ADD COLUMN tracking_last_status VARCHAR(50) NULL",
+            "ALTER TABLE shipments ADD COLUMN tracking_last_error TEXT NULL"
         ]
         for alt in sqlite_alters:
             try:
