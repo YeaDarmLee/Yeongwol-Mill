@@ -752,11 +752,6 @@
                     customAlert(data.message || '인증번호가 입력하신 이메일로 발송되었습니다.', 'success', () => {
                         document.getElementById('regOtp').focus();
                     });
-
-                    // 개발/테스트 편의 모드
-                    if (data.dev_otp) {
-                        console.log('[Dev Test OTP]:', data.dev_otp);
-                    }
                 } else {
                     showFeedback('emailFeedback', data.error || '인증번호 발송 실패', 'error');
                     btnSend.disabled = false;

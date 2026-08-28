@@ -469,5 +469,79 @@ CREATE TABLE IF NOT EXISTS notification_attempts (
     FOREIGN KEY (job_id) REFERENCES notification_jobs(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS shipment_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    shipment_id INT NOT NULL,
+    order_item_id INT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_shipment_item_shipment (shipment_id),
+    INDEX idx_shipment_item_order_item (order_item_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS cancellation_requests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    reason_code VARCHAR(50) NULL,
+    reason_detail TEXT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_cancel_order (order_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS cancellation_request_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cancellation_request_id INT NOT NULL,
+    order_item_id INT NOT NULL,
+    requested_qty INT NOT NULL,
+    approved_qty INT NOT NULL DEFAULT 0,
+    INDEX idx_cancel_item_req (cancellation_request_id),
+    INDEX idx_cancel_item_order_item (order_item_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS return_requests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    reason_code VARCHAR(50) NULL,
+    reason_detail TEXT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_return_order (order_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS return_request_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    return_request_id INT NOT NULL,
+    order_item_id INT NOT NULL,
+    requested_qty INT NOT NULL,
+    approved_qty INT NOT NULL DEFAULT 0,
+    INDEX idx_return_item_req (return_request_id),
+    INDEX idx_return_item_order_item (order_item_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS exchange_requests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    reason_code VARCHAR(50) NULL,
+    reason_detail TEXT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_exchange_order (order_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS exchange_request_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    exchange_request_id INT NOT NULL,
+    order_item_id INT NOT NULL,
+    requested_qty INT NOT NULL,
+    approved_qty INT NOT NULL DEFAULT 0,
+    INDEX idx_exchange_item_req (exchange_request_id),
+    INDEX idx_exchange_item_order_item (order_item_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
 
 

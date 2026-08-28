@@ -31,6 +31,18 @@ def upgrade(conn):
         except Exception:
             pass
 
+    # 3. shipments 테이블 컬럼 추가
+    add_shipment_cols = [
+        ("purpose", "VARCHAR(30) NOT NULL DEFAULT 'FULFILLMENT'" if db_type == 'mysql' else "TEXT NOT NULL DEFAULT 'FULFILLMENT'"),
+        ("carrier_code", "VARCHAR(50) NULL" if db_type == 'mysql' else "TEXT NULL")
+    ]
+    for col_name, col_def in add_shipment_cols:
+        try:
+            cursor.execute(f"ALTER TABLE shipments ADD COLUMN {col_name} {col_def}")
+        except Exception:
+            pass
+
+
     # 3. SQLite / MySQL 호환 테이블 생성 구문
     if db_type == 'sqlite':
         cursor.execute("""

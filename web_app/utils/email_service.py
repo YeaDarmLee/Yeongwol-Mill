@@ -2,7 +2,9 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.header import Header
 import sys
+
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import Config
@@ -30,21 +32,32 @@ def send_email(to_email, subject, body_html):
 
     try:
         msg = MIMEMultipart('alternative')
-        msg['Subject'] = subject
-        msg['From'] = f"{Config.BUSINESS_NAME} <{smtp_from}>"
+        msg['Subject'] = Header(subject, 'utf-8').encode()
+        msg['From'] = smtp_from
         msg['To'] = to_email
+
+
+
 
         html_part = MIMEText(body_html, 'html', 'utf-8')
         msg.attach(html_part)
 
-        with smtplib.SMTP(smtp_server, smtp_port, timeout=10) as server:
-            server.starttls()
-            server.login(smtp_user, smtp_password)
-            server.sendmail(smtp_from, [to_email], msg.as_string())
+        if smtp_port == 465:
+            with smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=10) as server:
+                server.login(smtp_user, smtp_password)
+                server.sendmail(smtp_from, [to_email], msg.as_string())
+        else:
+            with smtplib.SMTP(smtp_server, smtp_port, timeout=10) as server:
+                server.starttls()
+                server.login(smtp_user, smtp_password)
+                server.sendmail(smtp_from, [to_email], msg.as_string())
+
+        print(f"[Email Service Success] Successfully sent email to {to_email} | Subject: {subject}")
         return True
     except Exception as e:
         print(f"[Email Service Error] Failed to send email to {to_email}: {e}")
         return False
+
 
 def send_marketing_consent_notice_email(to_email, user_name, consent_type, action, updated_at):
     """

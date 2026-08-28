@@ -21,7 +21,7 @@ def register_cli_commands(app):
             click.echo(f"오류: 이미 존재하 관리자 이메일입니다: {email}")
             return
 
-        pw_hash = generate_password_hash(password)
+        pw_hash = generate_password_hash(password, method='pbkdf2:sha256')
         admin_id = execute_db("""
             INSERT INTO admin_users (email, name, password_hash, role)
             VALUES (%s, %s, %s, 'ADMIN')

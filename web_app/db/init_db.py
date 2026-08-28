@@ -100,7 +100,10 @@ def init_database():
                 "ALTER TABLE notification_outbox ADD COLUMN type VARCHAR(50) NULL",
                 "ALTER TABLE notification_outbox ADD COLUMN payload TEXT NULL",
                 "ALTER TABLE notification_outbox MODIFY COLUMN event_type VARCHAR(50) NULL DEFAULT 'EVENT'",
+                "ALTER TABLE shipments ADD COLUMN purpose VARCHAR(30) NOT NULL DEFAULT 'FULFILLMENT'",
+                "ALTER TABLE shipments ADD COLUMN carrier_code VARCHAR(50) NULL",
                 "ALTER TABLE shipments ADD COLUMN courier VARCHAR(50) NOT NULL DEFAULT 'EPOST'",
+
                 "ALTER TABLE shipments ADD COLUMN tracking_last_checked_at DATETIME NULL",
                 "ALTER TABLE shipments ADD COLUMN tracking_next_check_at DATETIME NULL",
                 "ALTER TABLE shipments ADD COLUMN tracking_error_count INT DEFAULT 0",
@@ -124,10 +127,25 @@ def init_database():
                             except Exception:
                                 pass
 
+            # v007 마이그레이션 (shipments, shipment_items 및 CS 요청 테이블들)
+            try:
+                import importlib.util
+                migration_007_path = os.path.join(os.path.dirname(base_dir), 'migrations', 'versions', '007_shipments_and_cs_items.py')
+                spec = importlib.util.spec_from_file_location("m007", migration_007_path)
+                if spec and spec.loader:
+                    m007 = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(m007)
+                    conn_db._db_type = 'mysql'
+                    m007.upgrade(conn_db)
+            except Exception as m007_err:
+                print(f"Migration 007 warning: {m007_err}")
+
+
             # 시드 데이터 보장
             ensure_seed_data(cursor, is_sqlite=False)
         conn_db.close()
         print(f"MySQL DB '{Config.MYSQL_DB}' 초기화 성공!")
+
 
         # 스냅샷 백필 자동 실행
         try:
@@ -212,7 +230,10 @@ def init_database():
             "ALTER TABLE notification_outbox ADD COLUMN email VARCHAR(100) NULL",
             "ALTER TABLE notification_outbox ADD COLUMN type VARCHAR(50) NULL",
             "ALTER TABLE notification_outbox ADD COLUMN payload TEXT NULL",
+            "ALTER TABLE shipments ADD COLUMN purpose VARCHAR(30) NOT NULL DEFAULT 'FULFILLMENT'",
+            "ALTER TABLE shipments ADD COLUMN carrier_code VARCHAR(50) NULL",
             "ALTER TABLE shipments ADD COLUMN courier VARCHAR(50) NOT NULL DEFAULT 'EPOST'",
+
             "ALTER TABLE shipments ADD COLUMN tracking_last_checked_at DATETIME NULL",
             "ALTER TABLE shipments ADD COLUMN tracking_next_check_at DATETIME NULL",
             "ALTER TABLE shipments ADD COLUMN tracking_error_count INT DEFAULT 0",
@@ -225,8 +246,23 @@ def init_database():
             except Exception:
                 pass
                             
+        # v007 마이그레이션 (SQLite)
+        try:
+            import importlib.util
+            migration_007_path = os.path.join(os.path.dirname(base_dir), 'migrations', 'versions', '007_shipments_and_cs_items.py')
+            spec = importlib.util.spec_from_file_location("m007", migration_007_path)
+            if spec and spec.loader:
+                m007 = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(m007)
+                conn_sqlite._db_type = 'sqlite'
+                m007.upgrade(conn_sqlite)
+        except Exception:
+            pass
+
+
         # SQLite 시드 데이터 보장
         ensure_seed_data(cursor, is_sqlite=True)
+
                             
         conn_sqlite.commit()
         conn_sqlite.close()

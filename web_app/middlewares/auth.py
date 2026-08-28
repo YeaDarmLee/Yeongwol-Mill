@@ -9,7 +9,8 @@ from db.db_connection import query_db
 
 def hash_password(password):
     """비밀번호 단방향 암호화 (Werkzeug/pbkdf2:sha256)"""
-    return generate_password_hash(password)
+    return generate_password_hash(password, method='pbkdf2:sha256')
+
 
 def check_password(password, password_hash):
     """비밀번호 검증"""

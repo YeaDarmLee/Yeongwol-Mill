@@ -127,6 +127,6 @@ except Exception as e:
     print(f"Warning: Database initialization skipped or failed: {e}")
 
 if __name__ == '__main__':
-    port = int(os.getenv('PORT', 5000))
+    port = int(os.getenv('PORT', 8080))
     print(f"영월고향방앗간 Flask 쇼핑몰 서버가 http://localhost:{port} 에서 실행됩니다.")
     app.run(host='0.0.0.0', port=port, debug=True)

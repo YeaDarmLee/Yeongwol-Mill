@@ -4,7 +4,7 @@ import hashlib
 import uuid
 import re
 import jwt
-from flask import Blueprint, request, jsonify, make_response
+from flask import Blueprint, request, jsonify, make_response, current_app
 from config import Config
 from db.db_connection import query_db, execute_db, get_db_connection, execute_db_conn
 from middlewares.auth import hash_password, check_password, generate_jwt_token, verify_jwt_token, jwt_required, validate_password_policy
@@ -100,11 +100,15 @@ def send_otp():
     """
     send_email(email, subject, body_html)
 
-    return jsonify({
+    res_data = {
         'message': '인증번호가 입력하신 이메일로 발송되었습니다. (유효시간: 5분)',
-        'expires_in': 300,
-        'dev_otp': raw_otp  # 테스트/개발 환경 편의제공
-    }), 200
+        'expires_in': 300
+    }
+    if current_app.config.get('TESTING'):
+        res_data['dev_otp'] = raw_otp
+
+    return jsonify(res_data), 200
+
 
 @auth_bp.route('/verify-otp', methods=['POST'])
 def verify_otp():
