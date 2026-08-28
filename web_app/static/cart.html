@@ -182,12 +182,12 @@
         <div class="footer-content">
             <div class="footer-info">
                 <span class="footer-logo">영월고향방앗간</span><br>
-                강원특별자치도 영월군 영월읍 방앗간길 12 | 고객센터: 033-000-0000<br>
-                대표자: 홍길동 | 사업자등록번호: 123-45-67890
+                강원특별자치도 영월군 영월읍 절무리골길 16, 제2동 1층 | 고객센터: 033-000-0000<br>
+                대표자: 권오명 | 사업자등록번호: 787-04-02840
             </div>
             <div class="footer-links">
-                <a href="/terms">이용약관</a>
-                <a href="/privacy">개인정보처리방침</a>
+                <a href="/terms" onclick="openLegalModal('terms'); return false;">이용약관</a>
+                <a href="/privacy" onclick="openLegalModal('privacy'); return false;">개인정보처리방침</a> | <a href="/refund" onclick="openLegalModal('refund'); return false;">환불 및 교환/반품 정책</a>
             </div>
         </div>
         <div class="copyright">&copy; 2026 영월고향방앗간. All rights reserved.</div>
@@ -303,6 +303,7 @@
 
         document.addEventListener('DOMContentLoaded', renderCart);
     </script>
+<script src="/static/legal_modal.js"></script>
 </body>
 
 </html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영월고향방앗간 교환·반품·환불 정책 - {{ config.BUSINESS_NAME }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .legal-container { max-width: 900px; margin: 120px auto 4rem; padding: 2.5rem; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #eee; line-height: 1.8; color: #333; }
+        .legal-container h1 { font-family: 'Noto Serif KR', serif; font-size: 1.8rem; margin-bottom: 1.5rem; padding-bottom: 0.8rem; border-bottom: 2px solid var(--color-primary, #915a28); }
+        .legal-container h2 { font-size: 1.2rem; margin-top: 1.8rem; margin-bottom: 0.6rem; color: #222; border-left: 4px solid var(--color-primary, #915a28); padding-left: 0.8rem; }
+        .info-box { background-color: #f9f6f0; border: 1px solid #e5dec9; padding: 1.2rem; border-radius: 8px; margin: 1.5rem 0; font-size: 0.95rem; }
+        .info-box p { margin: 0.3rem 0; }
+        table.policy-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95rem; }
+        table.policy-table th, table.policy-table td { border: 1px solid #e0e0e0; padding: 0.8rem 1rem; text-align: left; }
+        table.policy-table th { background-color: #f5f5f5; font-weight: 600; }
+        ul.legal-list { padding-left: 1.2rem; margin: 0.5rem 0; }
+        ul.legal-list li { margin-bottom: 0.4rem; }
+    </style>
+</head>
+<body>
+    {% include 'components/header.html' %}
+
+    <div class="legal-container">
+        <h1>영월고향방앗간 교환·반품·환불 정책</h1>
+        <p>영월고향방앗간은 「전자상거래 등에서의 소비자보호에 관한 법률」 등 관계 법령에 따라 교환·반품 및 환불을 처리합니다.</p>
+
+        <div class="info-box">
+            <p><strong>[반품 접수 및 고객센터 정보]</strong></p>
+            <p>• 반품지 주소: {{ config.BUSINESS_ADDRESS }}</p>
+            <p>• 고객센터 전화번호: {{ config.CUSTOMER_SERVICE_PHONE }} (운영시간: 평일 09:00 ~ 18:00)</p>
+            <p>• 고객센터 이메일: {{ config.CUSTOMER_SERVICE_EMAIL }}</p>
+        </div>
+
+        <h2>1. 주문취소</h2>
+        <p><strong>가. 상품 발송 전</strong><br>
+        - 상품이 발송되기 전에는 주문내역에서 취소를 신청하거나 고객센터를 통해 주문취소를 요청할 수 있습니다.<br>
+        - 이미 배송 준비 또는 출고가 완료된 경우에는 주문취소가 아닌 반품 절차로 처리될 수 있습니다.</p>
+        <p><strong>나. 품절 또는 공급 불가</strong><br>
+        - 결제가 완료된 후 상품의 품절 등으로 공급이 불가능한 경우 고객에게 해당 사실을 안내하고 결제대금을 환불합니다.</p>
+
+        <h2>2. 단순변심에 의한 교환·반품</h2>
+        <p>1. 상품을 공급받은 날부터 <strong>7일 이내</strong>에 관계 법령에 따라 교환 또는 반품을 신청할 수 있습니다.<br>
+        2. 단순변심에 따른 교환·반품의 경우 상품을 실제로 반환하는 데 필요한 배송비는 <strong>구매자가 부담</strong>합니다.<br>
+        3. 교환의 경우 회수 및 재배송에 필요한 배송비가 발생할 수 있습니다.<br>
+        4. 제주·도서산간 지역 등 추가배송비가 발생한 주문은 실제 발생한 추가비용이 부과될 수 있습니다.</p>
+
+        <h2>3. 상품 하자 및 오배송</h2>
+        <p>1. 다음의 경우에는 회사가 배송비를 부담하여 교환·반품 또는 환불을 처리합니다.</p>
+        <ul class="legal-list">
+            <li>가. 주문한 상품과 다른 상품이 배송된 경우</li>
+            <li>나. 상품이 파손되거나 훼손된 상태로 배송된 경우</li>
+            <li>다. 상품에 하자가 있는 경우</li>
+            <li>라. 표시·광고 내용 또는 계약 내용과 다르게 배송된 경우</li>
+        </ul>
+        <p>2. 상품의 내용이 표시·광고의 내용과 다르거나 계약 내용과 다르게 이행된 경우에는 상품을 공급받은 날부터 <strong>3개월 이내</strong>이면서 해당 사실을 안 날 또는 알 수 있었던 날부터 <strong>30일 이내</strong>에 청약철회 등을 신청할 수 있습니다.<br>
+        3. 배송 중 파손이나 상품 이상이 있는 경우 빠른 확인을 위해 상품 및 포장상태를 촬영한 사진을 함께 전달해 주시면 보다 신속하게 처리할 수 있습니다.</p>
+
+        <h2>4. 교환·반품이 제한될 수 있는 경우</h2>
+        <p>다음의 경우 관계 법령에 따라 교환·반품이 제한될 수 있습니다.</p>
+        <ul class="legal-list">
+            <li>가. 구매자의 책임으로 상품이 멸실 또는 훼손된 경우 (단, 상품 내용을 확인하기 위한 일반적인 포장 개봉은 제외합니다.)</li>
+            <li>나. 상품을 사용하거나 일부 소비하여 상품 가치가 현저히 감소한 경우</li>
+            <li>다. 시간이 지나 다시 판매하기 곤란할 정도로 상품 가치가 현저히 감소한 경우</li>
+            <li>라. 구매자의 요청에 따라 개별적으로 생산 또는 가공되어 재판매가 현저히 곤란한 상품으로서 관련 법령에서 정한 요건에 따라 사전에 안내하고 동의를 받은 경우</li>
+        </ul>
+
+        <h2>5. 식품의 교환·반품</h2>
+        <p>영월고향방앗간에서 판매하는 식품(참기름, 들기름, 고춧가루 등)은 제품의 특성상 보관상태와 시간의 경과에 따라 품질 또는 상품 가치가 변할 수 있습니다.</p>
+        <p>따라서 다음과 같이 상품 가치가 현저히 감소한 경우에는 단순변심에 의한 교환·반품이 제한될 수 있습니다.</p>
+        <ul class="legal-list">
+            <li>가. 상품을 개봉하여 일부 섭취한 경우</li>
+            <li>나. 구매자의 보관 부주의로 상품이 변질 또는 훼손된 경우</li>
+            <li>다. 상품 수령 후 시간이 지나 재판매가 곤란할 정도로 품질이나 상품 가치가 현저히 감소한 경우</li>
+        </ul>
+        <p>교환·반품 제한이 적용되는 상품은 상품 상세페이지에서 해당 내용을 별도로 안내합니다.<br>
+        다만 제품 자체의 하자, 변질, 오배송, 표시·광고 내용과 다른 상품 배송 등 회사의 귀책사유가 있는 경우에는 위 제한과 관계없이 관계 법령에 따라 교환·반품 또는 환불을 받을 수 있습니다.</p>
+
+        <h2>6. 교환·반품 신청방법</h2>
+        <p>1. 교환·반품을 원하는 경우 다음 방법으로 신청할 수 있습니다.</p>
+        <ul class="legal-list">
+            <li>• 마이페이지 → 주문내역 → 교환/반품 신청</li>
+            <li>• 고객센터: {{ config.CUSTOMER_SERVICE_PHONE }}</li>
+            <li>• 이메일: {{ config.CUSTOMER_SERVICE_EMAIL }}</li>
+        </ul>
+        <p>2. 신청 후 안내되는 방법에 따라 상품을 보내주시면 확인 후 처리합니다.<br>
+        3. 사전 접수 없이 상품을 임의로 발송하는 경우 주문정보 확인이 어려워 처리가 지연될 수 있습니다.</p>
+
+        <h2>7. 반품 주소</h2>
+        <p>반품 상품은 아래 주소로 보내주시기 바랍니다.</p>
+        <div class="info-box">
+            <p>• 상호: {{ config.BUSINESS_NAME }} (대표: {{ config.REPRESENTATIVE_NAME }})</p>
+            <p>• 반품 주소: {{ config.BUSINESS_ADDRESS }}</p>
+            <p>• 연락처: {{ config.CUSTOMER_SERVICE_PHONE }}</p>
+        </div>
+        <p>* 택배사(우체국택배 등) 또는 반품지 주소가 변경될 수 있으므로 반품 신청 후 안내받은 주소로 발송하는 것을 권장합니다.</p>
+
+        <h2>8. 환불</h2>
+        <p>1. 반품 상품이 회사에 도착하여 확인된 후 관계 법령에서 정한 기간 내에 결제대금을 환불하거나 결제취소에 필요한 조치를 합니다.<br>
+        2. 원칙적으로 회사가 반환 상품을 받은 날부터 <strong>3영업일 이내</strong>에 환불 또는 결제취소 절차를 진행합니다.<br>
+        3. 신용카드 또는 간편결제로 결제한 경우 회사가 결제취소를 완료한 후 실제 카드 승인취소 또는 계좌 반영까지는 카드사 또는 결제기관에 따라 추가 기간이 소요될 수 있습니다.</p>
+
+        <h2>9. 배송비 부담 기준</h2>
+        <table class="policy-table">
+            <thead>
+                <tr>
+                    <th>구분</th>
+                    <th>사유</th>
+                    <th>배송비 부담 주체</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>구매자 부담</strong></td>
+                    <td>단순변심, 주문 실수, 주소 오기재 등 구매자의 귀책사유로 발생한 재배송</td>
+                    <td><strong>구매자 부담</strong> (왕복 배송비)</td>
+                </tr>
+                <tr>
+                    <td><strong>회사 부담</strong></td>
+                    <td>상품 하자, 상품 파손, 상품 변질, 오배송, 표시·광고 또는 계약 내용과 다른 상품의 배송</td>
+                    <td><strong>{{ config.BUSINESS_NAME }} 부담</strong> (전액 무료)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>10. 기타</h2>
+        <p>1. 본 정책에서 정하지 않은 사항 또는 본 정책의 내용과 관계 법령이 충돌하는 경우 「전자상거래 등에서의 소비자보호에 관한 법률」 등 관계 법령을 우선하여 적용합니다.<br>
+        2. 본 정책은 2026년 8월 28일부터 시행합니다.</p>
+    </div>
+
+    {% include 'components/footer.html' %}
+</body>
+</html>

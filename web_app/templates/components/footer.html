@@ -1,4 +1,4 @@
-<!-- Footer Component for 영월고향방앗간 -->
+<!-- Footer Component for 고향방앗간 -->
 <footer>
     <div class="footer-container" style="max-width: 1200px; margin: 0 auto; padding: 3rem 5%; display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 2rem; color: #666; font-size: 0.9rem; line-height: 1.6;">
         <div>
@@ -16,8 +16,9 @@
         </div>
         <div>
             <h4 style="color: #333; margin-bottom: 0.8rem;">이용 안내 & 약관</h4>
-            <p><a href="/terms" style="color: #666; text-decoration: underline;">전자상거래 이용약관</a></p>
-            <p><a href="/privacy" style="color: #666; text-decoration: underline; font-weight: 700;">개인정보 처리방침</a></p>
+            <p><a href="/terms" onclick="openLegalModal('terms'); return false;" style="color: #666; text-decoration: underline; cursor: pointer;">전자상거래 이용약관</a></p>
+            <p><a href="/privacy" onclick="openLegalModal('privacy'); return false;" style="color: #666; text-decoration: underline; font-weight: 700; cursor: pointer;">개인정보 처리방침</a></p>
+            <p><a href="/refund" onclick="openLegalModal('refund'); return false;" style="color: #666; text-decoration: underline; cursor: pointer;">환불 및 교환/반품 정책</a></p>
             <div style="margin-top: 1rem; padding: 0.8rem; background: #f9f6f0; border-radius: 6px; border: 1px solid #e5dec9; font-size: 0.8rem;">
                 <strong>구매안전(에스크로) 서비스</strong><br>
                 고객님의 안전거래를 위해 현금 결제 시 PortOne 결제대금예치(에스크로) 서비스를 이용하실 수 있습니다.
@@ -28,3 +29,6 @@
         &copy; 2026 {{ config.BUSINESS_NAME }}. All rights reserved.
     </div>
 </footer>
+
+<!-- legal_modal.js 자동 로드 -->
+<script src="/static/legal_modal.js"></script>

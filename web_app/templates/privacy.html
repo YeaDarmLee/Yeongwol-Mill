@@ -1,44 +1,233 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>개인정보 처리방침 - {{ config.BUSINESS_NAME }}</title>
-    <link rel="stylesheet" href="style.css">
+    <title>영월고향방앗간 개인정보처리방침 - {{ config.BUSINESS_NAME }}</title>
+    <link rel="stylesheet" href="/static/style.css">
     <style>
-        .legal-container { max-width: 900px; margin: 120px auto 4rem; padding: 2.5rem; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #eee; line-height: 1.8; color: #333; }
-        .legal-container h1 { font-family: 'Noto Serif KR', serif; font-size: 1.8rem; margin-bottom: 1.5rem; padding-bottom: 0.8rem; border-bottom: 2px solid var(--color-primary, #915a28); }
-        .legal-container h2 { font-size: 1.2rem; margin-top: 1.5rem; margin-bottom: 0.5rem; color: #222; }
+        .legal-container {
+            max-width: 900px;
+            margin: 120px auto 4rem;
+            padding: 2.5rem;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            border: 1px solid #eee;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .legal-container h1 {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 2px solid var(--color-primary, #915a28);
+        }
+
+        .legal-container h2 {
+            font-size: 1.2rem;
+            margin-top: 1.8rem;
+            margin-bottom: 0.6rem;
+            color: #222;
+            border-left: 4px solid var(--color-primary, #915a28);
+            padding-left: 0.8rem;
+        }
+
+        .info-box {
+            background-color: #f9f6f0;
+            border: 1px solid #e5dec9;
+            padding: 1.2rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            font-size: 0.95rem;
+        }
+
+        .info-box p {
+            margin: 0.3rem 0;
+        }
+
+        table.policy-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.95rem;
+        }
+
+        table.policy-table th,
+        table.policy-table td {
+            border: 1px solid #e0e0e0;
+            padding: 0.8rem 1rem;
+            text-align: left;
+        }
+
+        table.policy-table th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+        }
+
+        ul.legal-list {
+            padding-left: 1.2rem;
+            margin: 0.5rem 0;
+        }
+
+        ul.legal-list li {
+            margin-bottom: 0.4rem;
+        }
     </style>
 </head>
+
 <body>
     {% include 'components/header.html' %}
 
     <div class="legal-container">
-        <h1>개인정보 처리방침</h1>
-        <p>{{ config.BUSINESS_NAME }}(이하 "회사")는 이용자의 개인정보를 중요시하며, 「개인정보 보호법」 등 관련 법령을 준수하기 위하여 다음과 같이 개인정보 처리방침을 수립·공개합니다.</p>
-        
-        <h2>1. 개인정보의 수집 및 이용 목적</h2>
-        <p>회사는 다음의 목적을 위하여 개인정보를 처리합니다. 처리하고 있는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며, 이용 목적이 변경되는 경우에는 사전동의를 구할 예정입니다.<br>
-        - 회원 가입 및 관리 (본인 확인, 서비스 부정이용 방지)<br>
-        - 재화 또는 서비스 제공 (주문 이행, 결제 처리, 물품 배송)<br>
-        - 고충 처리 및 분쟁 대응</p>
+        <h1>영월고향방앗간 개인정보처리방침</h1>
+        <p>{{ config.BUSINESS_NAME }}(이하 "회사")은 이용자의 개인정보를 중요하게 생각하며 「개인정보 보호법」 등 관계 법령을 준수하고 있습니다.</p>
+        <p>회사는 개인정보 처리방침을 통하여 이용자의 개인정보가 어떠한 목적으로 처리되고 있으며 개인정보 보호를 위해 어떠한 조치가 이루어지고 있는지 안내합니다.</p>
 
-        <h2>2. 수집하는 개인정보 항목</h2>
-        <p>- 회원가입 시: 이메일, 비밀번호, 성명, 휴대폰 번호<br>
-        - 주문 배송 시: 수령인 성명, 수령인 연락처, 배송지 주소, 결제 기록</p>
+        <div class="info-box">
+            <p><strong>[개인정보 보호책임자 지정 안내]</strong></p>
+            <p>• 개인정보 보호책임자: {{ config.PRIVACY_OFFICER }} 대표</p>
+            <p>• 고객센터 전화번호: {{ config.CUSTOMER_SERVICE_PHONE }}</p>
+            <p>• 개인정보 문의 이메일: {{ config.CUSTOMER_SERVICE_EMAIL }}</p>
+            <p>• 사업장 주소: {{ config.BUSINESS_ADDRESS }}</p>
+        </div>
 
-        <h2>3. 개인정보의 보유 및 이용 기간</h2>
-        <p>법령에 따른 개인정보 보유·이용기간 또는 정보주체로부터 개인정보를 수집 시에 동의받은 개인정보 보유·이용기간 내에서 개인정보를 처리·보유합니다.<br>
-        - 계약 또는 청약철회 등에 관한 기록: 5년 (전자상거래법)<br>
-        - 대금결제 및 재화 등의 공급에 관한 기록: 5년 (전자상거래법)</p>
+        <h2>1. 개인정보의 처리 목적</h2>
+        <p>회사는 다음의 목적을 위하여 개인정보를 처리합니다.</p>
+        <p><strong>가. 회원관리</strong><br>
+            - 회원가입 및 본인 식별, 이메일 인증, 회원정보 관리, 비밀번호 재설정, 부정이용 방지, 회원탈퇴 처리</p>
+        <p><strong>나. 주문 및 배송</strong><br>
+            - 상품 주문 및 결제, 구매자 확인, 상품 배송, 주문 및 배송상태 안내, 취소, 교환, 반품 및 환불 처리</p>
+        <p><strong>다. 고객상담</strong><br>
+            - 문의사항 접수 및 답변, 민원 및 분쟁 처리</p>
+        <p><strong>라. 마케팅 및 광고 (선택 동의 시)</strong><br>
+            - 이용자가 별도로 동의한 경우에 한하여 이벤트 및 혜택 안내, 신상품 및 프로모션 안내, 광고성 정보 전송<br>
+            *(마케팅 정보 수신 동의는 선택사항이며 동의하지 않아도 상품 구매 및 기본 서비스 이용에는 제한이 없습니다.)*</p>
 
-        <h2>4. 개인정보보호책임자</h2>
-        <p>성명: {{ config.PRIVACY_OFFICER }}<br>
-        직책: 대표 / 개인정보보호책임자<br>
-        연락처: {{ config.CUSTOMER_SERVICE_PHONE }} (이메일: {{ config.CUSTOMER_SERVICE_EMAIL }})</p>
+        <h2>2. 처리하는 개인정보의 항목</h2>
+        <p>회사는 서비스 이용 과정에서 다음과 같은 개인정보를 처리할 수 있습니다.</p>
+        <p><strong>가. 회원가입 (필수항목)</strong><br>
+            - 이메일, 비밀번호, 이름, 휴대전화번호<br>
+            *(비밀번호는 원문 형태로 저장하지 않고 안전한 방식으로 암호화하여 저장합니다.)*</p>
+        <p><strong>나. 주문 및 배송</strong><br>
+            - 주문자 이름, 휴대전화번호, 이메일, 수령인 이름, 수령인 휴대전화번호, 우편번호, 배송주소, 상세주소, 주문상품 정보, 주문번호, 배송정보</p>
+        <p><strong>다. 결제</strong><br>
+            - 결제수단, 결제금액, 결제 승인정보, 거래번호 등 결제처리에 필요한 정보<br>
+            *(회사는 결제대행사를 통하여 결제를 처리하며 카드번호 전체 또는 카드 비밀번호 등 결제수단의 중요 인증정보를 직접 저장하지 않습니다.)*</p>
+        <p><strong>라. 고객문의 및 교환·반품</strong><br>
+            - 이름, 연락처, 이메일, 주문번호, 문의내용, 교환·반품·환불 관련 정보</p>
+        <p><strong>마. 서비스 이용 과정에서 자동 생성될 수 있는 정보</strong><br>
+            - IP 주소, 접속일시, 서비스 이용기록, 브라우저 및 기기정보, 쿠키, 부정이용 기록</p>
+
+        <h2>3. 개인정보의 처리 및 보유기간</h2>
+        <p>1. 회사는 개인정보의 처리 목적이 달성된 경우 지체 없이 해당 개인정보를 파기합니다. 다만 관계 법령에 따라 보존할 필요가 있는 경우 해당 기간 동안 별도로 안전하게 보관합니다.<br>
+            2. <strong>회원정보</strong>: 회원탈퇴 시까지 보관합니다. (단, 부정이용 방지 또는 관계 법령상 보존의무가 있는 정보는 해당 목적에 필요한 기간 동안 별도로 보관할 수
+            있습니다.)<br>
+            3. <strong>전자상거래 관련 법정 보존정보</strong>:</p>
+        <ul class="legal-list">
+            <li>• 계약 또는 청약철회 등에 관한 기록: <strong>5년</strong> (전자상거래법)</li>
+            <li>• 대금결제 및 상품 공급에 관한 기록: <strong>5년</strong> (전자상거래법)</li>
+            <li>• 소비자의 불만 또는 분쟁처리에 관한 기록: <strong>3년</strong> (전자상거래법)</li>
+            <li>• 표시·광고에 관한 기록: <strong>6개월</strong> (전자상거래법)</li>
+        </ul>
+
+        <h2>4. 개인정보의 제3자 제공</h2>
+        <p>1. 회사는 원칙적으로 이용자의 개인정보를 개인정보 처리 목적 범위 내에서 처리하며 이용자의 사전 동의 없이 개인정보를 제3자에게 제공하지 않습니다.<br>
+            2. 다만 다음의 경우에는 예외로 합니다.</p>
+        <ul class="legal-list">
+            <li>가. 이용자가 사전에 동의한 경우</li>
+            <li>나. 법률에 특별한 규정이 있거나 법령상 의무를 준수하기 위하여 필요한 경우</li>
+            <li>다. 이용자와의 계약 이행을 위해 관계 법령에서 허용하는 경우</li>
+        </ul>
+        <p>3. 개인정보를 제3자에게 제공할 필요가 발생하는 경우 제공받는 자, 제공 목적, 제공 항목 및 보유기간 등을 이용자에게 안내하고 필요한 동의를 받습니다.</p>
+
+        <h2>5. 개인정보 처리업무의 위탁</h2>
+        <p>회사는 원활한 서비스 제공을 위해 다음과 같이 개인정보 처리업무를 외부 전문업체에 위탁하여 운영하고 있습니다.</p>
+        <table class="policy-table">
+            <thead>
+                <tr>
+                    <th>수탁업체</th>
+                    <th>위탁업무 내용</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>포트원 (PortOne / PG연동사)</strong></td>
+                    <td>결제 처리 및 결제정보 연동 (신용카드, 간편결제 등)</td>
+                </tr>
+                <tr>
+                    <td><strong>우체국택배 (EPOST Delivery)</strong></td>
+                    <td>상품 배송, 위치 추적 및 배송 완료 알림</td>
+                </tr>
+                <tr>
+                    <td><strong>가비아 하이웍스 (Hiworks)</strong></td>
+                    <td>회원가입 인증, 주문 및 서비스 안내 이메일 발송</td>
+                </tr>
+                <tr>
+                    <td><strong>알리고 (Aligo)</strong></td>
+                    <td>주문·배송 안내 카카오 알림톡/SMS 및 이용 동의 광고성 정보 발송</td>
+                </tr>
+                <tr>
+                    <td><strong>고향방앗간 자사 호스팅</strong></td>
+                    <td>서버 및 데이터베이스 보관·안전운영</td>
+                </tr>
+            </tbody>
+        </table>
+        <p>회사는 개인정보 처리업무를 위탁하는 경우 개인정보가 안전하게 관리될 수 있도록 관계 법령에 따라 필요한 사항을 관리·감독합니다.</p>
+
+        <h2>6. 개인정보의 파기</h2>
+        <p>1. 회사는 개인정보의 보유기간이 경과하거나 처리 목적이 달성되는 등 개인정보가 불필요하게 되었을 때 지체 없이 개인정보를 파기합니다.<br>
+            2. 관계 법령에 따라 일정 기간 보관해야 하는 개인정보는 별도의 저장공간에 분리하여 보관하고 해당 기간이 종료된 후 파기합니다.<br>
+            3. <strong>전자적 파일</strong>: 복구 또는 재생할 수 없도록 안전한 방법으로 삭제합니다.<br>
+            4. <strong>종이 문서</strong>: 분쇄하거나 소각 등의 방법으로 파기합니다.</p>
+
+        <h2>7. 이용자와 법정대리인의 권리 및 행사방법</h2>
+        <p>1. 이용자는 언제든지 자신의 개인정보에 대하여 개인정보 열람 요구, 정정 또는 삭제 요구, 처리정지 요구, 동의 철회, 회원탈퇴, 마케팅 정보 수신 동의 철회의 권리를 행사할 수
+            있습니다.<br>
+            2. 회원정보 수정 및 회원탈퇴는 마이페이지 등을 통하여 직접 처리하거나 고객센터를 통해 요청할 수 있습니다.<br>
+            3. 관계 법령에서 개인정보의 보존을 의무화한 경우에는 해당 기간 동안 삭제가 제한될 수 있습니다.</p>
+
+        <h2>8. 개인정보의 안전성 확보조치</h2>
+        <p>회사는 개인정보의 안전한 처리를 위하여 다음과 같은 조치를 시행합니다.</p>
+        <ul class="legal-list">
+            <li>• 개인정보 접근권한 최소화</li>
+            <li>• 비밀번호 등 중요정보의 안전한 암호화</li>
+            <li>• 개인정보 접근 및 처리기록 관리</li>
+            <li>• 해킹 및 악성프로그램 등에 대비한 보안조치</li>
+            <li>• 개인정보 취급자의 최소화 및 관리</li>
+            <li>• 개인정보를 안전하게 송수신하기 위한 보안통신 적용 (SSL/TLS)</li>
+            <li>• 정기적인 시스템 점검 및 보안 업데이트</li>
+        </ul>
+
+        <h2>9. 쿠키의 사용</h2>
+        <p>1. 회사는 이용자에게 보다 편리한 서비스를 제공하기 위해 쿠키(cookie)를 사용할 수 있습니다.<br>
+            2. 쿠키는 웹사이트가 이용자의 브라우저에 저장하는 소량의 정보이며 로그인 상태 유지, 장바구니 유지, 서비스 이용환경 개선 등에 사용될 수 있습니다.<br>
+            3. 이용자는 웹브라우저 설정을 통해 쿠키 저장을 허용하거나 거부할 수 있습니다. 다만 쿠키 저장을 거부하는 경우 로그인 등 일부 서비스 이용에 어려움이 발생할 수 있습니다.</p>
+
+        <h2>10. 개인정보 보호책임자</h2>
+        <p>회사는 개인정보 관련 문의 및 불만처리를 위하여 개인정보 보호책임자를 지정하고 있습니다.</p>
+        <p>• <strong>개인정보 보호책임자</strong>: {{ config.PRIVACY_OFFICER }} 대표<br>
+            • <strong>전화번호</strong>: {{ config.CUSTOMER_SERVICE_PHONE }}<br>
+            • <strong>이메일</strong>: {{ config.CUSTOMER_SERVICE_EMAIL }}</p>
+
+        <h2>11. 개인정보 침해 관련 상담 및 신고</h2>
+        <p>개인정보 침해에 대한 상담 또는 피해구제가 필요한 경우 다음 기관을 이용할 수 있습니다.</p>
+        <ul class="legal-list">
+            <li>• 개인정보침해 신고센터: (국번없이) 118 (privacy.kisa.or.kr)</li>
+            <li>• 개인정보분쟁조정위원회: 1833-6972 (www.kopico.go.kr)</li>
+            <li>• 경찰청 사이버범죄신고시스템: (국번없이) 182 (ecrm.police.go.kr)</li>
+        </ul>
+
+        <h2>12. 개인정보처리방침 변경</h2>
+        <p>본 개인정보처리방침의 내용이 변경되는 경우 회사는 시행일 전에 웹사이트를 통해 변경사항을 안내합니다.</p>
+        <p>• 공고일자: 2026년 8월 28일<br>
+            • 시행일자: 2026년 8월 28일</p>
     </div>
 
     {% include 'components/footer.html' %}
 </body>
+
 </html>

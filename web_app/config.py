@@ -23,16 +23,17 @@ class Config:
     PORTONE_WEBHOOK_SECRET = os.getenv('PORTONE_WEBHOOK_SECRET', '')
     ADMIN_SMS_PHONE = os.getenv('ADMIN_SMS_PHONE', '010-0000-0000')
 
-    # Business Information Metadata (Placeholder from Environment Variables)
-    BUSINESS_NAME = os.getenv('BUSINESS_NAME', '영월고향방앗간')
-    REPRESENTATIVE_NAME = os.getenv('REPRESENTATIVE_NAME', '홍길동')
-    BUSINESS_REGISTRATION_NUMBER = os.getenv('BUSINESS_REGISTRATION_NUMBER', '000-00-00000')
-    MAIL_ORDER_SALES_NUMBER = os.getenv('MAIL_ORDER_SALES_NUMBER', '2026-강원영월-0000호')
-    BUSINESS_ADDRESS = os.getenv('BUSINESS_ADDRESS', '강원특별자치도 영월군 영월읍 방앗간길 12')
-    CUSTOMER_SERVICE_PHONE = os.getenv('CUSTOMER_SERVICE_PHONE', '033-000-0000')
-    CUSTOMER_SERVICE_EMAIL = os.getenv('CUSTOMER_SERVICE_EMAIL', 'support@yeongwol-mill.com')
-    PRIVACY_OFFICER = os.getenv('PRIVACY_OFFICER', '홍길동')
-    HOSTING_PROVIDER = os.getenv('HOSTING_PROVIDER', '영월고향방앗간')
+    # Business Information Metadata (From Official Business Registration Certificate)
+    BUSINESS_NAME = os.getenv('BUSINESS_NAME', '고향방앗간')
+    REPRESENTATIVE_NAME = os.getenv('REPRESENTATIVE_NAME', '권오명')
+    BUSINESS_REGISTRATION_NUMBER = os.getenv('BUSINESS_REGISTRATION_NUMBER', '787-04-02840')
+    MAIL_ORDER_SALES_NUMBER = os.getenv('MAIL_ORDER_SALES_NUMBER', '제 2026-강원영월-0000 호')
+    BUSINESS_ADDRESS = os.getenv('BUSINESS_ADDRESS', '강원특별자치도 영월군 영월읍 절무리골길 16, 제2동 1층')
+    CUSTOMER_SERVICE_PHONE = os.getenv('CUSTOMER_SERVICE_PHONE', '010-4422-5267')
+    CUSTOMER_SERVICE_EMAIL = os.getenv('CUSTOMER_SERVICE_EMAIL', 'no-reply@yeongwol-gohyangmill.co.kr')
+    PRIVACY_OFFICER = os.getenv('PRIVACY_OFFICER', '권오명')
+    HOSTING_PROVIDER = os.getenv('HOSTING_PROVIDER', '고향방앗간')
+
 
     # Shipping Policy Config
     BASE_SHIPPING_FEE = int(os.getenv('BASE_SHIPPING_FEE', 3000))
