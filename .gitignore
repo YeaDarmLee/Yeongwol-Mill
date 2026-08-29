@@ -7,3 +7,9 @@ node_modules/
 *.db
 *.log
 scratch/
+.venv/
+venv/
+env/
+ENV/
+.vscode/
+.idea/
