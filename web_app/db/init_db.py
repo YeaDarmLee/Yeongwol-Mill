@@ -51,7 +51,8 @@ def init_database():
             user=Config.MYSQL_USER,
             password=Config.MYSQL_PASSWORD,
             charset='utf8mb4',
-            autocommit=True
+            autocommit=True,
+            connect_timeout=2
         )
         with conn.cursor() as cursor:
             cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{Config.MYSQL_DB}` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
@@ -64,7 +65,8 @@ def init_database():
             password=Config.MYSQL_PASSWORD,
             database=Config.MYSQL_DB,
             charset='utf8mb4',
-            autocommit=True
+            autocommit=True,
+            connect_timeout=2
         )
         with conn_db.cursor() as cursor:
             try:
@@ -108,7 +110,9 @@ def init_database():
                 "ALTER TABLE shipments ADD COLUMN tracking_next_check_at DATETIME NULL",
                 "ALTER TABLE shipments ADD COLUMN tracking_error_count INT DEFAULT 0",
                 "ALTER TABLE shipments ADD COLUMN tracking_last_status VARCHAR(50) NULL",
-                "ALTER TABLE shipments ADD COLUMN tracking_last_error TEXT NULL"
+                "ALTER TABLE shipments ADD COLUMN tracking_last_error TEXT NULL",
+                "ALTER TABLE products ADD COLUMN delivery_info VARCHAR(255) DEFAULT '평일 14시 이전 주문 시 당일 발송 (1~2일 내 도착 예정)'",
+                "CREATE TABLE IF NOT EXISTS order_admin_notes (id INT AUTO_INCREMENT PRIMARY KEY, order_id INT NOT NULL, admin_id INT NOT NULL DEFAULT 1, admin_email VARCHAR(100) NOT NULL DEFAULT 'admin@example.com', note TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, INDEX idx_order_notes_order (order_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
             ]
             for alt in mysql_alters:
                 try:
@@ -238,7 +242,8 @@ def init_database():
             "ALTER TABLE shipments ADD COLUMN tracking_next_check_at DATETIME NULL",
             "ALTER TABLE shipments ADD COLUMN tracking_error_count INT DEFAULT 0",
             "ALTER TABLE shipments ADD COLUMN tracking_last_status VARCHAR(50) NULL",
-            "ALTER TABLE shipments ADD COLUMN tracking_last_error TEXT NULL"
+            "ALTER TABLE shipments ADD COLUMN tracking_last_error TEXT NULL",
+            "ALTER TABLE products ADD COLUMN delivery_info VARCHAR(255) DEFAULT '평일 14시 이전 주문 시 당일 발송 (1~2일 내 도착 예정)'"
         ]
         for alt in sqlite_alters:
             try:

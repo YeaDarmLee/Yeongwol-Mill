@@ -1,24 +1,23 @@
 <!-- Header Component for 영월고향방앗간 -->
 <header>
-    <div class="header-container">
-        <a href="/" class="logo">
-            <span class="logo-badge">100% 국산</span>
-            영월고향방앗간
-        </a>
-        <nav class="nav-container">
-            <a href="/" class="nav-link">홈</a>
-            <a href="/brand" class="nav-link">방앗간 소개</a>
-            <a href="/process" class="nav-link">착유 공정</a>
-            <a href="/category" class="nav-link">전체 상품</a>
-            <a href="/cart" class="nav-link">장바구니</a>
-            <a href="/order-history" class="nav-link">주문조회</a>
-            <a href="/login" class="nav-link" id="navAuthLink">로그인</a>
+    <div class="nav-overlay"></div>
+    <a href="/" class="logo">영월고향방앗간</a>
+    <div class="nav-container">
+        <nav class="gnb">
+            <a href="/" {% if active_page == 'home' %}style="color: var(--color-primary); font-weight: 700;"{% endif %}>홈</a>
+            <a href="/brand" {% if active_page == 'brand' %}style="color: var(--color-primary); font-weight: 700;"{% endif %}>방앗간 소개</a>
+            <a href="/process" {% if active_page == 'process' %}style="color: var(--color-primary); font-weight: 700;"{% endif %}>착유 공정</a>
+            <a href="/category" {% if active_page == 'category' %}style="color: var(--color-primary); font-weight: 700;"{% endif %}>전체 상품</a>
         </nav>
-        <div class="mobile-menu-btn" onclick="toggleMenu()">
-            <span></span>
-            <span></span>
-            <span></span>
+        <div class="utility">
+            <a href="/login" id="nav-login">로그인</a>
+            <a href="/order-history">주문조회</a>
+            <a href="/cart" id="cart-nav">장바구니 (0)</a>
         </div>
     </div>
+    <button class="mobile-menu-btn" aria-label="메뉴 열기">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
 </header>
-<div class="nav-overlay"></div>

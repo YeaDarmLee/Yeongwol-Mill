@@ -1,0 +1,73 @@
+<!-- 배송지 정보 수정 전용 모달 -->
+<div id="shippingEditModal" class="modal-overlay" style="z-index: 2100 !important;">
+    <div class="modal-card" style="max-width:580px; width:92%; border-radius:12px; box-shadow: 0 12px 32px rgba(0,0,0,0.25); z-index: 2101 !important;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:0.8rem; margin-bottom:1.2rem;">
+            <h3 style="font-family:'Noto Serif KR', serif; margin:0; font-size:1.25rem; color:#2c1d11; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-truck-ramp-box" style="color:var(--admin-primary, #8D6E63);"></i> 배송지 정보 수정
+            </h3>
+            <button type="button" onclick="closeModal('shippingEditModal')" style="background:none; border:none; font-size:1.4rem; color:#888; cursor:pointer;">&times;</button>
+        </div>
+
+        <form id="form-shipping-edit" onsubmit="submitShippingEdit(event)" novalidate>
+            <input type="hidden" id="shipping-edit-order-id">
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:0.8rem;">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.82rem; font-weight:600; color:#555;">수령인 이름 <span style="color:#d32f2f;">*</span></label>
+                    <input type="text" id="shipping-edit-name" class="form-control" placeholder="홍길동" required style="padding:7px 10px;">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.82rem; font-weight:600; color:#555;">연락처 <span style="color:#d32f2f;">*</span></label>
+                    <input type="text" id="shipping-edit-phone" class="form-control" placeholder="010-1234-5678" required style="padding:7px 10px;">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0.8rem;">
+                <label style="font-size:0.82rem; font-weight:600; color:#555;">우편번호 & 기본 주소 <span style="color:#d32f2f;">*</span></label>
+                <div style="display:flex; gap:8px; margin-bottom:6px;">
+                    <input type="text" id="shipping-edit-postal" class="form-control" placeholder="06123" readonly style="width:110px; padding:7px 10px; background:#f9f9f9;" required>
+                    <button type="button" class="btn-action btn-action-secondary" onclick="openAdminKakaoPostcode()">
+                        <i class="fa-solid fa-magnifying-glass"></i> 주소 검색
+                    </button>
+                </div>
+                <input type="text" id="shipping-edit-address" class="form-control" placeholder="기본 주소" readonly style="padding:7px 10px; background:#f9f9f9;" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0.8rem;">
+                <label style="font-size:0.82rem; font-weight:600; color:#555;">상세 주소</label>
+                <input type="text" id="shipping-edit-detail" class="form-control" placeholder="101동 202호" style="padding:7px 10px;">
+            </div>
+
+            <div class="form-group" style="margin-bottom:1rem;">
+                <label style="font-size:0.82rem; font-weight:600; color:#555;">배송 메모</label>
+                <input type="text" id="shipping-edit-memo" class="form-control" placeholder="부재시 문앞에 놓아주세요" style="padding:7px 10px;">
+            </div>
+
+            <hr style="border:none; border-top:1px dashed #ddd; margin:1.2rem 0 0.8rem 0;">
+
+            <div style="background:#fdfbf7; border:1px solid #f0e6d8; padding:12px 14px; border-radius:8px; margin-bottom:1.2rem;">
+                <label style="font-size:0.85rem; font-weight:700; color:#333; display:block; margin-bottom:6px;">
+                    <i class="fa-solid fa-clipboard-check" style="color:var(--admin-primary, #8D6E63);"></i> 배송지 변경 사유 (감사로그 필수 보존) <span style="color:#d32f2f;">*</span>
+                </label>
+                <div style="display:grid; grid-template-columns:140px 1fr; gap:8px;">
+                    <select id="shipping-edit-reason-type" class="form-control" style="padding:6px 8px; font-size:0.85rem;" onchange="toggleReasonDetailInput(this.value)">
+                        <option value="CUSTOMER_REQUEST">고객 요청</option>
+                        <option value="ADDRESS_TYPO">주소 오기입</option>
+                        <option value="PHONE_CHANGE">연락처 변경</option>
+                        <option value="OTHER">기타 (직접입력)</option>
+                    </select>
+                    <input type="text" id="shipping-edit-reason-detail" class="form-control" placeholder="변경 사유 상세 내용을 입력하세요 (필수)" required style="padding:6px 10px; font-size:0.85rem;">
+                </div>
+            </div>
+
+            <div style="text-align:right; display:flex; justify-content:flex-end; gap:10px; border-top:1px solid #eee; padding-top:1rem;">
+                <button type="button" onclick="closeModal('shippingEditModal')" class="btn-action btn-action-secondary" style="padding:8px 16px;">
+                    <i class="fa-solid fa-xmark"></i> 취소
+                </button>
+                <button type="submit" id="btn-shipping-edit-submit" class="btn-action btn-action-primary" style="padding:8px 20px;">
+                    <i class="fa-solid fa-check"></i> 배송지 정보 저장
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

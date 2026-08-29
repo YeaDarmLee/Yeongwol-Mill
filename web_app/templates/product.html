@@ -1,14 +1,8 @@
-<!DOCTYPE html>
-<html lang="ko">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>상품 상세 - 영월고향방앗간</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+{% block title %}상품 상세 - {{ config.BUSINESS_NAME if config and config.BUSINESS_NAME else '영월고향방앗간' }}{% endblock %}
+
+{% block extra_css %}
     <style>
         .product-detail-container {
             max-width: 1100px;
@@ -214,27 +208,9 @@
             }
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-    <header>
-        <div class="nav-overlay"></div>
-        <a href="/" class="logo">영월고향방앗간</a>
-        <div class="nav-container">
-            <nav class="gnb">
-                <a href="/">홈</a>
-                <a href="/brand">방앗간 소개</a>
-                <a href="/process">착유 공정</a>
-                <a href="/category">전체 상품</a>
-            </nav>
-            <div class="utility">
-                <a href="/login">로그인</a>
-                <a href="/order-history">주문조회</a>
-                <a href="/cart" id="cart-nav">장바구니 (0)</a>
-            </div>
-        </div>
-    </header>
-
+{% block content %}
     <main class="product-detail-container" id="productDetail">
         <p style="grid-column: 1/-1; text-align: center; padding: 4rem;">상품 정보를 불러오는 중입니다...</p>
     </main>
@@ -254,22 +230,14 @@
                 <tr><th>원재료명 및 원산지</th><td id="discOrigin">-</td></tr>
                 <tr><th>보관방법 또는 취급방법</th><td id="discStorage">-</td></tr>
                 <tr><th>알레르기 유발물질</th><td id="discAllergy">-</td></tr>
+                <tr><th>배송/발송 안내</th><td id="discDelivery">-</td></tr>
                 <tr><th>소비자상담 관련 전화번호</th><td id="discCS">033-000-0000</td></tr>
             </tbody>
         </table>
     </section>
+{% endblock %}
 
-    <footer>
-        <div class="footer-content">
-            <div class="footer-info">
-                <span class="footer-logo">영월고향방앗간</span><br>
-                강원특별자치도 영월군 영월읍 절무리골길 16, 제2동 1층 | 고객센터: 033-000-0000
-            </div>
-        </div>
-        <div class="copyright">&copy; 2026 영월고향방앗간. All rights reserved.</div>
-    </footer>
-
-    <script src="cart.js"></script>
+{% block extra_js %}
     <script>
         let currentProduct = null;
         let selectedOption = null;
@@ -286,7 +254,17 @@
 
                 const data = await response.json();
                 currentProduct = data.product;
-                selectedOption = (currentProduct.options && currentProduct.options.length > 0) ? currentProduct.options[0] : null;
+                if (currentProduct.options && currentProduct.options.length > 0) {
+                    currentProduct.options = currentProduct.options.map(opt => ({
+                        id: opt.id,
+                        name: opt.option_name || opt.name || '기본 옵션',
+                        price: (opt.price !== undefined && opt.price !== null) ? opt.price : (currentProduct.price + (opt.additional_price || 0)),
+                        stock: (opt.stock !== undefined) ? opt.stock : (opt.stock_quantity || 100)
+                    }));
+                    selectedOption = currentProduct.options[0];
+                } else {
+                    selectedOption = null;
+                }
 
                 // 식품 고시 표 데이터 채우기
                 document.getElementById('discName').innerText = currentProduct.name;
@@ -297,111 +275,106 @@
                 document.getElementById('discOrigin').innerText = currentProduct.origin_info || '원재료: 국산(강원도 영월군 100%)';
                 document.getElementById('discStorage').innerText = currentProduct.storage_method || '서늘한 곳 보관';
                 document.getElementById('discAllergy').innerText = currentProduct.allergy_notice || '참깨/들깨 함유';
+                document.getElementById('discDelivery').innerText = currentProduct.delivery_info || '평일 14시 이전 주문 시 당일 발송 (1~2일 내 도착 예정)';
                 document.getElementById('discCS').innerText = currentProduct.cs_phone || '033-000-0000';
 
-                // 옵션 HTML 생성
-                let optionsHtml = '';
-                if (currentProduct.options && currentProduct.options.length > 0) {
-                    optionsHtml = `
-                        <div class="option-group">
-                            <label>옵션 선택 *</label>
-                            <select id="optionSelect" class="quantity-input" style="width: 100%; height: 42px; text-align: left; padding: 0 0.8rem; border: 1px solid #ccc; border-radius: 6px;" onchange="handleOptionChange(this)">
-                                ${currentProduct.options.map(opt => `
-                                    <option value="${opt.id}">${opt.option_name} ${opt.additional_price > 0 ? '(+' + Number(opt.additional_price).toLocaleString() + '원)' : ''}</option>
-                                `).join('')}
-                            </select>
-                        </div>
-                    `;
-                }
-
-                container.innerHTML = `
-                    <div class="product-gallery">
-                        <img src="${currentProduct.image_url}" alt="${currentProduct.name}">
-                    </div>
-                    <div class="product-purchase-info">
-                        <span class="product-category-tag">${currentProduct.category_name}</span>
-                        <h1 class="product-title">${currentProduct.name}</h1>
-                        <p class="product-desc">${currentProduct.description}</p>
-                        <div class="product-price" id="totalPriceDisplay">${Number(currentProduct.price).toLocaleString()}원</div>
-
-                        ${optionsHtml}
-
-                        <div class="option-group">
-                            <label>수량</label>
-                            <div class="quantity-control">
-                                <button class="quantity-btn" onclick="changeQty(-1)">-</button>
-                                <input type="text" class="quantity-input" id="qtyInput" value="1" readonly>
-                                <button class="quantity-btn" onclick="changeQty(1)">+</button>
-                            </div>
-                        </div>
-
-                        <div class="action-buttons">
-                            <button class="btn-cart" onclick="handleAddToCart()">장바구니 담기</button>
-                            <button class="btn-buy" onclick="handleDirectBuy()">바로 구매하기</button>
-                        </div>
-                    </div>
-                `;
+                renderProductUI();
             } catch (err) {
                 console.error(err);
-                container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: red; padding: 4rem;">상품 정보를 찾을 수 없습니다.</p>';
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: red;">상품 정보를 불러오지 못했습니다.</p>';
             }
         }
 
-        function handleOptionChange(selectEl) {
-            const optId = parseInt(selectEl.value);
-            if (currentProduct && currentProduct.options) {
-                selectedOption = currentProduct.options.find(o => o.id === optId);
-                updateTotalPrice();
+        function renderProductUI() {
+            const container = document.getElementById('productDetail');
+            const optionsHtml = (currentProduct.options && currentProduct.options.length > 0) ? `
+                <div class="option-group">
+                    <label for="optionSelect">용량 및 옵션 선택</label>
+                    <select id="optionSelect" class="form-control" style="width: 100%; padding: 0.8rem; border-radius: 4px; border: 1px solid #ccc;" onchange="handleOptionChange(this.value)">
+                        ${currentProduct.options.map(opt => `
+                            <option value="${opt.id}">${opt.name} (${Number(opt.price).toLocaleString()}원) - 재고 ${opt.stock}개</option>
+                        `).join('')}
+                    </select>
+                </div>
+            ` : '';
+
+            const currentPrice = selectedOption ? selectedOption.price : currentProduct.price;
+            const deliveryInfoText = currentProduct.delivery_info || '평일 14시 이전 주문 시 당일 발송 (1~2일 내 도착 예정)';
+
+            container.innerHTML = `
+                <div class="product-gallery">
+                    <img src="${currentProduct.image_url || '/static/assets/product_sesame.png'}" alt="${currentProduct.name}">
+                </div>
+                <div class="product-purchase-info">
+                    <span class="product-category-tag">100% 국산 프리미엄</span>
+                    <h1 class="product-title">${currentProduct.name}</h1>
+                    <p class="product-desc">${currentProduct.description || ''}</p>
+                    <div class="product-price" id="displayPrice">${Number(currentPrice).toLocaleString()}원</div>
+                    
+                    <div class="delivery-info-badge" style="background:#faf6f0; border:1px solid #e8dec8; border-radius:8px; padding:0.9rem 1.1rem; margin-bottom:1.4rem; display:flex; align-items:center; gap:0.75rem; font-size:0.92rem; color:#444;">
+                        <i class="fa-solid fa-truck-fast" style="font-size: 1.25rem; color: var(--color-primary, #915a28);"></i>
+                        <div>
+                            <strong style="color:var(--color-primary, #915a28);">배송/발송 안내:</strong>
+                            <span>${deliveryInfoText}</span>
+                        </div>
+                    </div>
+
+                    ${optionsHtml}
+
+                    <div class="option-group">
+                        <label>수량</label>
+                        <div class="quantity-control">
+                            <button class="quantity-btn" onclick="updateQty(-1)">-</button>
+                            <input type="text" class="quantity-input" id="qtyInput" value="${quantity}" readonly>
+                            <button class="quantity-btn" onclick="updateQty(1)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn-cart" onclick="addToCartHandler()">장바구니 담기</button>
+                        <button class="btn-buy" onclick="buyNowHandler()">바로 구매하기</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleOptionChange(optionId) {
+            selectedOption = currentProduct.options.find(o => o.id == optionId);
+            if (selectedOption) {
+                document.getElementById('displayPrice').innerText = `${Number(selectedOption.price).toLocaleString()}원`;
             }
         }
 
-        function updateTotalPrice() {
-            if (!currentProduct) return;
-            const unitPrice = currentProduct.price + (selectedOption ? selectedOption.additional_price : 0);
-            const total = unitPrice * quantity;
-            const priceEl = document.getElementById('totalPriceDisplay');
-            if (priceEl) priceEl.innerText = `${Number(total).toLocaleString()}원`;
-        }
-
-        function changeQty(delta) {
+        function updateQty(delta) {
             quantity = Math.max(1, quantity + delta);
             const input = document.getElementById('qtyInput');
             if (input) input.value = quantity;
-            updateTotalPrice();
         }
 
-        function handleAddToCart() {
+        function addToCartHandler() {
             if (!currentProduct) return;
-            const unitPrice = currentProduct.price + (selectedOption ? selectedOption.additional_price : 0);
-            addToCart({
+            const item = {
                 id: currentProduct.id,
-                option_id: selectedOption ? selectedOption.id : null,
-                name: `${currentProduct.name} ${selectedOption ? '(' + selectedOption.option_name + ')' : ''}`,
-                price: unitPrice,
-                capacity: currentProduct.capacity,
+                name: currentProduct.name,
+                price: selectedOption ? selectedOption.price : currentProduct.price,
+                optionId: selectedOption ? selectedOption.id : null,
+                optionName: selectedOption ? selectedOption.name : '',
                 image_url: currentProduct.image_url,
                 quantity: quantity
-            }, true);
+            };
+            if (typeof addToCart === 'function') {
+                addToCart(item);
+                alert("장바구니에 담겼습니다.");
+            } else {
+                console.error("cart.js not loaded");
+            }
         }
 
-        function handleDirectBuy() {
-            if (!currentProduct) return;
-            const unitPrice = currentProduct.price + (selectedOption ? selectedOption.additional_price : 0);
-            const checkoutItems = [{
-                id: currentProduct.id,
-                option_id: selectedOption ? selectedOption.id : null,
-                name: `${currentProduct.name} ${selectedOption ? '(' + selectedOption.option_name + ')' : ''}`,
-                price: unitPrice,
-                capacity: currentProduct.capacity,
-                image_url: currentProduct.image_url,
-                quantity: quantity
-            }];
-            localStorage.setItem('yw_checkout_items', JSON.stringify(checkoutItems));
-            window.location.href = '/checkout';
+        function buyNowHandler() {
+            addToCartHandler();
+            window.location.href = '/cart';
         }
 
         document.addEventListener('DOMContentLoaded', loadProductDetail);
     </script>
-<script src="/static/legal_modal.js"></script>
-</body>
-</html>
+{% endblock %}

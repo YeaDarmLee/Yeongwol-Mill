@@ -197,20 +197,55 @@ button {
 }
 .btn-admin:active { transform: scale(0.98); }
 
-/* 범용 액션 버튼 (기본: outlined) */
+/* ─────────────────────────────────────────────
+   4. 브랜드 통합 버튼 시스템 (4번 이미지 디자인 규격)
+───────────────────────────────────────────── */
+
+/* 기본 공통 리셋 */
+button {
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer;
+}
+
+/* 로그인 버튼 */
+.btn-admin {
+    width: 100%;
+    padding: 0.85rem;
+    background: var(--admin-primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    box-shadow: 0 2px 8px rgba(197, 155, 39, 0.2);
+    transition: transform var(--motion-fast) var(--ease-standard),
+                background-color var(--motion-fast) var(--ease-standard),
+                box-shadow var(--motion-fast) var(--ease-standard);
+}
+.btn-admin:hover {
+    background: var(--admin-primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(197, 155, 39, 0.28);
+}
+.btn-admin:active { transform: scale(0.98); }
+
+/* 범용 액션 버튼 (기본 스타일) */
 .btn-action {
-    padding: 5px 13px;
+    padding: 6px 14px;
     font-size: 0.83rem;
     font-weight: 600;
-    border-radius: var(--radius-sm);
-    border: 1.5px solid var(--color-border-strong);
+    border-radius: var(--radius-sm, 6px);
+    border: 1.5px solid #dcd0c0;
     background: #fff;
-    color: #444;
+    color: #4a3b32;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 5px;
     white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     transition: transform var(--motion-fast) var(--ease-standard),
                 background-color var(--motion-fast) var(--ease-standard),
                 box-shadow var(--motion-fast) var(--ease-standard),
@@ -219,8 +254,8 @@ button {
 }
 .btn-action:hover {
     border-color: var(--admin-primary);
-    color: var(--admin-primary);
-    background: var(--admin-primary-light);
+    color: var(--admin-dark);
+    background: #fdfbf7;
     transform: translateY(-1px);
     box-shadow: 0 3px 10px rgba(197, 155, 39, 0.12);
 }
@@ -231,60 +266,134 @@ button {
     pointer-events: none;
 }
 
-/* 검색 버튼 (필터 바) */
+/* 1) Primary Action Button (검색, 상품준비중 전환, 확인 등 - 4번 사진 왼쪽 황토골드) */
+.btn-action-primary,
 .btn-filter-search {
     height: 34px;
     padding: 0 16px;
     font-size: 0.83rem;
     font-weight: 700;
-    border-radius: var(--radius-sm);
-    background: var(--admin-primary);
-    color: #fff;
-    border: 1.5px solid var(--admin-primary);
+    border-radius: var(--radius-sm, 6px);
+    background: var(--admin-primary, #C59B27) !important;
+    color: #ffffff !important;
+    border: 1.5px solid var(--admin-primary, #C59B27) !important;
     letter-spacing: 0.02em;
     box-shadow: 0 2px 8px rgba(197, 155, 39, 0.22);
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    gap: 5px;
     white-space: nowrap;
+    cursor: pointer;
     transition: transform var(--motion-fast) var(--ease-standard),
                 background-color var(--motion-fast) var(--ease-standard),
                 box-shadow var(--motion-fast) var(--ease-standard);
 }
+.btn-action-primary:hover,
 .btn-filter-search:hover {
-    background: var(--admin-primary-hover);
-    border-color: var(--admin-primary-hover);
+    background: var(--admin-primary-hover, #b08a20) !important;
+    border-color: var(--admin-primary-hover, #b08a20) !important;
+    color: #ffffff !important;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(197, 155, 39, 0.28);
+    box-shadow: 0 4px 14px rgba(197, 155, 39, 0.32);
 }
+.btn-action-primary:active,
 .btn-filter-search:active { transform: scale(0.97); }
 
-/* 초기화 버튼 (필터 바) */
+/* 2) Secondary / Outlined Button (초기화, 닫기, 취소 등 - 4번 사진 오른쪽 샌드베이지) */
+.btn-action-secondary,
 .btn-filter-reset {
     height: 34px;
-    padding: 0 13px;
+    padding: 0 14px;
     font-size: 0.83rem;
     font-weight: 600;
-    border-radius: var(--radius-sm);
-    background: #fff;
-    color: #666;
-    border: 1.5px solid var(--color-border-strong);
+    border-radius: var(--radius-sm, 6px);
+    background: #ffffff !important;
+    color: #4a3b32 !important;
+    border: 1.5px solid #dcd0c0 !important;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    gap: 5px;
     white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     transition: transform var(--motion-fast) var(--ease-standard),
                 background-color var(--motion-fast) var(--ease-standard),
                 border-color var(--motion-fast) var(--ease-standard),
                 color var(--motion-fast) var(--ease-standard);
 }
+.btn-action-secondary:hover,
 .btn-filter-reset:hover {
-    background: #f5f2ee;
-    border-color: #999;
-    color: #333;
+    background: #fdfbf7 !important;
+    border-color: var(--admin-primary, #C59B27) !important;
+    color: var(--admin-dark, #2C1810) !important;
     transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(197, 155, 39, 0.12);
 }
+.btn-action-secondary:active,
 .btn-filter-reset:active { transform: scale(0.97); }
+
+/* 3) Danger / Destructive Action Button (선택 주문 취소, 환불 실행 등 - 톤다운 딥 버건디) */
+.btn-action-danger {
+    height: 34px;
+    padding: 0 15px;
+    font-size: 0.83rem;
+    font-weight: 700;
+    border-radius: var(--radius-sm, 6px);
+    background: #b84a4a !important;
+    color: #ffffff !important;
+    border: 1.5px solid #b84a4a !important;
+    letter-spacing: 0.02em;
+    box-shadow: 0 2px 8px rgba(184, 74, 74, 0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: transform var(--motion-fast) var(--ease-standard),
+                background-color var(--motion-fast) var(--ease-standard),
+                box-shadow var(--motion-fast) var(--ease-standard);
+}
+.btn-action-danger:hover {
+    background: #a33b3b !important;
+    border-color: #a33b3b !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(184, 74, 74, 0.3);
+}
+.btn-action-danger:active { transform: scale(0.97); }
+
+/* 4) Excel / CSV / Secondary Action Button (딥 올리브/세이지 그린) */
+.btn-action-excel {
+    height: 34px;
+    padding: 0 15px;
+    font-size: 0.83rem;
+    font-weight: 700;
+    border-radius: var(--radius-sm, 6px);
+    background: #4a6b52 !important;
+    color: #ffffff !important;
+    border: 1.5px solid #4a6b52 !important;
+    box-shadow: 0 2px 8px rgba(74, 107, 82, 0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: transform var(--motion-fast) var(--ease-standard),
+                background-color var(--motion-fast) var(--ease-standard),
+                box-shadow var(--motion-fast) var(--ease-standard);
+}
+.btn-action-excel:hover {
+    background: #3c5843 !important;
+    border-color: #3c5843 !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(74, 107, 82, 0.3);
+}
+.btn-action-excel:active { transform: scale(0.97); }
 
 /* ─────────────────────────────────────────────
    5. 필터 바 공통 레이아웃
@@ -949,4 +1058,31 @@ table.admin-table tbody tr:hover {
 .count-updated {
     display: inline-block;
     animation: countPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* ─────────────────────────────────────────────
+   스켈레톤 플레이스홀더 (Skeleton Loading UI)
+───────────────────────────────────────────── */
+@keyframes skeleton-shimmer {
+    0% { background-position: -300px 0; }
+    100% { background-position: 300px 0; }
+}
+
+.skeleton-bar {
+    height: 16px;
+    width: 100%;
+    background: linear-gradient(90deg, #f0ede9 25%, #e4dfd7 50%, #f0ede9 75%);
+    background-size: 600px 100%;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.fade-in-table {
+    animation: fadeInTable 0.22s ease-out forwards;
+}
+
+@keyframes fadeInTable {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
 }

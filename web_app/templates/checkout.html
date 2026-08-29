@@ -1,16 +1,8 @@
-<!DOCTYPE html>
-<html lang="ko">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>주문/결제 - 영월고향방앗간</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+{% block title %}주문/결제 - {{ config.BUSINESS_NAME if config and config.BUSINESS_NAME else '영월고향방앗간' }}{% endblock %}
+
+{% block extra_css %}
     <!-- Portone SDK V2 -->
     <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
     <!-- Kakao Daum Postcode SDK -->
@@ -18,7 +10,7 @@
     <style>
         .checkout-container {
             max-width: 1000px;
-            margin: 2rem auto 6rem;
+            margin: 140px auto 6rem;
             padding: 0 5%;
             display: grid;
             grid-template-columns: 1.3fr 1fr;
@@ -61,16 +53,15 @@
             justify-content: space-between;
             padding: 0.8rem 0;
             border-bottom: 1px solid var(--color-border-subtle);
-            color: var(--color-text-primary);
         }
 
         .payment-summary {
-            background: var(--color-surface-soft);
-            border: 1px solid var(--color-border-subtle);
-            border-radius: var(--radius-md);
-            padding: var(--space-6);
             position: sticky;
-            top: 6rem;
+            top: 100px;
+            background: var(--color-surface-soft);
+            padding: 2rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border-subtle);
             box-shadow: var(--shadow-sm);
         }
 
@@ -84,88 +75,65 @@
             font-size: 1.2rem;
             font-weight: 700;
             cursor: pointer;
-            margin-top: 1.5rem;
             transition: transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard);
-        }
-
-        .btn-postcode {
-            padding: 0.8rem 1.2rem;
-            background: var(--color-text-primary);
-            color: #fff;
-            border: none;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-weight: 600;
-            transition: transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard);
         }
 
         @media (hover: hover) and (pointer: fine) {
             .btn-pay:hover {
                 background-color: var(--color-primary-hover);
                 transform: translateY(-1px);
-                box-shadow: var(--shadow-sm);
-            }
-
-            .btn-postcode:hover {
-                background-color: #000;
-                transform: translateY(-1px);
+                box-shadow: var(--shadow-md);
             }
         }
 
-        .btn-pay:active,
-        .btn-postcode:active {
+        .btn-pay:active {
             transform: translateY(0) scale(0.98);
+        }
+
+        .daum-btn {
+            padding: 0.7rem 1rem;
+            background: #4a4a4a;
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 500;
         }
 
         @media (max-width: 768px) {
             .checkout-container {
                 grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            .payment-summary {
+                position: static;
             }
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-    <header>
-        <div class="nav-overlay"></div>
-        <a href="/" class="logo">영월고향방앗간</a>
-        <div class="nav-container">
-            <nav class="gnb">
-                <a href="/">홈</a>
-                <a href="/brand">방앗간 소개</a>
-                <a href="/process">착유 공정</a>
-                <a href="/category">전체 상품</a>
-            </nav>
-            <div class="utility">
-                <a href="/login">로그인</a>
-                <a href="/order-history">주문조회</a>
-                <a href="/cart" id="cart-nav">장바구니 (0)</a>
-            </div>
-        </div>
-    </header>
-
-    <div style="text-align: center; padding-top: 120px;">
+{% block content %}
+    <div class="page-header" style="text-align: center; padding: 140px 1rem 2rem;">
         <h1 style="font-family: 'Noto Serif KR', serif; font-size: 2.2rem;">주문 / 결제</h1>
     </div>
 
     <main class="checkout-container">
-        <!-- 좌측: 배송 정보 및 비회원/회원 정보 입력 -->
+        <!-- 좌측: 비회원 정보 및 배송지 입력 -->
         <div>
-            <!-- 비회원 주문조회 정보 (비로그인 시만 출력) -->
+            <!-- 비회원 주문 전용 세션 (로그인 시 숨김) -->
             <div class="checkout-section" id="guestSection">
-                <h2 class="section-title">주문자 정보 (비회원)</h2>
+                <h2 class="section-title">비회원 주문자 정보</h2>
                 <div class="form-group">
                     <label>주문자 성함 *</label>
-                    <input type="text" id="guestName" class="form-control" placeholder="예: 홍길동">
+                    <input type="text" id="guestName" class="form-control" placeholder="홍길동">
                 </div>
                 <div class="form-group">
-                    <label>주문자 연락처 *</label>
-                    <input type="tel" id="guestPhone" class="form-control" placeholder="예: 010-1234-5678">
+                    <label>연락처 *</label>
+                    <input type="text" id="guestPhone" class="form-control" placeholder="010-0000-0000">
                 </div>
                 <div class="form-group">
-                    <label>비회원 주문조회 비밀번호 *</label>
-                    <input type="password" id="guestPassword" class="form-control" placeholder="조회 시 사용할 비밀번호 (4자리 이상)">
-                    <small style="color: #777;">* 향후 비회원 주문 조회 시 필요합니다.</small>
+                    <label>주문 비밀번호 * (주문조회용 4자리 이상)</label>
+                    <input type="password" id="guestPassword" class="form-control" placeholder="비밀번호 입력">
                 </div>
             </div>
 
@@ -173,28 +141,27 @@
             <div class="checkout-section">
                 <h2 class="section-title">배송지 정보</h2>
                 <div class="form-group">
-                    <label>받는 분 성함 *</label>
-                    <input type="text" id="recipientName" class="form-control" placeholder="예: 홍길동">
+                    <label>수령인 성함 *</label>
+                    <input type="text" id="recipientName" class="form-control" placeholder="수령자 이름">
                 </div>
                 <div class="form-group">
-                    <label>받는 분 연락처 *</label>
-                    <input type="tel" id="recipientPhone" class="form-control" placeholder="예: 010-1234-5678">
+                    <label>수령인 연락처 *</label>
+                    <input type="text" id="recipientPhone" class="form-control" placeholder="010-0000-0000">
                 </div>
                 <div class="form-group">
                     <label>우편번호 *</label>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <input type="text" id="postalCode" class="form-control" placeholder="우편번호" readonly
-                            style="max-width: 150px;">
-                        <button type="button" class="btn-postcode" onclick="execDaumPostcode()">우편번호 검색</button>
+                    <div style="display:flex; gap: 0.5rem;">
+                        <input type="text" id="postalCode" class="form-control" placeholder="우편번호" readonly style="width: 150px;">
+                        <button type="button" class="daum-btn" onclick="execDaumPostcode()">우편번호 검색</button>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>주소 *</label>
-                    <input type="text" id="address" class="form-control" placeholder="우편번호 검색을 이용해 주세요" readonly>
+                    <label>기본 주소 *</label>
+                    <input type="text" id="address" class="form-control" placeholder="우편번호 검색 시 자동 입력됩니다." readonly>
                 </div>
                 <div class="form-group">
                     <label>상세 주소</label>
-                    <input type="text" id="addressDetail" class="form-control" placeholder="상세 주소 (동, 호수 등)">
+                    <input type="text" id="addressDetail" class="form-control" placeholder="상세 주소 입력 (동, 호수 등)">
                 </div>
                 <div class="form-group">
                     <label>배송 메모</label>
@@ -236,23 +203,9 @@
             </div>
         </div>
     </main>
+{% endblock %}
 
-    <footer>
-        <div class="footer-content">
-            <div class="footer-info">
-                <span class="footer-logo">영월고향방앗간</span><br>
-                강원특별자치도 영월군 영월읍 절무리골길 16, 제2동 1층 | 고객센터: 033-000-0000<br>
-                대표자: 권오명 | 사업자등록번호: 787-04-02840
-            </div>
-            <div class="footer-links">
-                <a href="/terms" onclick="openLegalModal('terms'); return false;">이용약관</a>
-                <a href="/privacy" onclick="openLegalModal('privacy'); return false;">개인정보처리방침</a> | <a href="/refund" onclick="openLegalModal('refund'); return false;">환불 및 교환/반품 정책</a>
-            </div>
-        </div>
-        <div class="copyright">&copy; 2026 영월고향방앗간. All rights reserved.</div>
-    </footer>
-
-    <script src="cart.js"></script>
+{% block extra_js %}
     <script>
         let checkoutItems = [];
         let subtotalAmount = 0;
@@ -273,7 +226,6 @@
                     document.getElementById('address').value = addr;
                     document.getElementById('addressDetail').focus();
 
-                    // 도서산간 배송비 갱신 체크 (제주/도서 지역 우편번호)
                     const prefix = data.zonecode.substring(0, 2);
                     if (['63', '23', '40', '54'].includes(prefix)) {
                         remoteSurchargeFee = 3000;
@@ -298,9 +250,8 @@
         function initCheckout() {
             checkoutItems = JSON.parse(localStorage.getItem('yw_checkout_items')) || [];
             if (checkoutItems.length === 0) {
-                customAlert('주문할 상품이 없습니다.', 'error', () => {
-                    window.location.href = '/category';
-                });
+                alert('주문할 상품이 없습니다.');
+                window.location.href = '/category';
                 return;
             }
 
@@ -344,7 +295,7 @@
             const deliveryMemo = document.getElementById('deliveryMemo').value.trim();
 
             if (!recipientName || !recipientPhone || !address) {
-                customAlert('수령인 성함, 연락처, 주소를 우편번호 검색을 이용해 올바르게 입력해 주세요.', 'error');
+                alert('수령인 성함, 연락처, 주소를 우편번호 검색을 이용해 올바르게 입력해 주세요.');
                 return;
             }
 
@@ -355,7 +306,7 @@
                 guestPassword = document.getElementById('guestPassword').value.trim();
 
                 if (!guestName || !guestPhone || !guestPassword) {
-                    customAlert('비회원 주문 정보(성함, 연락처, 비밀번호 4자리 이상)를 입력해 주세요.', 'error');
+                    alert('비회원 주문 정보(성함, 연락처, 비밀번호 4자리 이상)를 입력해 주세요.');
                     return;
                 }
             }
@@ -388,7 +339,7 @@
 
                 const result = await resp.json();
                 if (!resp.ok) {
-                    customAlert(result.error || '주문서 생성에 실패했습니다.', 'error');
+                    alert(result.error || '주문서 생성에 실패했습니다.');
                     return;
                 }
 
@@ -420,7 +371,7 @@
                 }
 
                 if (!sdkSuccess) {
-                    customAlert('결제가 취소되었거나 실패하였습니다.', 'error');
+                    alert('결제가 취소되었거나 실패하였습니다.');
                     return;
                 }
 
@@ -440,18 +391,15 @@
                     if (typeof updateCartCount === 'function') updateCartCount();
                     window.location.href = `/order-complete?order_number=${orderNumber}`;
                 } else {
-                    customAlert(verifyResult.error || '결제 검증 실패', 'error');
+                    alert(verifyResult.error || '결제 검증 실패');
                 }
 
             } catch (err) {
                 console.error("Order payment error:", err);
-                customAlert("결제 처리 중 오류가 발생했습니다.", 'error');
+                alert("결제 처리 중 오류가 발생했습니다.");
             }
         }
 
         document.addEventListener('DOMContentLoaded', initCheckout);
     </script>
-<script src="/static/legal_modal.js"></script>
-</body>
-
-</html>
+{% endblock %}

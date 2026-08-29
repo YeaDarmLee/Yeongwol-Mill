@@ -1,0 +1,621 @@
+{% extends "base.html" %}
+
+{% block title %}마이페이지 - {{ config.BUSINESS_NAME if config and config.BUSINESS_NAME else '영월고향방앗간' }}{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .mypage-container {
+            max-width: 1040px;
+            margin: 140px auto 7rem;
+            padding: 0 5%;
+        }
+
+        .page-title-group {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .page-title {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 2.2rem;
+            color: var(--color-text-primary, #222);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: var(--color-text-sub, #666);
+            font-size: 0.95rem;
+        }
+
+        .mypage-layout {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 2.5rem;
+            align-items: start;
+        }
+
+        .mypage-sidebar {
+            background: #ffffff;
+            border: 1px solid var(--color-border-subtle, #eaeaea);
+            border-radius: 12px;
+            padding: 0.8rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            position: sticky;
+            top: 100px;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .sidebar-tab-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #555;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-tab-btn:hover {
+            background: #f8f5f0;
+            color: var(--color-primary, #915a28);
+        }
+
+        .sidebar-tab-btn.active {
+            background: var(--color-primary, #915a28);
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .sidebar-tab-btn.withdraw-tab {
+            margin-top: 1rem;
+            border-top: 1px solid #eee;
+            padding-top: 1.1rem;
+            color: #888;
+        }
+
+        .sidebar-tab-btn.withdraw-tab.active {
+            background: #d32f2f;
+            color: #ffffff;
+        }
+
+        .tab-pane-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-pane-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-card {
+            background: #ffffff;
+            border: 1px solid var(--color-border-subtle, #eaeaea);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            margin-bottom: 2rem;
+        }
+
+        .section-card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.4rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-control {
+            width: 100%;
+            height: 46px;
+            padding: 0 1rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--color-primary, #915a28);
+            box-shadow: 0 0 0 3px rgba(145, 90, 40, 0.1);
+        }
+
+        .form-control-readonly {
+            background-color: #f9f9f9;
+            color: #777;
+            cursor: not-allowed;
+        }
+
+        .btn-section-save {
+            height: 46px;
+            padding: 0 1.8rem;
+            background: var(--color-primary, #915a28);
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-section-save:hover {
+            background: var(--color-primary-hover, #77491f);
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.2rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .toggle-row:last-child {
+            border-bottom: none;
+        }
+
+        .toggle-info h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.2rem;
+        }
+
+        .toggle-info p {
+            font-size: 0.85rem;
+            color: #777;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .3s;
+            border-radius: 26px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--color-primary, #915a28);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(22px);
+        }
+
+        .withdraw-box {
+            background: #fafafa;
+            border: 1px solid #eee;
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .btn-withdraw-trigger {
+            background: none;
+            border: 1px solid #d32f2f;
+            color: #d32f2f;
+            padding: 0.7rem 1.6rem;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-withdraw-trigger:hover {
+            background: #fdeaea;
+        }
+
+        @media (max-width: 768px) {
+            .mypage-layout {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            .mypage-sidebar {
+                position: static;
+                padding: 0.5rem;
+            }
+            .sidebar-menu {
+                flex-direction: row;
+                overflow-x: auto;
+                gap: 0.4rem;
+            }
+            .sidebar-tab-btn {
+                white-space: nowrap;
+                padding: 0.7rem 1rem;
+            }
+            .sidebar-tab-btn.withdraw-tab {
+                margin-top: 0;
+                border-top: none;
+                padding-top: 0.7rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <main class="mypage-container">
+        <div class="page-title-group">
+            <h1 class="page-title">회원정보 관리</h1>
+            <p class="page-subtitle">영월고향방앗간 회원 프로필 및 안전한 수신 설정을 관리합니다.</p>
+        </div>
+
+        <div class="mypage-layout">
+            <!-- 좌측 마이페이지 전용 탭 사이드바 -->
+            <aside class="mypage-sidebar">
+                <nav class="sidebar-menu">
+                    <button type="button" id="tabBtnProfile" class="sidebar-tab-btn active"
+                        onclick="switchMypageTab('profile')">
+                        회원 프로필
+                    </button>
+                    <button type="button" id="tabBtnPassword" class="sidebar-tab-btn"
+                        onclick="switchMypageTab('password')">
+                        비밀번호 변경
+                    </button>
+                    <button type="button" id="tabBtnMarketing" class="sidebar-tab-btn"
+                        onclick="switchMypageTab('marketing')">
+                        마케팅 수신 설정
+                    </button>
+                    <button type="button" id="tabBtnWithdraw" class="sidebar-tab-btn withdraw-tab"
+                        onclick="switchMypageTab('withdraw')">
+                        회원 탈퇴
+                    </button>
+                </nav>
+            </aside>
+
+            <!-- 우측 탭 영역 콘텐츠 -->
+            <section class="mypage-content">
+                <!-- 탭 1: 회원 프로필 -->
+                <div id="paneProfile" class="tab-pane-content active">
+                    <div class="section-card">
+                        <div class="section-card-title">
+                            <span>기본 정보</span>
+                        </div>
+                        <div class="form-group">
+                            <label>이메일 주소 (아이디)</label>
+                            <input type="text" id="infoEmail" class="form-control form-control-readonly" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>가입일시</label>
+                            <input type="text" id="infoCreatedAt" class="form-control form-control-readonly" readonly>
+                        </div>
+                    </div>
+
+                    <form class="section-card" id="formProfile" novalidate onsubmit="handleSaveProfile(event)">
+                        <div class="section-card-title">
+                            <span>개인정보 수정</span>
+                        </div>
+                        <div class="form-group">
+                            <label>성함 *</label>
+                            <input type="text" id="profileName" class="form-control" placeholder="예: 홍길동" required>
+                        </div>
+                        <div class="form-group">
+                            <label>휴대폰 번호 *</label>
+                            <input type="tel" id="profilePhone" class="form-control" placeholder="예: 010-1234-5678" required>
+                        </div>
+                        <div style="text-align: right; margin-top: 1.5rem;">
+                            <button type="submit" id="btnSaveProfile" class="btn-section-save">개인정보 저장</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 탭 2: 비밀번호 변경 -->
+                <div id="panePassword" class="tab-pane-content">
+                    <form class="section-card" id="formPassword" novalidate onsubmit="handleSavePassword(event)">
+                        <div class="section-card-title">
+                            <span>비밀번호 변경</span>
+                        </div>
+                        <div class="form-group">
+                            <label>현재 비밀번호 *</label>
+                            <input type="password" id="currentPassword" class="form-control" placeholder="현재 비밀번호 입력" required>
+                        </div>
+                        <div class="form-group">
+                            <label>새 비밀번호 * (영문, 숫자, 특수문자 조합 8자 이상)</label>
+                            <input type="password" id="newPassword" class="form-control" placeholder="새 비밀번호 입력" required>
+                        </div>
+                        <div class="form-group">
+                            <label>새 비밀번호 확인 *</label>
+                            <input type="password" id="newPasswordConfirm" class="form-control" placeholder="새 비밀번호 다시 입력" required>
+                        </div>
+                        <div style="text-align: right; margin-top: 1.5rem;">
+                            <button type="submit" id="btnSavePassword" class="btn-section-save">비밀번호 변경</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 탭 3: 마케팅 수신 동의 설정 -->
+                <div id="paneMarketing" class="tab-pane-content">
+                    <div class="section-card">
+                        <div class="section-card-title">
+                            <span>마케팅 및 알림 수신 설정</span>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <h4>SMS / 카카오톡 알림 수신</h4>
+                                <p>할인 쿠폰, 명절 선물세트 프로모션 소식을 SMS로 받습니다.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggleSms" onchange="handleMarketingChange()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <h4>이메일 혜택 소식 수신</h4>
+                                <p>신상품 출시 및 회원 전용 혜택 소식을 이메일로 받습니다.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggleEmail" onchange="handleMarketingChange()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 탭 4: 회원 탈퇴 -->
+                <div id="paneWithdraw" class="tab-pane-content">
+                    <div class="section-card">
+                        <div class="section-card-title" style="color:#d32f2f;">
+                            <span>회원 탈퇴</span>
+                        </div>
+                        <div class="withdraw-box">
+                            <p style="font-size:1.05rem; font-weight:600; color:#333; margin-bottom:0.8rem;">정말로 탈퇴하시겠습니까?</p>
+                            <p style="font-size:0.9rem; color:#666; margin-bottom:1.8rem; line-height:1.6;">
+                                탈퇴 시 보유하신 적립금 및 구매 내역 조회가 제한될 수 있습니다.<br>
+                                전자상거래법에 따라 주문/결제 관련 법정 보존 정보는 안전하게 분리 보관됩니다.
+                            </p>
+                            <button type="button" class="btn-withdraw-trigger" onclick="handleWithdrawAccount()">회원 탈퇴 신청</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        let meUser = null;
+
+        function switchMypageTab(tabKey) {
+            const tabs = ['profile', 'password', 'marketing', 'withdraw'];
+            tabs.forEach(key => {
+                const btn = document.getElementById(`tabBtn${key.charAt(0).toUpperCase() + key.slice(1)}`);
+                const pane = document.getElementById(`pane${key.charAt(0).toUpperCase() + key.slice(1)}`);
+                if (btn) btn.classList.remove('active');
+                if (pane) pane.classList.remove('active');
+            });
+
+            const activeBtn = document.getElementById(`tabBtn${tabKey.charAt(0).toUpperCase() + tabKey.slice(1)}`);
+            const activePane = document.getElementById(`pane${tabKey.charAt(0).toUpperCase() + tabKey.slice(1)}`);
+            if (activeBtn) activeBtn.classList.add('active');
+            if (activePane) activePane.classList.add('active');
+        }
+
+        async function fetchMyProfile() {
+            const token = localStorage.getItem('yw_jwt_token');
+            if (!token) {
+                alert('로그인이 필요한 서비스입니다.');
+                window.location.href = '/login';
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/users/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!resp.ok) {
+                    if (resp.status === 401) {
+                        localStorage.removeItem('yw_jwt_token');
+                        localStorage.removeItem('yw_user');
+                        alert('로그인 세션이 만료되었습니다.');
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error("Failed to fetch profile");
+                }
+
+                const data = await resp.json();
+                meUser = data.user;
+
+                document.getElementById('infoEmail').value = meUser.email || '';
+                document.getElementById('infoCreatedAt').value = meUser.created_at ? new Date(meUser.created_at).toLocaleString() : '-';
+                document.getElementById('profileName').value = meUser.name || '';
+                document.getElementById('profilePhone').value = meUser.phone || '';
+                document.getElementById('toggleSms').checked = !!meUser.marketing_sms_consent;
+                document.getElementById('toggleEmail').checked = !!meUser.marketing_email_consent;
+
+            } catch (err) {
+                console.error("Profile fetch error:", err);
+            }
+        }
+
+        async function handleSaveProfile(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('yw_jwt_token');
+            const name = document.getElementById('profileName').value.trim();
+            const phone = document.getElementById('profilePhone').value.trim();
+
+            if (!name || !phone) {
+                alert('성함과 휴대폰 번호를 입력해 주세요.');
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/users/me', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name, phone })
+                });
+
+                const data = await resp.json();
+                if (resp.ok) {
+                    alert('개인정보가 성공적으로 수정되었습니다.');
+                    fetchMyProfile();
+                } else {
+                    alert(data.error || '수정에 실패했습니다.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('수정 중 오류가 발생했습니다.');
+            }
+        }
+
+        async function handleSavePassword(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('yw_jwt_token');
+            const currentPassword = document.getElementById('currentPassword').value.trim();
+            const newPassword = document.getElementById('newPassword').value.trim();
+            const newPasswordConfirm = document.getElementById('newPasswordConfirm').value.trim();
+
+            if (!currentPassword || !newPassword || !newPasswordConfirm) {
+                alert('모든 비밀번호 항목을 입력해 주세요.');
+                return;
+            }
+
+            if (newPassword !== newPasswordConfirm) {
+                alert('새 비밀번호와 비밀번호 확인이 일치하지 않습니다.');
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/users/me/password', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
+                });
+
+                const data = await resp.json();
+                if (resp.ok) {
+                    alert('비밀번호가 성공적으로 변경되었습니다.');
+                    document.getElementById('formPassword').reset();
+                } else {
+                    alert(data.error || '비밀번호 변경에 실패했습니다.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('비밀번호 변경 중 오류가 발생했습니다.');
+            }
+        }
+
+        async function handleMarketingChange() {
+            const token = localStorage.getItem('yw_jwt_token');
+            const smsConsent = document.getElementById('toggleSms').checked;
+            const emailConsent = document.getElementById('toggleEmail').checked;
+
+            try {
+                await fetch('/api/users/me/marketing', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ marketing_sms_consent: smsConsent, marketing_email_consent: emailConsent })
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function handleWithdrawAccount() {
+            if (!confirm('정말로 탈퇴하시겠습니까? 탈퇴 후 계정 복구는 불가능합니다.')) return;
+
+            const password = prompt('안전을 위해 현재 비밀번호를 다시 입력해 주세요.');
+            if (!password) return;
+
+            const token = localStorage.getItem('yw_jwt_token');
+            try {
+                const resp = await fetch('/api/users/me/withdraw', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ password })
+                });
+
+                const data = await resp.json();
+                if (resp.ok) {
+                    alert('회원 탈퇴가 완료되었습니다. 이용해 주셔서 감사합니다.');
+                    localStorage.removeItem('yw_jwt_token');
+                    localStorage.removeItem('yw_user');
+                    window.location.href = '/';
+                } else {
+                    alert(data.error || '탈퇴 처리에 실패했습니다.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('탈퇴 처리 중 오류가 발생했습니다.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchMyProfile);
+    </script>
+{% endblock %}

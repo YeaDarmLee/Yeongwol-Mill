@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS products (
     allergy_notice VARCHAR(255) DEFAULT '참깨, 들깨 함유',
     nutrition_facts TEXT,
     cs_phone VARCHAR(50) DEFAULT '033-000-0000',
+    delivery_info VARCHAR(255) DEFAULT '평일 14시 이전 주문 시 당일 발송 (1~2일 내 도착 예정)',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -540,6 +541,17 @@ CREATE TABLE IF NOT EXISTS exchange_request_items (
     approved_qty INT NOT NULL DEFAULT 0,
     INDEX idx_exchange_item_req (exchange_request_id),
     INDEX idx_exchange_item_order_item (order_item_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 관리자 주문 특이사항 / 업무 메모 테이블
+CREATE TABLE IF NOT EXISTS order_admin_notes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    admin_id INT NOT NULL DEFAULT 1,
+    admin_email VARCHAR(100) NOT NULL DEFAULT 'admin@example.com',
+    note TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_order_notes_order (order_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

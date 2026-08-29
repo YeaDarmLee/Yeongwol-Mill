@@ -2,7 +2,7 @@ import io
 import csv
 import json
 import datetime
-from flask import Blueprint, request, jsonify, Response
+from flask import Blueprint, request, jsonify, Response, current_app
 from db.db_connection import query_db, execute_db, get_db_connection
 from middlewares.auth import verify_jwt_token, generate_jwt_token, check_password, hash_password
 from utils.audit_logger import log_admin_audit
@@ -359,6 +359,146 @@ def admin_dashboard():
         'as_of': now_kst.strftime('%H:%M:%S')
     }), 200
 
+
+# ── PRODUCT SUMMARY BATCH HELPERS (O(1) BATCH QUERY & DETERMINISTIC ORDERING) ───────
+
+def build_order_items_summary_batch(order_ids):
+    """
+    주문 ID 목록을 2-Query Batching으로 일괄 조회하여 product_summary 생성
+    (Deterministic Ordering: ORDER BY order_id ASC, id ASC)
+    """
+    if not order_ids:
+        return {}
+
+    placeholders = ", ".join(["%s"] * len(order_ids))
+    sql = f"""
+        SELECT id, order_id, product_name_snapshot, option_name_snapshot, quantity
+        FROM order_items
+        WHERE order_id IN ({placeholders})
+        ORDER BY order_id ASC, id ASC
+    """
+    rows = query_db(sql, tuple(order_ids)) or []
+
+    grouped = {}
+    for r in rows:
+        oid = r['order_id']
+        if oid not in grouped:
+            grouped[oid] = []
+        grouped[oid].append(r)
+
+    summaries = {}
+    for oid in order_ids:
+        items = grouped.get(oid, [])
+        if not items:
+            summaries[oid] = None
+            continue
+
+        first_item = items[0]
+        first_product_name = first_item.get('product_name_snapshot') or '상품명 없음'
+        first_option_name = first_item.get('option_name_snapshot')
+        item_line_count = len(items)
+        extra_item_count = max(item_line_count - 1, 0)
+        total_quantity = sum(it.get('quantity', 1) for it in items)
+
+        items_list = [
+            {
+                'order_item_id': it['id'],
+                'product_name': it.get('product_name_snapshot') or '',
+                'option_name': it.get('option_name_snapshot'),
+                'quantity': it.get('quantity', 1)
+            }
+            for it in items
+        ]
+
+        first_qty = items[0].get('quantity', 1) if items else 1
+        summary_text = f"{first_product_name} {first_qty}개" if extra_item_count == 0 else f"{first_product_name} 외 {extra_item_count}건"
+
+        summaries[oid] = {
+            'first_product_name': first_product_name,
+            'first_option_name': first_option_name,
+            'item_line_count': item_line_count,
+            'extra_item_count': extra_item_count,
+            'total_quantity': total_quantity,
+            'summary_text': summary_text,
+            'items': items_list
+        }
+
+    return summaries
+
+
+def build_cs_items_summary_batch(cs_requests):
+    """
+    CS 목록 전용 Target Items Batch Query 헬퍼
+    (Target Items Source of Truth: refund_request_items 등)
+    """
+    if not cs_requests:
+        return {}
+
+    cs_ids = [r['id'] for r in cs_requests if 'id' in r]
+    order_ids = list(set([r['order_id'] for r in cs_requests if 'order_id' in r]))
+    if not cs_ids:
+        return {}
+
+    placeholders = ", ".join(["%s"] * len(cs_ids))
+    refund_items_sql = f"""
+        SELECT rri.refund_request_id as cs_id, rri.order_item_id, rri.quantity,
+               oi.product_name_snapshot, oi.option_name_snapshot
+        FROM refund_request_items rri
+        JOIN order_items oi ON rri.order_item_id = oi.id
+        WHERE rri.refund_request_id IN ({placeholders})
+        ORDER BY rri.refund_request_id ASC, rri.id ASC
+    """
+    cs_item_rows = query_db(refund_items_sql, tuple(cs_ids)) or []
+
+    cs_grouped = {}
+    for r in cs_item_rows:
+        cid = r['cs_id']
+        if cid not in cs_grouped:
+            cs_grouped[cid] = []
+        cs_grouped[cid].append(r)
+
+    order_summaries = build_order_items_summary_batch(order_ids) if order_ids else {}
+
+    summaries = {}
+    for cs in cs_requests:
+        cid = cs['id']
+        oid = cs.get('order_id')
+        items = cs_grouped.get(cid, [])
+
+        if items:
+            first_item = items[0]
+            first_product_name = first_item.get('product_name_snapshot') or '상품명 없음'
+            first_option_name = first_item.get('option_name_snapshot')
+            item_line_count = len(items)
+            extra_item_count = max(item_line_count - 1, 0)
+            total_quantity = sum(it.get('quantity', 1) for it in items)
+
+            items_list = [
+                {
+                    'order_item_id': it['order_item_id'],
+                    'product_name': it.get('product_name_snapshot') or '',
+                    'option_name': it.get('option_name_snapshot'),
+                    'quantity': it.get('quantity', 1)
+                }
+                for it in items
+            ]
+
+            summaries[cid] = {
+                'first_product_name': first_product_name,
+                'first_option_name': first_option_name,
+                'item_line_count': item_line_count,
+                'extra_item_count': extra_item_count,
+                'total_quantity': total_quantity,
+                'items': items_list
+            }
+        elif oid in order_summaries and order_summaries[oid]:
+            summaries[cid] = order_summaries[oid]
+        else:
+            summaries[cid] = None
+
+    return summaries
+
+
 @admin_bp.route('/orders', methods=['GET'])
 def admin_orders():
     """전체 주문 목록 필터링, 검색 및 페이지네이션 API"""
@@ -445,8 +585,28 @@ def admin_orders():
 
     orders = query_db(select_sql, tuple(fetch_args)) or []
 
+    # O(1) 2-Query Batching으로 order_items 및 product_summary 일괄 결합 (N+1 방지)
+    order_ids = [o['id'] for o in orders]
+    product_summaries = build_order_items_summary_batch(order_ids)
+
     for order in orders:
+        summary = product_summaries.get(order['id'])
+        if not summary:
+            fallback_name = order.get('order_name') or '상품 정보 없음'
+            summary = {
+                'first_product_name': fallback_name,
+                'first_option_name': None,
+                'item_line_count': 1,
+                'extra_item_count': 0,
+                'total_quantity': 1,
+                'summary_text': fallback_name,
+                'items': [{'product_name_snapshot': fallback_name, 'quantity': 1}]
+            }
+        order['product_summary'] = summary
         order['items'] = query_db("SELECT * FROM order_items WHERE order_id = %s", (order['id'],)) or []
+        if not order['items']:
+            fallback_name = order.get('order_name') or '상품 정보 없음'
+            order['items'] = [{'product_name_snapshot': fallback_name, 'quantity': 1}]
 
     return jsonify({
         'orders': orders,
@@ -475,8 +635,17 @@ def admin_order_detail(order_id):
     for req in refund_requests:
         req['items'] = query_db("SELECT * FROM refund_request_items WHERE refund_request_id = %s", (req['id'],)) or []
 
-    audit_logs = query_db("SELECT * FROM admin_audit_logs WHERE target_type = 'ORDER' AND target_id = %s ORDER BY id DESC", (str(order_id),)) or []
-    admin_notes = query_db("SELECT * FROM order_admin_notes WHERE order_id = %s ORDER BY id DESC", (order_id,)) or []
+    try:
+        audit_logs = query_db("SELECT * FROM admin_audit_logs WHERE target_type = 'ORDER' AND target_id = %s ORDER BY id DESC", (str(order_id),)) or []
+    except Exception as e:
+        logger.warning(f"admin_audit_logs query warning: {e}")
+        audit_logs = []
+
+    try:
+        admin_notes = query_db("SELECT * FROM order_admin_notes WHERE order_id = %s ORDER BY id DESC", (order_id,)) or []
+    except Exception as e:
+        logger.warning(f"order_admin_notes query warning: {e}")
+        admin_notes = []
 
     # 이벤트 타임라인 구성
     timeline = []
@@ -497,6 +666,55 @@ def admin_order_detail(order_id):
         'admin_notes': admin_notes,
         'timeline': timeline
     }), 200
+
+@admin_bp.route('/orders/<int:order_id>/refund/preview', methods=['POST'])
+def admin_refund_preview(order_id):
+    """환불 사전 계산 및 스냅샷 토큰 발행 API (P0-2, P0-3, LOCK 3)"""
+    payload = verify_admin_auth()
+    if not payload:
+        return jsonify({'error': '관리자 권한이 필요합니다.'}), 403
+
+    data = request.get_json() or {}
+    items = data.get('items', [])
+    scope = data.get('scope', 'FULL')
+    if not items:
+        return jsonify({'error': '환불할 상품 목록(items)이 필요합니다.'}), 400
+
+    from utils.refund_engine import preview_refund_calculation
+    res, status_code = preview_refund_calculation(order_id, items, scope)
+    return jsonify(res), status_code
+
+@admin_bp.route('/orders/<int:order_id>/refund/execute', methods=['POST'])
+def admin_refund_execute(order_id):
+    """3-Phase Claim-Call-Finalize 환불 실행 API (v2.2 FINAL LOCK)"""
+    payload = verify_admin_auth()
+    if not payload:
+        return jsonify({'error': '관리자 권한이 필요합니다.'}), 403
+
+    data = request.get_json() or {}
+    items = data.get('items', [])
+    reason = data.get('reason', '관리자 직권 취소/환불').strip()
+    operation_id = data.get('operation_id') or str(uuid.uuid4())
+    preview_token = data.get('preview_token')
+    scope = data.get('scope', 'FULL')
+
+    if not items:
+        return jsonify({'error': '환불할 상품 목록(items)이 필요합니다.'}), 400
+
+    from utils.refund_engine import process_refund_request
+    res, status_code = process_refund_request(order_id, operation_id, items, reason, preview_token=preview_token, scope=scope, admin_id=payload.get('sub', 1))
+    return jsonify(res), status_code
+
+@admin_bp.route('/orders/<int:order_id>/refund/reconcile', methods=['POST'])
+def admin_refund_reconcile(order_id):
+    """RECONCILE_REQUIRED 상태 전용 PG 상태 재대조 및 DB 복구 API (LOCK 2)"""
+    payload = verify_admin_auth()
+    if not payload:
+        return jsonify({'error': '관리자 권한이 필요합니다.'}), 403
+
+    from utils.refund_engine import reconcile_refund_request
+    res, status_code = reconcile_refund_request(order_id)
+    return jsonify(res), status_code
 
 @admin_bp.route('/orders/<int:order_id>/status', methods=['PATCH', 'POST'])
 def admin_update_order_status(order_id):
@@ -776,6 +994,354 @@ def admin_add_order_note(order_id):
     )
 
     return jsonify({'message': '관리자 메모가 성공적으로 등록되었습니다.'}), 201
+
+
+def can_update_shipping_address(order, active_fulfillment_shipments):
+    """
+    배송지 수정 가능 여부 검증 헬퍼 (Final Frozen Business Rule)
+    """
+    order_status = (order.get('order_status') or '').upper()
+    allowed_statuses = {"PENDING", "CONFIRMED", "PREPARING", "READY_TO_SHIP", "READY_FOR_FULFILLMENT", "PREPARING_SHIPMENT", "배송 준비중", "배송준비중", "상품 준비중", "상품준비중", "주문대기", "주문확정", "결제완료"}
+    if order_status not in allowed_statuses and (order.get('order_status') or '') not in allowed_statuses:
+        return False, "SHIPPING_ADDRESS_UPDATE_NOT_ALLOWED", "이미 출고가 진행되었거나 취소된 주문은 배송지를 수정할 수 없습니다."
+
+    if len(active_fulfillment_shipments) > 1:
+        return False, "FULFILLMENT_STATE_CONFLICT", "활성 배송건이 복수로 존재하여 배송지를 수정할 수 없습니다."
+
+    if len(active_fulfillment_shipments) == 1:
+        shipment = active_fulfillment_shipments[0]
+        shipment_status = (shipment.get('status') or '').upper()
+        if shipment_status not in {"PENDING", "READY"}:
+            return False, "SHIPPING_ADDRESS_UPDATE_NOT_ALLOWED", "이미 택배 출고가 진행 중인 배송건입니다."
+        if shipment.get('tracking_number'):
+            return False, "SHIPPING_ADDRESS_UPDATE_NOT_ALLOWED", "운송장 번호가 이미 등록된 배송건은 수정할 수 없습니다."
+
+    return True, None, None
+
+
+@admin_bp.route('/orders/<int:order_id>/address', methods=['PUT', 'PATCH'])
+def admin_update_order_shipping_address(order_id):
+    """
+    관리자 주문 배송지 스냅샷 수정 API (Lock Ordering, Allow-list, AuditLog Atomic Transaction)
+    """
+    payload = verify_admin_auth()
+    if not payload:
+        return jsonify({
+            'success': False,
+            'error': {'code': 'FORBIDDEN', 'message': '관리자 권한이 필요합니다.'}
+        }), 403
+
+    data = request.get_json() or {}
+    recipient_name = (data.get('recipient_name') or '').strip()
+    recipient_phone_raw = (data.get('recipient_phone') or '').strip()
+    postal_code = (data.get('postal_code') or '').strip()
+    address = (data.get('address') or '').strip()
+    address_detail = (data.get('address_detail') or '').strip()
+    delivery_memo = (data.get('delivery_memo') or '').strip()
+    reason_type = (data.get('reason_type') or '').strip()
+    reason_detail = (data.get('reason_detail') or '').strip()
+
+    # Normalization & Validation
+    if not recipient_name or len(recipient_name) > 50:
+        return jsonify({'success': False, 'error': {'code': 'VALIDATION_ERROR', 'message': '수령인 이름을 입력해 주세요.'}}), 400
+
+    phone_digits = ''.join(filter(str.isdigit, recipient_phone_raw))
+    if not (9 <= len(phone_digits) <= 11):
+        return jsonify({'success': False, 'error': {'code': 'VALIDATION_ERROR', 'message': '연락처는 올바른 전화번호 형태(9~11자리 숫자)여야 합니다.'}}), 400
+    recipient_phone = recipient_phone_raw
+
+    if not postal_code or len(postal_code) != 5 or not postal_code.isdigit():
+        return jsonify({'success': False, 'error': {'code': 'VALIDATION_ERROR', 'message': '우편번호는 5자리 숫자로 입력해 주세요.'}}), 400
+
+    if not address:
+        return jsonify({'success': False, 'error': {'code': 'VALIDATION_ERROR', 'message': '기본 주소를 입력해 주세요.'}}), 400
+
+    if len(delivery_memo) > 100:
+        return jsonify({'success': False, 'error': {'code': 'VALIDATION_ERROR', 'message': '배송 메모는 최대 100자까지 작성할 수 있습니다.'}}), 400
+
+    valid_reasons = {'CUSTOMER_REQUEST', 'ADDRESS_TYPO', 'PHONE_CHANGE', 'OTHER'}
+    if reason_type not in valid_reasons:
+        return jsonify({'success': False, 'error': {'code': 'VALIDATION_ERROR', 'message': '올바른 변경 사유 구분을 선택해 주세요.'}}), 400
+
+    if not reason_detail:
+        return jsonify({'success': False, 'error': {'code': 'VALIDATION_ERROR', 'message': '변경 사유 상세 내용을 반드시 입력해 주세요.'}}), 400
+
+    # DB Transaction Execution
+    conn = get_db_connection()
+    try:
+        conn.autocommit(False)
+        cursor = conn.cursor()
+
+        # 1. Order Lock 획득 (Order -> Shipment 순서 준수)
+        cursor.execute("SELECT * FROM orders WHERE id = %s FOR UPDATE", (order_id,))
+        order = cursor.fetchone()
+        if not order:
+            conn.rollback()
+            return jsonify({'success': False, 'error': {'code': 'ORDER_NOT_FOUND', 'message': '해당 주문을 찾을 수 없습니다.'}}), 404
+
+        # 2. Shipment Lock 획득 (purpose='FULFILLMENT' & active 상태만)
+        cursor.execute("""
+            SELECT * FROM shipments 
+            WHERE order_id = %s AND purpose = 'FULFILLMENT' AND status NOT IN ('CANCELLED', 'FAILED', 'RETURNED')
+            FOR UPDATE
+        """, (order_id,))
+        active_shipments = cursor.fetchall() or []
+
+        # 3. Allow-list 검증
+        is_allowed, err_code, err_msg = can_update_shipping_address(order, active_shipments)
+        if not is_allowed:
+            conn.rollback()
+            return jsonify({'success': False, 'error': {'code': err_code, 'message': err_msg}}), 409
+
+        # Before Snapshot
+        before_snapshot = {
+            'recipient_name': order.get('recipient_name'),
+            'recipient_phone': order.get('recipient_phone'),
+            'postal_code': order.get('postal_code'),
+            'address': order.get('address'),
+            'address_detail': order.get('address_detail'),
+            'delivery_memo': order.get('delivery_memo')
+        }
+
+        # 4. orders 배송지 스냅샷 갱신
+        cursor.execute("""
+            UPDATE orders 
+            SET recipient_name = %s, recipient_phone = %s, postal_code = %s, address = %s, address_detail = %s, delivery_memo = %s
+            WHERE id = %s
+        """, (recipient_name, recipient_phone, postal_code, address, address_detail, delivery_memo, order_id))
+
+        after_snapshot = {
+            'recipient_name': recipient_name,
+            'recipient_phone': recipient_phone,
+            'postal_code': postal_code,
+            'address': address,
+            'address_detail': address_detail,
+            'delivery_memo': delivery_memo
+        }
+
+        # 5. admin_audit_logs 기입 (동일 트랜잭션)
+        admin_email = payload.get('email') or payload.get('sub', 'admin@example.com')
+        reason_summary = f"[{reason_type}] {reason_detail}" if reason_detail else f"[{reason_type}]"
+        
+        cursor.execute("""
+            INSERT INTO admin_audit_logs (admin_id, admin_email, action_type, target_type, target_id, reason, result, request_ip, user_agent, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+        """, (
+            payload.get('user_id', 1),
+            admin_email,
+            'ORDER_SHIPPING_ADDRESS_UPDATED',
+            'ORDER',
+            str(order_id),
+            reason_summary,
+            'SUCCESS',
+            request.remote_addr or '127.0.0.1',
+            request.user_agent.string if request.user_agent else ''
+        ))
+
+        # Commit
+        conn.commit()
+
+        # 최신 주문 단일 조회 반환 (Single Source of Truth)
+        updated_order = query_db("SELECT * FROM orders WHERE id = %s", (order_id,), one=True)
+        return jsonify({'success': True, 'message': '배송지 정보가 성공적으로 수정되었습니다.', 'order': updated_order}), 200
+
+    except Exception as ex:
+        if conn:
+            conn.rollback()
+        current_app.logger.error(f"admin_update_order_shipping_address Exception: {ex}", exc_info=True)
+        return jsonify({'success': False, 'error': {'code': 'INTERNAL_SERVER_ERROR', 'message': '배송지 정보를 저장하지 못했습니다.'}}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
+# ── CARRIER REGISTRY & SHIPMENT API ──────────────────────────────────────────────
+
+CARRIER_REGISTRY = {
+    'CJ_LOGISTICS': {
+        'code': 'CJ_LOGISTICS',
+        'name': 'CJ대한통운',
+        'tracking_url': lambda num: f"https://www.cjlogistics.com/ko/tool/parcel/tracking?gnbInvcNo={num}"
+    },
+    'EPOST': {
+        'code': 'EPOST',
+        'name': '우체국택배',
+        'tracking_url': lambda num: f"https://service.epost.go.kr/trace.RetrieveDomRレースTraceList.comm?sid1={num}"
+    },
+    'HANJIN': {
+        'code': 'HANJIN',
+        'name': '한진택배',
+        'tracking_url': lambda num: f"https://www.hanjin.co.kr/kor/CMS/DeliveryMgr/WaybillResult.do?mCode=MN038&wblnum={num}"
+    },
+    'LOTTE': {
+        'code': 'LOTTE',
+        'name': '롯데택배',
+        'tracking_url': lambda num: f"https://www.lotteglogis.com/home/reservation/tracking/linkView?InvNo={num}"
+    }
+}
+
+
+def can_ship_order(order, active_fulfillment_shipments):
+    """
+    운송장 등록 및 출고 가능 여부 검증 헬퍼 (Final Frozen Business Rule)
+    """
+    # 1. 기존 운송장 등록 여부 최우선 검증 (TRACKING_ALREADY_REGISTERED)
+    if order.get("tracking_number"):
+        return False, "TRACKING_ALREADY_REGISTERED", "이미 운송장이 등록된 주문입니다."
+
+    # 2. 활성 FULFILLMENT Shipment 0개 검증 (FULFILLMENT_NOT_FOUND)
+    if len(active_fulfillment_shipments) == 0:
+        return False, "FULFILLMENT_NOT_FOUND", "출고 가능한 배송건을 찾을 수 없습니다."
+
+    # 3. 활성 FULFILLMENT Shipment 복수 검증 (FULFILLMENT_STATE_CONFLICT)
+    if len(active_fulfillment_shipments) > 1:
+        return False, "FULFILLMENT_STATE_CONFLICT", "활성 배송건이 복수로 존재하여 출고 처리할 수 없습니다."
+
+    # 4. Shipment 자체의 기존 운송장 검증 (TRACKING_ALREADY_REGISTERED)
+    shipment = active_fulfillment_shipments[0]
+    if shipment.get("tracking_number"):
+        return False, "TRACKING_ALREADY_REGISTERED", "이미 운송장이 등록된 주문입니다."
+
+    # 5. 주문 상태 검증 (오직 '배송 준비중' 단계만 출고 허용)
+    order_st = (order.get("order_status") or "").upper()
+    ready_to_ship_set = {"READY_TO_SHIP", "READY_FOR_FULFILLMENT", "PREPARING_SHIPMENT", "배송 준비중", "배송준비중"}
+    if order_st not in ready_to_ship_set and (order.get("order_status") or "") not in ready_to_ship_set:
+        return False, "ORDER_NOT_READY_FOR_SHIPMENT", "배송 준비중 단계의 주문만 운송장을 등록하고 출고할 수 있습니다."
+
+    # 6. Shipment 상태 검증 (SHIPMENT_STATE_CONFLICT)
+    if shipment.get("status") not in {"PENDING", "READY"}:
+        return False, "SHIPMENT_STATE_CONFLICT", "현재 배송건 상태에서는 출고할 수 없습니다."
+
+    return True, None, None
+
+
+@admin_bp.route('/orders/<int:order_id>/shipment', methods=['POST'])
+def admin_ship_order(order_id):
+    """
+    관리자 운송장 등록 및 원자적 출고 처리 API (Lock Ordering, Allow-list, Carrier Registry)
+    """
+    payload = verify_admin_auth()
+    if not payload:
+        return jsonify({
+            'success': False,
+            'error': {'code': 'FORBIDDEN', 'message': '관리자 권한이 필요합니다.'}
+        }), 403
+
+    data = request.get_json() or {}
+    carrier_code = (data.get('carrier_code') or '').strip().upper()
+    tracking_number = (data.get('tracking_number') or '').strip()
+
+    # Validation
+    if not carrier_code or carrier_code not in CARRIER_REGISTRY:
+        return jsonify({
+            'success': False,
+            'error': {'code': 'VALIDATION_ERROR', 'message': '올바른 택배사를 선택해 주세요.'}
+        }), 400
+
+    cleaned_tracking = ''.join(c for c in tracking_number if c.isalnum())
+    if not cleaned_tracking or len(cleaned_tracking) < 5 or len(cleaned_tracking) > 25:
+        return jsonify({
+            'success': False,
+            'error': {'code': 'VALIDATION_ERROR', 'message': '운송장 번호를 올바르게 입력해 주세요 (영문/숫자 5~25자리).' }
+        }), 400
+
+    carrier_info = CARRIER_REGISTRY[carrier_code]
+
+    conn = get_db_connection()
+    try:
+        conn.autocommit(False)
+        cursor = conn.cursor()
+
+        # 1. Order Lock 획득 (Order -> Shipment 순서 준수)
+        cursor.execute("SELECT * FROM orders WHERE id = %s FOR UPDATE", (order_id,))
+        order = cursor.fetchone()
+        if not order:
+            conn.rollback()
+            return jsonify({
+                'success': False,
+                'error': {'code': 'ORDER_NOT_FOUND', 'message': '해당 주문을 찾을 수 없습니다.'}
+            }), 404
+
+        # 2. Shipment Lock 획득 (purpose='FULFILLMENT' & active 상태만)
+        cursor.execute("""
+            SELECT * FROM shipments 
+            WHERE order_id = %s AND purpose = 'FULFILLMENT' AND status NOT IN ('CANCELLED', 'FAILED', 'RETURNED')
+            FOR UPDATE
+        """, (order_id,))
+        active_shipments = cursor.fetchall() or []
+
+        # 3. Allow-list 검증 (우선순위 준수)
+        is_allowed, err_code, err_msg = can_ship_order(order, active_shipments)
+        if not is_allowed:
+            conn.rollback()
+            return jsonify({
+                'success': False,
+                'error': {'code': err_code, 'message': err_msg}
+            }), 409
+
+        shipment = active_shipments[0]
+
+        # 4. shipments 테이블 UPDATE
+        cursor.execute("""
+            UPDATE shipments 
+            SET carrier_code = %s, courier = %s, tracking_number = %s, status = 'SHIPPED', shipped_at = CURRENT_TIMESTAMP
+            WHERE id = %s
+        """, (carrier_code, carrier_info['name'], cleaned_tracking, shipment['id']))
+
+        # 5. orders 테이블 Denormalized Snapshot UPDATE
+        cursor.execute("""
+            UPDATE orders 
+            SET order_status = 'SHIPPING', courier_name = %s, tracking_number = %s
+            WHERE id = %s
+        """, (carrier_info['name'], cleaned_tracking, order_id))
+
+        # 6. admin_audit_logs 기입 (동일 트랜잭션)
+        admin_email = payload.get('email') or payload.get('sub', 'admin@example.com')
+        reason_summary = f"[출고처리] 택배사: {carrier_info['name']}, 운송장번호: {cleaned_tracking}"
+        
+        cursor.execute("""
+            INSERT INTO admin_audit_logs (admin_id, admin_email, action_type, target_type, target_id, reason, result, request_ip, user_agent, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+        """, (
+            payload.get('user_id', 1),
+            admin_email,
+            'ORDER_SHIPPED',
+            'ORDER',
+            str(order_id),
+            reason_summary,
+            'SUCCESS',
+            request.remote_addr or '127.0.0.1',
+            request.user_agent.string if request.user_agent else ''
+        ))
+
+        # Commit
+        conn.commit()
+
+        # 최신 주문 단일 조회 반환 (Single Source of Truth)
+        updated_order = query_db("SELECT * FROM orders WHERE id = %s", (order_id,), one=True)
+        tracking_url = carrier_info['tracking_url'](cleaned_tracking)
+
+        return jsonify({
+            'success': True,
+            'message': '운송장이 성공적으로 등록되고 출고 처리되었습니다.',
+            'order': updated_order,
+            'carrier_code': carrier_code,
+            'carrier_name': carrier_info['name'],
+            'tracking_number': cleaned_tracking,
+            'tracking_url': tracking_url
+        }), 200
+
+    except Exception as ex:
+        if conn:
+            conn.rollback()
+        current_app.logger.error(f"admin_ship_order Exception: {ex}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': {'code': 'INTERNAL_SERVER_ERROR', 'message': '운송장 등록 및 출고 처리를 진행하지 못했습니다.'}
+        }), 500
+    finally:
+        if conn:
+            conn.close()
 
 @admin_bp.route('/customers', methods=['GET'])
 def admin_customers():
@@ -1197,6 +1763,7 @@ def admin_products():
         storage_method = data.get('storage_method', '직사광선을 피하고 서늘한 곳 보관')
         allergy_notice = data.get('allergy_notice', '참깨/들깨 함유')
         nutrition_facts = data.get('nutrition_facts', '100ml당 884kcal')
+        delivery_info = data.get('delivery_info', '평일 14시 이전 주문 시 당일 발송 (1~2일 내 도착 예정)').strip() or '평일 14시 이전 주문 시 당일 발송 (1~2일 내 도착 예정)'
 
         if not name or price <= 0:
             return jsonify({'error': '상품명과 가격을 올바르게 입력해 주세요.'}), 400
@@ -1205,12 +1772,12 @@ def admin_products():
             INSERT INTO products (
                 category_id, name, price, capacity, description, badge, image_url,
                 shelf_life_text, origin_info, food_type, contents_capacity, raw_ingredients,
-                manufacturer, storage_method, allergy_notice, nutrition_facts
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                manufacturer, storage_method, allergy_notice, nutrition_facts, delivery_info
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             category_id, name, price, capacity, description, badge, image_url,
             shelf_life_text, origin_info, food_type, contents_capacity, raw_ingredients,
-            manufacturer, storage_method, allergy_notice, nutrition_facts
+            manufacturer, storage_method, allergy_notice, nutrition_facts, delivery_info
         ))
 
         options_data = data.get('options', [])
@@ -1299,6 +1866,9 @@ def admin_update_product(product_id):
     if 'cs_phone' in data:
         fields.append("cs_phone = %s")
         args.append(data['cs_phone'].strip())
+    if 'delivery_info' in data:
+        fields.append("delivery_info = %s")
+        args.append(data['delivery_info'].strip())
 
     if fields:
         args.append(product_id)
@@ -1470,6 +2040,24 @@ def _process_batch_order_command(order_ids, target_status, admin_payload, action
                     elif target_status == 'DELIVERED':
                         extra_updates = f", delivered_at = '{now_str}'"
                         cursor.execute("UPDATE shipments SET status = 'DELIVERED', delivered_at = %s WHERE order_id = %s AND purpose = 'FULFILLMENT'", (now_str, oid))
+                        
+                        # Notification Outbox & SMS Enqueue (DELIVERED:{oid} 멱등키)
+                        try:
+                            from services.notification_service import NotificationService
+                            recipient = order.get('recipient_phone') or order.get('guest_phone') or ''
+                            if recipient:
+                                NotificationService().enqueue(
+                                    event_type="DELIVERED",
+                                    recipient=recipient,
+                                    template_code="DELIVERED",
+                                    message=f"[영월고향방앗간] 고객님의 상품 배송이 완료되었습니다. (주문번호: {order['order_number']}, 운송장번호: {order.get('tracking_number','')})",
+                                    idempotency_key=f"DELIVERED:{oid}",
+                                    fallback_template_key="DELIVERED_SMS",
+                                    order_id=oid,
+                                    data={'order_number': order['order_number'], 'tracking_number': order.get('tracking_number', '')}
+                                )
+                        except Exception:
+                            pass
                     elif target_status == 'READY_TO_SHIP':
                         cursor.execute("SELECT id FROM shipments WHERE order_id = %s AND purpose = 'FULFILLMENT'", (oid,))
                         if not cursor.fetchone():
@@ -1570,21 +2158,26 @@ MAX_TRACKING_CSV_BYTES = 5 * 1024 * 1024  # 5 MB
 
 def _apply_tracking_to_shipment(cursor, shipment_id, carrier_code, tracking_number):
     """
-    Shipment에 carrier_code/tracking_number를 적용합니다.
-    Shipment = authoritative Source of Truth.
-    orders.tracking_number = Legacy compatibility mirror (같은 Tx에서 동기화).
-    cursor는 이미 열린 트랜잭션 내에서 호출해야 합니다.
+    Shipment에 carrier_code/tracking_number를 적용하고 orders 및 shipments를 배송중(SHIPPING) 상태로 자동 전이합니다.
     """
-    # Source of Truth: Shipment
+    courier_display = CARRIER_DISPLAY.get(carrier_code, carrier_code)
+    
+    # 1. Source of Truth: Shipment
     cursor.execute(
-        "UPDATE shipments SET carrier_code = %s, tracking_number = %s WHERE id = %s",
+        "UPDATE shipments SET carrier_code = %s, tracking_number = %s, status = 'SHIPPED', shipped_at = NOW() WHERE id = %s",
         (carrier_code, tracking_number, shipment_id)
     )
-    # Legacy Mirror: orders (업무 판정/Guard에서 절대 읽지 않음)
+    # 2. Legacy Mirror & Order State Transition: orders -> SHIPPING
     cursor.execute(
-        "UPDATE orders SET courier_name = %s, tracking_number = %s "
+        "UPDATE orders SET courier_name = %s, tracking_number = %s, order_status = 'SHIPPING', shipped_at = NOW() "
         "WHERE id = (SELECT order_id FROM shipments WHERE id = %s)",
-        (carrier_code, tracking_number, shipment_id)
+        (courier_display, tracking_number, shipment_id)
+    )
+    # 만약 shipments에 없던 order_id로 직접 불린 경우 fallback
+    cursor.execute(
+        "UPDATE orders SET courier_name = %s, tracking_number = %s, order_status = 'SHIPPING', shipped_at = NOW() "
+        "WHERE id = %s AND order_status = 'READY_TO_SHIP'",
+        (courier_display, tracking_number, shipment_id)
     )
 
 
@@ -1596,14 +2189,15 @@ def admin_tracking_template():
         return jsonify({'error': '관리자 권한이 필요합니다.'}), 403
 
     rows = query_db("""
-        SELECT s.id AS shipment_id, o.order_number,
-               o.recipient_name, o.recipient_phone
-        FROM shipments s
-        JOIN orders o ON o.id = s.order_id
+        SELECT o.id AS order_id, COALESCE(s.id, o.id) AS shipment_id, o.order_number,
+               o.recipient_name, o.recipient_phone, o.postal_code,
+               CONCAT(o.address, ' ', COALESCE(o.address_detail, '')) AS full_address,
+               COALESCE(o.courier_name, 'CJ대한통운') AS courier_name,
+               COALESCE(o.tracking_number, '') AS tracking_number
+        FROM orders o
+        LEFT JOIN shipments s ON o.id = s.order_id AND s.purpose = 'FULFILLMENT' AND s.status = 'READY'
         WHERE o.order_status = 'READY_TO_SHIP'
-          AND s.purpose = 'FULFILLMENT'
-          AND s.status = 'READY'
-        ORDER BY s.id ASC
+        ORDER BY o.id ASC
     """) or []
 
     if len(rows) > MAX_TRACKING_CSV_ROWS:
@@ -1614,11 +2208,7 @@ def admin_tracking_template():
     output = io.StringIO()
     writer = csv.writer(output)
 
-    # 주석 3행 (파서는 # 시작 행을 Skip)
-    writer.writerow(['# [주의] shipment_id와 order_number는 절대 수정하지 마세요. 수정 시 오등록됩니다.'])
-    writer.writerow([f'# carrier_code 허용값: {" / ".join(ALLOWED_CARRIERS)}'])
-    writer.writerow(['# tracking_number는 문자열로 입력하세요. 앞자리 0이 사라지지 않도록 주의하세요.'])
-
+    # 순수 데이터 헤더 (1행부터 바로 시작)
     writer.writerow(['shipment_id', 'order_number', 'recipient_name', 'recipient_phone',
                      'carrier_code', 'tracking_number'])
 
@@ -1628,8 +2218,8 @@ def admin_tracking_template():
             r['order_number'],
             escape_csv_formula(r['recipient_name'] or ''),
             escape_csv_formula(r['recipient_phone'] or ''),
-            '',  # carrier_code — 관리자 입력
-            ''   # tracking_number — 관리자 입력
+            r['courier_name'] or 'CJ대한통운',  # carrier_code 기본값
+            r['tracking_number'] or ''           # tracking_number 입력칸
         ])
 
     log_admin_audit(
@@ -1767,10 +2357,22 @@ def admin_import_tracking_csv():
             _fail('INVALID_SHIPMENT_ID', 'shipment_id가 유효하지 않습니다.')
             continue
 
-        # carrier_code 검증 (먼저 검사 — DB 조회 전에 빠르게 탈락)
+        # carrier_code 한글/약어 유연 매핑
+        carrier_raw = (row.get('carrier_code') or '').strip()
+        carrier_upper = carrier_raw.upper()
+        
+        carrier_map = {
+            'CJ': 'CJ', 'CJ대한통운': 'CJ', '대한통운': 'CJ',
+            'EPOST': 'EPOST', '우체국': 'EPOST', '우체국택배': 'EPOST',
+            'LOTTE': 'LOTTE', '롯데': 'LOTTE', '롯데택배': 'LOTTE',
+            'HANJIN': 'HANJIN', '한진': 'HANJIN', '한진택배': 'HANJIN',
+            'LOGEN': 'LOGEN', '로젠': 'LOGEN', '로젠택배': 'LOGEN'
+        }
+        carrier_code = carrier_map.get(carrier_raw, carrier_map.get(carrier_upper, carrier_upper))
+
+        # carrier_code 검증
         if carrier_code not in ALLOWED_CARRIERS:
-            allowed_str = ' / '.join(sorted(ALLOWED_CARRIERS))
-            _fail('INVALID_CARRIER', f'지원하지 않는 택배사입니다. (허용값: {allowed_str})')
+            _fail('INVALID_CARRIER', f'지원하지 않는 택배사입니다: {carrier_raw} (허용값: CJ대한통운, 우체국택배, 롯데택배, 한진택배, 로젠택배)')
             continue
 
         # tracking_number 검증
@@ -1809,7 +2411,7 @@ def admin_import_tracking_csv():
                     _fail('INVALID_SHIPMENT_PURPOSE', 'FULFILLMENT 용도의 Shipment가 아닙니다.')
                     continue
 
-                if db_row['order_status'] != 'READY_TO_SHIP':
+                if db_row['order_status'] not in ('READY_TO_SHIP', 'SHIPPING'):
                     conn.rollback()
                     _skip('INVALID_ORDER_STATUS', f"처리 불가 주문 상태입니다. (현재: {db_row['order_status']})")
                     continue
@@ -1943,7 +2545,6 @@ def admin_batch_register_tracking():
     }), 200
 
 
-
 @admin_bp.route('/orders/cancel', methods=['POST'])
 def admin_batch_cancel_orders():
     """Saga 패턴 기반 결제완료/미결제 주문 안전 취소 및 RefundEngine 연동 API"""
@@ -2061,6 +2662,24 @@ def admin_batch_cancel_orders():
                             """, (target_ord_status, new_pay_status, oid))
                             conn_tx2.commit()
                             success_ids.append(oid)
+
+                            # Notification Outbox & SMS Enqueue (CANCEL:{oid} 멱등키)
+                            try:
+                                from services.notification_service import NotificationService
+                                recipient = curr_order.get('recipient_phone') or curr_order.get('guest_phone') or ''
+                                if recipient:
+                                    NotificationService().enqueue(
+                                        event_type="ORDER_CANCELLED",
+                                        recipient=recipient,
+                                        template_code="ORDER_CANCELLED",
+                                        message=f"[영월고향방앗간] 주문이 정상 취소되었습니다. (주문번호: {curr_order['order_number']}, 사유: {reason})",
+                                        idempotency_key=f"CANCEL:{oid}",
+                                        fallback_template_key="ORDER_CANCELLED_SMS",
+                                        order_id=oid,
+                                        data={'order_number': curr_order['order_number'], 'cancel_reason': reason}
+                                    )
+                            except Exception:
+                                pass
                         elif refund_status == 'RECONCILE_REQUIRED':
                             # P0 Invariant: Maintain fulfillment_hold = 1 during RECONCILE_REQUIRED!
                             cursor.execute("UPDATE cancellation_requests SET status = 'RECONCILING' WHERE id = %s", (cancel_req_id,))
@@ -2097,6 +2716,24 @@ def admin_batch_cancel_orders():
                     """, (oid,))
                     conn_tx2.commit()
                     success_ids.append(oid)
+
+                    # Notification Outbox & SMS Enqueue (CANCEL:{oid} 멱등키)
+                    try:
+                        from services.notification_service import NotificationService
+                        recipient = order.get('recipient_phone') or order.get('guest_phone') or ''
+                        if recipient:
+                            NotificationService().enqueue(
+                                event_type="ORDER_CANCELLED",
+                                recipient=recipient,
+                                template_code="ORDER_CANCELLED",
+                                message=f"[영월고향방앗간] 주문이 정상 취소되었습니다. (주문번호: {order['order_number']}, 사유: {reason})",
+                                idempotency_key=f"CANCEL:{oid}",
+                                fallback_template_key="ORDER_CANCELLED_SMS",
+                                order_id=oid,
+                                data={'order_number': order['order_number'], 'cancel_reason': reason}
+                            )
+                    except Exception:
+                        pass
             finally:
                 conn_tx2.close()
 

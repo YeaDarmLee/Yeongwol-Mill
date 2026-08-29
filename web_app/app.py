@@ -67,15 +67,23 @@ def inject_config():
 @app.route('/admin')
 @app.route('/admin/<path:subpage>')
 def admin_page(subpage=None):
-    if subpage and any(subpage.endswith(ext) for ext in ['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.html']):
-        return send_from_directory(os.path.join(STATIC_DIR, 'admin'), subpage)
-    admin_dir_index = os.path.join(STATIC_DIR, 'admin', 'index.html')
-    if os.path.exists(admin_dir_index):
-        return send_from_directory(os.path.join(STATIC_DIR, 'admin'), 'index.html')
+    if subpage:
+        if any(subpage.endswith(ext) for ext in ['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf']):
+            return send_from_directory(os.path.join(STATIC_DIR, 'admin'), subpage)
+        if subpage.endswith('.html'):
+            rel_path = subpage.replace('/', os.sep)
+            if os.path.exists(os.path.join(TEMPLATES_DIR, 'admin', rel_path)):
+                return render_template(f"admin/{subpage}")
+            if os.path.exists(os.path.join(STATIC_DIR, 'admin', rel_path)):
+                return send_from_directory(os.path.join(STATIC_DIR, 'admin'), subpage)
+
+    if os.path.exists(os.path.join(TEMPLATES_DIR, 'admin', 'index.html')):
+        return render_template('admin/index.html')
     if os.path.exists(os.path.join(TEMPLATES_DIR, 'admin.html')):
         return render_template('admin.html')
+    if os.path.exists(os.path.join(STATIC_DIR, 'admin', 'index.html')):
+        return send_from_directory(os.path.join(STATIC_DIR, 'admin'), 'index.html')
     return send_from_directory(STATIC_DIR, 'admin.html')
-
 
 
 # Favicon Routes
@@ -91,7 +99,7 @@ def favicon_svg():
 def favicon_png():
     return send_from_directory(STATIC_DIR, 'favicon.png', mimetype='image/png')
 
-# Static & Clean URL Route Handlers (확장자 없는 클린 URL 지원)
+# Static & Clean URL Route Handlers
 @app.route('/')
 def index():
     if os.path.exists(os.path.join(TEMPLATES_DIR, 'index.html')):
@@ -100,11 +108,14 @@ def index():
 
 @app.route('/static/<path:filename>')
 def serve_static_folder(filename):
+    if filename.startswith('admin/') and filename.endswith('.html'):
+        subpath = filename[len('admin/'):]
+        rel_path = subpath.replace('/', os.sep)
+        if os.path.exists(os.path.join(TEMPLATES_DIR, 'admin', rel_path)):
+            return render_template(f"admin/{subpath}")
     return send_from_directory(STATIC_DIR, filename)
 
 @app.route('/<path:filename>')
-
-
 def serve_static(filename):
     # 1. 확장자가 없는 경우 .html 붙여서 templates / static 폴더 검색
     target_html = filename if filename.endswith('.html') else f"{filename}.html"

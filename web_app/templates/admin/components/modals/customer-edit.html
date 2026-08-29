@@ -25,13 +25,13 @@
         <div class="form-group" style="background:#faf8f5; padding:12px; border-radius:8px; border:1px solid #ebe6df;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
                 <label style="margin:0; font-weight:600; color:#2c3e50;">비밀번호 변경 / 초기화</label>
-                <button type="button" class="btn-action" style="font-size:0.75rem; background:#455a64; color:#fff; padding:2px 8px;" onclick="generateTempPassword()">임시 비밀번호 생성</button>
+                <button type="button" class="btn-action btn-action-secondary" style="font-size:0.75rem; padding:2px 8px;" onclick="generateTempPassword()">임시 비밀번호 생성</button>
             </div>
             <input type="text" id="edit-cust-newpass" class="form-control" placeholder="새 비밀번호 입력 (미입력 시 기존 비밀번호 유지)">
         </div>
         <div style="text-align:right; gap:8px; display:flex; justify-content:flex-end; margin-top:1.5rem;">
-            <button onclick="closeModal('editCustomerModal')" class="btn-action">취소</button>
-            <button onclick="submitEditCustomer(this)" class="btn-action" style="background:var(--admin-primary); color:#fff;">수정 사항 저장</button>
+            <button onclick="closeModal('editCustomerModal')" class="btn-action btn-action-secondary">취소</button>
+            <button onclick="submitEditCustomer(this)" class="btn-action btn-action-primary">수정 사항 저장</button>
         </div>
     </div>
 </div>

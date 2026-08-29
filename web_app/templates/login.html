@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}로그인 - {{ config.BUSINESS_NAME if config and config.BUSINESS_NAME else '영월고향방앗간' }}{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .auth-container {
+            max-width: 420px;
+            margin: 140px auto 8rem;
+            padding: var(--space-8) var(--space-6);
+            background: var(--color-surface);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--color-border-subtle);
+            text-align: center;
+        }
+
+        .auth-title {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            margin-bottom: var(--space-2);
+            color: var(--color-text-primary);
+        }
+
+        .auth-subtitle {
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+            margin-bottom: var(--space-6);
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+            color: var(--color-text-primary);
+        }
+
+        .btn-auth {
+            width: 100%;
+            padding: 1rem;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .btn-auth:hover {
+                background: var(--color-primary-hover);
+                transform: translateY(-1px);
+            }
+        }
+
+        .auth-links {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .auth-links a {
+            color: var(--color-text-secondary);
+            text-decoration: underline;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 440px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            text-align: left;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <main class="auth-container">
+        <h1 class="auth-title">로그인</h1>
+        <p class="auth-subtitle">영월고향방앗간에 오신 것을 환영합니다.</p>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="loginEmail">이메일 주소</label>
+                <input type="email" id="loginEmail" class="form-control" placeholder="example@yeongwol.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="loginPassword">비밀번호</label>
+                <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-auth">로그인</button>
+        </form>
+
+        <div class="auth-links">
+            <a href="/register">회원가입</a>
+            <span>|</span>
+            <a href="#" onclick="openResetModal(event)">비밀번호 재설정</a>
+        </div>
+    </main>
+
+    <!-- 비밀번호 재설정 모달 -->
+    <div id="resetModal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 style="font-family: 'Noto Serif KR', serif; font-size: 1.3rem; margin-bottom: 0.5rem;">비밀번호 재설정</h3>
+            <p style="font-size: 0.88rem; color: #666; margin-bottom: 1.2rem;">가입 시 등록하신 이메일과 휴대폰 번호를 입력해 주세요.</p>
+            <form onsubmit="handleResetRequest(event)">
+                <div class="form-group">
+                    <label>등록된 이메일 주소 *</label>
+                    <input type="email" id="resetEmail" class="form-control" placeholder="예: email@yeongwol.com" required>
+                </div>
+                <div class="form-group">
+                    <label>등록된 휴대폰 번호 *</label>
+                    <input type="tel" id="resetPhone" class="form-control" placeholder="예: 010-1234-5678" required>
+                </div>
+                <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
+                    <button type="button" class="header-btn" onclick="closeResetModal()">취소</button>
+                    <button type="submit" class="btn-auth" style="margin-top:0; width:auto; padding:0.6rem 1.4rem; font-size:0.95rem;">재설정 링크 보내기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+
+            try {
+                const resp = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await resp.json();
+                if (resp.ok) {
+                    localStorage.setItem('yw_jwt_token', data.token);
+                    localStorage.setItem('yw_user', JSON.stringify(data.user));
+                    window.location.href = '/';
+                } else {
+                    alert(data.error || '로그인 실패');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('로그인 처리 중 오류가 발생했습니다.');
+            }
+        }
+
+        function openResetModal(e) {
+            if (e) e.preventDefault();
+            document.getElementById('resetEmail').value = '';
+            document.getElementById('resetPhone').value = '';
+            document.getElementById('resetModal').classList.add('active');
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').classList.remove('active');
+        }
+
+        async function handleResetRequest(e) {
+            e.preventDefault();
+            const email = document.getElementById('resetEmail').value.trim();
+            const phone = document.getElementById('resetPhone').value.trim();
+
+            if (!email || !phone) {
+                alert('등록된 이메일 주소와 휴대폰 번호를 모두 입력해 주세요.');
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/auth/reset-password-request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, phone })
+                });
+                const data = await resp.json();
+
+                if (resp.ok) {
+                    closeResetModal();
+                    alert(data.message || '비밀번호 재설정 링크가 입력하신 이메일로 성공적으로 발송되었습니다.');
+                } else {
+                    alert(data.error || '입력하신 이메일과 휴대폰 번호에 일치하는 회원 정보를 찾을 수 없습니다.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('재설정 요청 처리 중 오류가 발생했습니다.');
+            }
+        }
+    </script>
+{% endblock %}

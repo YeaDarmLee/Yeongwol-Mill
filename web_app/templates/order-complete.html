@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}주문 완료 - {{ config.BUSINESS_NAME if config and config.BUSINESS_NAME else '영월고향방앗간' }}{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .complete-container {
+            max-width: 700px;
+            margin: 120px auto 7rem;
+            padding: 0 5%;
+            text-align: center;
+        }
+
+        .complete-icon {
+            width: 80px;
+            height: 80px;
+            background: #fdf6ec;
+            color: var(--color-primary, #915a28);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .complete-title {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            color: #222;
+        }
+
+        .complete-subtitle {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .order-card {
+            background: #fff;
+            border: 1px solid #eadece;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: left;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            margin-bottom: 2.5rem;
+        }
+
+        .order-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px dashed #eee;
+            font-size: 0.95rem;
+        }
+
+        .order-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn-action-primary {
+            padding: 0.9rem 2.2rem;
+            background: var(--color-primary, #915a28);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .btn-action-secondary {
+            padding: 0.9rem 2.2rem;
+            background: #f4efe6;
+            color: #555;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="complete-container">
+        <div class="complete-icon">✓</div>
+        <h1 class="complete-title">주문이 성공적으로 완료되었습니다!</h1>
+        <p class="complete-subtitle">정직하게 짠 정성을 담아 안전하게 배송해 드리겠습니다.</p>
+
+        <div class="order-card">
+            <h3 style="font-family: 'Noto Serif KR', serif; margin-bottom: 1rem; color: #915a28;">주문 요약 정보</h3>
+            <div class="order-info-row">
+                <span style="color: #777;">주문 번호</span>
+                <strong id="displayOrderNumber" style="font-family: monospace;">-</strong>
+            </div>
+            <div class="order-info-row">
+                <span style="color: #777;">수령인</span>
+                <span id="displayRecipient">-</span>
+            </div>
+            <div class="order-info-row">
+                <span style="color: #777;">배송지 주소</span>
+                <span id="displayAddress">-</span>
+            </div>
+            <div class="order-info-row">
+                <span style="color: #777;">결제 금액</span>
+                <strong id="displayTotal" style="color: #915a28; font-size: 1.1rem;">-</strong>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <a href="/" class="btn-action-secondary">메인으로 이동</a>
+            <a href="/order-history" class="btn-action-primary">주문 내역 조회</a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        async function loadOrderSummary() {
+            const params = new URLSearchParams(window.location.search);
+            const orderNumber = params.get('order_number');
+            if (!orderNumber) {
+                document.getElementById('displayOrderNumber').innerText = "정보 없음";
+                return;
+            }
+
+            document.getElementById('displayOrderNumber').innerText = orderNumber;
+
+            try {
+                const resp = await fetch(`/api/orders/${orderNumber}`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    const order = data.order;
+                    document.getElementById('displayRecipient').innerText = `${order.recipient_name} (${order.recipient_phone})`;
+                    document.getElementById('displayAddress').innerText = `${order.address} ${order.address_detail || ''}`;
+                    document.getElementById('displayTotal').innerText = `${Number(order.total_amount).toLocaleString()}원`;
+                }
+            } catch (err) {
+                console.error("Order summary fetch error:", err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadOrderSummary);
+    </script>
+{% endblock %}

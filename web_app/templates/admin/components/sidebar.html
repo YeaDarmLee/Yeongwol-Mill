@@ -1,0 +1,88 @@
+<!-- 사이드바 네비게이션 -->
+<aside class="sidebar">
+    <div class="sidebar-header" style="display:flex; align-items:center; gap:8px;">
+        <i class="fa-solid fa-store" style="color:var(--admin-primary, #8D6E63);"></i>
+        <span>영월고향방앗간</span>
+        <span style="font-size:0.7rem; background:var(--admin-primary); color:#fff; padding:2px 6px; border-radius:3px; font-weight:700;">ADMIN</span>
+    </div>
+    <ul class="sidebar-menu" style="flex:1; overflow-y:auto;">
+        <li id="menu-dashboard" class="active">
+            <a href="#dashboard">
+                <i class="fa-solid fa-chart-line" style="width:20px; font-size:1.05rem; text-align:center;"></i>
+                <span>대시보드</span>
+            </a>
+        </li>
+
+        <!-- 주문 처리 아코디언 그룹 (기본 닫힘) -->
+        <li class="menu-group">
+            <button type="button" class="menu-group-header" data-group="fulfillment" aria-expanded="false" aria-controls="submenu-fulfillment">
+                <span class="menu-title-wrap">
+                    <i class="fa-solid fa-boxes-packing" style="width:20px; font-size:1.05rem; text-align:center;"></i>
+                    <span>주문 처리</span>
+                </span>
+                <i class="fa-solid fa-chevron-down menu-arrow-icon" style="font-size:0.75rem; transition:transform 0.2s ease;"></i>
+            </button>
+            <ul class="submenu collapsed" id="submenu-fulfillment">
+                <li id="menu-orders-all"><a href="#orders/all"><span>전체 주문</span></a></li>
+                <li id="menu-orders-pending"><a href="#orders/pending"><span>신규 주문</span> <span class="active-queue-badge" id="menu-badge-pending" style="display:none;"></span></a></li>
+                <li id="menu-orders-preparing"><a href="#orders/preparing"><span>상품 준비중</span> <span class="active-queue-badge" id="menu-badge-preparing" style="display:none;"></span></a></li>
+                <li id="menu-orders-ready_to_ship"><a href="#orders/ready_to_ship"><span>배송 준비중</span> <span class="active-queue-badge" id="menu-badge-ready_to_ship" style="display:none;"></span></a></li>
+                <li id="menu-orders-shipping"><a href="#orders/shipping"><span>배송중</span> <span class="active-queue-badge" id="menu-badge-shipping" style="display:none;"></span></a></li>
+                <li id="menu-orders-delivered"><a href="#orders/delivered"><span>배송 완료</span></a></li>
+            </ul>
+        </li>
+
+        <!-- CS 관리 아코디언 그룹 (기본 닫힘) -->
+        <li class="menu-group">
+            <button type="button" class="menu-group-header" data-group="cs" aria-expanded="false" aria-controls="submenu-cs">
+                <span class="menu-title-wrap">
+                    <i class="fa-solid fa-headset" style="width:20px; font-size:1.05rem; text-align:center;"></i>
+                    <span>CS 관리</span>
+                </span>
+                <i class="fa-solid fa-chevron-down menu-arrow-icon" style="font-size:0.75rem; transition:transform 0.2s ease;"></i>
+            </button>
+            <ul class="submenu collapsed" id="submenu-cs">
+                <li id="menu-cs-cancel"><a href="#cs/cancel"><span>취소 관리</span> <span class="active-queue-badge" id="menu-badge-cs_cancel" style="display:none;"></span></a></li>
+                <li id="menu-cs-exchange"><a href="#cs/exchange"><span>교환 관리</span> <span class="active-queue-badge" id="menu-badge-cs_exchange" style="display:none;"></span></a></li>
+                <li id="menu-cs-return"><a href="#cs/return"><span>반품 관리</span> <span class="active-queue-badge" id="menu-badge-cs_return" style="display:none;"></span></a></li>
+                <li id="menu-cs-refund"><a href="#cs/refund"><span>환불 관리</span> <span class="active-queue-badge" id="menu-badge-cs_refund" style="display:none;"></span></a></li>
+            </ul>
+        </li>
+
+        <li id="menu-products">
+            <a href="#products">
+                <i class="fa-solid fa-cubes" style="width:20px; font-size:1.05rem; text-align:center;"></i>
+                <span>상품 & 재고 관리</span>
+            </a>
+        </li>
+        <li id="menu-customers">
+            <a href="#customers">
+                <i class="fa-solid fa-users" style="width:20px; font-size:1.05rem; text-align:center;"></i>
+                <span>회원 관리</span>
+            </a>
+        </li>
+        <li id="menu-audit">
+            <a href="#audit">
+                <i class="fa-solid fa-clipboard-list" style="width:20px; font-size:1.05rem; text-align:center;"></i>
+                <span>운영 감사로그</span>
+            </a>
+        </li>
+    </ul>
+
+    <!-- 하단 관리자 프로필 & 로그아웃 푸터 -->
+    <div class="sidebar-footer" style="margin-top:auto; padding:1rem 1.2rem; border-top:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.15);">
+        <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-user-gear" style="color:var(--admin-primary,#8D6E63); font-size:1.1rem;"></i>
+                <div style="display:flex; flex-direction:column; overflow:hidden;">
+                    <span style="font-weight:600; color:#eee; font-size:0.82rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;" id="admin-user-display">관리자 (ADMIN)</span>
+                    <span style="font-size:0.72rem; color:#888;">영월고향방앗간</span>
+                </div>
+            </div>
+            <button type="button" onclick="logoutAdmin()" class="btn-action" style="padding:5px 10px; font-size:0.75rem; background:rgba(197,155,39,0.15); border:1px solid rgba(197,155,39,0.35); color:#C59B27; cursor:pointer; border-radius:6px; font-weight:600; display:flex; align-items:center; gap:4px; flex-shrink:0;">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>로그아웃</span>
+            </button>
+        </div>
+    </div>
+</aside>

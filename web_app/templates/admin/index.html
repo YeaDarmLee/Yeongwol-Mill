@@ -11,9 +11,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/style.css">
-    <link rel="stylesheet" href="/admin/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/admin/css/admin.css">
+    <!-- 최신 Kakao 우편번호 서비스 (t1.kakaocdn.net + defer) -->
+    <script src="https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js" defer></script>
 </head>
 
 <body>
@@ -32,17 +34,19 @@
     </div>
 
     <!-- 3. 모달 팝업 마운트 지점 -->
-    <div id="modal-container"></div>
+    <div id="modal-container">
+        {% include 'admin/components/modals/shipping-edit.html' %}
+    </div>
 
     <!-- 분리된 페이지/모듈 JS 로드 -->
-    <script src="/admin/js/admin-core.js"></script>
-    <script src="/admin/js/dashboard.js"></script>
-    <script src="/admin/js/orders.js"></script>
-    <script src="/admin/js/products.js"></script>
-    <script src="/admin/js/customers.js"></script>
-    <script src="/admin/js/audit.js"></script>
+    <script src="/static/admin/js/admin-core.js"></script>
+    <script src="/static/admin/js/dashboard.js"></script>
+    <script src="/static/admin/js/orders.js"></script>
+    <script src="/static/admin/js/products.js"></script>
+    <script src="/static/admin/js/customers.js"></script>
+    <script src="/static/admin/js/audit.js"></script>
+    <script src="/static/legal_modal.js"></script>
 
-<script src="/static/legal_modal.js"></script>
 </body>
 
 </html>

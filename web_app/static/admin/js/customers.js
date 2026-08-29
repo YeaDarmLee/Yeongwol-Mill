@@ -6,6 +6,7 @@ const CUSTOMERS_PAGE_LIMIT = 10;
 
 async function loadCustomers(page = null) {
     if (page !== null) customersCurrentPage = page;
+    renderTableSkeleton('customers-tbody', 8, 5);
 
     try {
         const params = new URLSearchParams();
@@ -75,11 +76,13 @@ function renderCustomerTable(customers) {
             </td>
         </tr>
     `).join('');
+    tbody.classList.add('fade-in-table');
 }
 
 async function toggleCustomerStatus(userId, newStatus) {
     const actionText = newStatus === 'SUSPENDED' ? '정지' : '정지 해제';
-    if (!confirm(`해당 회원의 계정을 ${actionText} 처리하시겠습니까?`)) return;
+    const confirmed = await customConfirm(`해당 회원의 계정을 ${actionText} 처리하시겠습니까?`, '회원 상태 변경');
+    if (!confirmed) return;
     try {
         const resp = await fetch(`/api/admin/customers/${userId}/status`, {
             method: 'POST',

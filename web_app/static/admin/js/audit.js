@@ -10,6 +10,7 @@ let currentAuditParams = {
 
 async function loadAuditLogs(params = {}) {
     currentAuditParams = { ...currentAuditParams, ...params };
+    renderTableSkeleton('audit-tbody', 9, 5);
     try {
         const queryStr = new URLSearchParams(
             Object.entries(currentAuditParams).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
@@ -54,6 +55,7 @@ function renderAuditTable(logs) {
             <td style="font-size:0.8rem; color:#777;">${a.created_at || '-'}</td>
         </tr>
     `).join('');
+    tbody.classList.add('fade-in-table');
 }
 
 function filterAuditLogs() {

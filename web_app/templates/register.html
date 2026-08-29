@@ -1,16 +1,8 @@
-<!DOCTYPE html>
-<html lang="ko">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>회원가입 - 영월고향방앗간</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+{% block title %}회원가입 - {{ config.BUSINESS_NAME if config and config.BUSINESS_NAME else '영월고향방앗간' }}{% endblock %}
+
+{% block extra_css %}
     <style>
         .auth-container {
             max-width: 480px;
@@ -107,12 +99,6 @@
         .form-control:disabled {
             background-color: #f5f5f5;
             color: #777;
-        }
-
-        .form-control::placeholder {
-            color: #b8b2aa !important;
-            opacity: 0.6 !important;
-            font-weight: 400 !important;
         }
 
         .feedback-msg {
@@ -241,13 +227,9 @@
             text-decoration: none;
         }
 
-        /* 약관 모달 레이어 */
         .modal-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0, 0, 0, 0.5);
             display: flex;
             align-items: center;
@@ -307,7 +289,6 @@
             color: #444;
         }
 
-        /* 커스텀 Alert 모달 스타일 */
         .custom-alert-card {
             background: #ffffff;
             width: 90%;
@@ -321,15 +302,8 @@
         }
 
         @keyframes alertPop {
-            from {
-                opacity: 0;
-                transform: scale(0.85);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
+            from { opacity: 0; transform: scale(0.85); }
+            to { opacity: 1; transform: scale(1); }
         }
 
         .custom-alert-icon {
@@ -384,222 +358,122 @@
             background: var(--color-primary-hover, #77491f);
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-    <header>
-        <div class="nav-overlay"></div>
-        <a href="/" class="logo">영월고향방앗간</a>
-        <div class="nav-container">
-            <nav class="gnb">
-                <a href="/">홈</a>
-                <a href="/brand">브랜드 소개</a>
-                <a href="/process">생산과정</a>
-                <a href="/category">상품보기</a>
-            </nav>
-            <div class="utility">
-                <a href="/login">로그인</a>
-                <a href="/order-history">주문조회</a>
-                <a href="/cart" id="cart-nav">장바구니 (0)</a>
-            </div>
-        </div>
-    </header>
-
+{% block content %}
     <main class="auth-container">
         <div class="auth-header">
             <h1 class="auth-title">회원가입</h1>
-            <p class="auth-subtitle">영월고향방앗간의 프리미엄 서비스를 만나보세요.</p>
+            <p class="auth-subtitle">영월고향방앗간의 정직하고 건강한 먹거리를 경험해 보세요.</p>
         </div>
 
         <form id="registerForm" novalidate onsubmit="handleRegister(event)">
-            <!-- 이메일 주소 및 인증번호 받기 -->
+            <!-- 1. 이메일 아이디 & 인증 -->
             <div class="form-group">
-                <label>이메일 주소 *</label>
+                <label for="regEmail">이메일 주소 (아이디) *</label>
                 <div class="input-with-btn">
-                    <input type="email" id="regEmail" class="form-control" placeholder="예: email@yeongwol.com" required
-                        oninput="handleEmailChange()">
-                    <button type="button" id="btnSendOtp" class="btn-inline" onclick="requestOtp()">인증번호 받기</button>
+                    <input type="email" id="regEmail" class="form-control" placeholder="example@yeongwol.com" required>
+                    <button type="button" id="btnSendOtp" class="btn-inline" onclick="requestOtp()">인증번호 전송</button>
                 </div>
                 <div id="emailFeedback" class="feedback-msg"></div>
             </div>
 
-            <!-- 인증번호 입력 및 확인 -->
+            <!-- 이메일 OTP 입력 폼 -->
             <div class="form-group" id="otpGroup" style="display: none;">
-                <label>인증번호 * <span id="timerBadge" class="timer-badge"></span></label>
+                <label for="regOtp">
+                    인증번호 6자리 *
+                    <span id="timerBadge" class="timer-badge"></span>
+                </label>
                 <div class="input-with-btn">
-                    <input type="text" id="regOtp" class="form-control" placeholder="6자리 인증번호 입력" maxlength="6">
-                    <button type="button" id="btnVerifyOtp" class="btn-inline" onclick="verifyOtp()">확인</button>
+                    <input type="text" id="regOtp" class="form-control" placeholder="숫자 6자리 입력" maxlength="6">
+                    <button type="button" id="btnVerifyOtp" class="btn-inline" onclick="verifyOtp()">인증 확인</button>
                 </div>
                 <div id="otpFeedback" class="feedback-msg"></div>
             </div>
 
-            <!-- 비밀번호 -->
+            <!-- 2. 비밀번호 -->
             <div class="form-group">
-                <label>비밀번호 * (10자 이상)</label>
-                <input type="password" id="regPassword" class="form-control" placeholder="10자 이상의 비밀번호 입력" required
-                    minlength="10" maxlength="128" oninput="checkPasswordMatch()">
-                <div id="pwdFeedback" class="feedback-msg"></div>
+                <label for="regPassword">비밀번호 *</label>
+                <input type="password" id="regPassword" class="form-control" placeholder="영문, 숫자, 특수문자 조합 10자 이상" required>
             </div>
 
-            <!-- 비밀번호 확인 -->
+            <!-- 3. 비밀번호 확인 -->
             <div class="form-group">
-                <label>비밀번호 확인 *</label>
-                <input type="password" id="regPasswordConfirm" class="form-control" placeholder="비밀번호 재입력" required
-                    minlength="10" maxlength="128" oninput="checkPasswordMatch()">
-                <div id="pwdConfirmFeedback" class="feedback-msg"></div>
+                <label for="regPasswordConfirm">비밀번호 확인 *</label>
+                <input type="password" id="regPasswordConfirm" class="form-control" placeholder="비밀번호 다시 입력" required>
             </div>
 
-            <!-- 성함 -->
+            <!-- 4. 성함 -->
             <div class="form-group">
-                <label>성함 *</label>
+                <label for="regName">성함 *</label>
                 <input type="text" id="regName" class="form-control" placeholder="예: 홍길동" required>
             </div>
 
-            <!-- 연락처 -->
+            <!-- 5. 연락처 -->
             <div class="form-group">
-                <label>연락처 *</label>
+                <label for="regPhone">휴대폰 번호 *</label>
                 <input type="tel" id="regPhone" class="form-control" placeholder="예: 010-1234-5678" required>
             </div>
 
-            <!-- 동의 항목 -->
+            <hr class="terms-divider">
+
+            <!-- 6. 약관 동의 세션 -->
             <div class="terms-box">
                 <div class="checkbox-item all-agree-item">
                     <label class="checkbox-label">
                         <input type="checkbox" id="checkAll" onchange="toggleCheckAll(this)">
-                        <span>전체 동의</span>
+                        <span>약관 전체 동의</span>
                     </label>
                 </div>
 
                 <div class="checkbox-item">
                     <label class="checkbox-label">
-                        <input type="checkbox" id="checkTerms" class="sub-check" required
-                            onchange="updateCheckAllState()">
-                        <span><strong>[필수]</strong> 이용약관 동의</span>
+                        <input type="checkbox" id="checkTerms" class="sub-check" onchange="updateCheckAllState()" required>
+                        <span>[필수] 이용약관 동의</span>
                     </label>
-                    <button type="button" class="btn-view-terms" onclick="openModal('termsModal')">보기 &gt;</button>
+                    <button type="button" class="btn-view-terms" onclick="openLegalModal('terms')">내용보기</button>
                 </div>
 
                 <div class="checkbox-item">
                     <label class="checkbox-label">
-                        <input type="checkbox" id="checkPrivacy" class="sub-check" required
-                            onchange="updateCheckAllState()">
-                        <span><strong>[필수]</strong> 개인정보 수집·이용 안내</span>
+                        <input type="checkbox" id="checkPrivacy" class="sub-check" onchange="updateCheckAllState()" required>
+                        <span>[필수] 개인정보 수집·이용 동의</span>
                     </label>
-                    <button type="button" class="btn-view-terms" onclick="openModal('privacyModal')">보기 &gt;</button>
+                    <button type="button" class="btn-view-terms" onclick="openLegalModal('privacy')">내용보기</button>
                 </div>
 
                 <div class="checkbox-item">
                     <label class="checkbox-label">
-                        <input type="checkbox" id="checkAge" class="sub-check" required
-                            onchange="updateCheckAllState()">
-                        <span><strong>[필수]</strong> 만 14세 이상입니다.</span>
+                        <input type="checkbox" id="checkAge" class="sub-check" onchange="updateCheckAllState()" required>
+                        <span>[필수] 만 14세 이상입니다</span>
                     </label>
                 </div>
 
                 <div class="checkbox-item">
                     <label class="checkbox-label">
-                        <input type="checkbox" id="checkMarketingEmail" class="sub-check"
-                            onchange="updateCheckAllState()">
-                        <span>[선택] 이메일 마케팅 정보 수신 동의</span>
+                        <input type="checkbox" id="checkMarketingEmail" class="sub-check" onchange="updateCheckAllState()">
+                        <span>[선택] 이메일 혜택 소식 수신 동의</span>
                     </label>
-                    <button type="button" class="btn-view-terms" onclick="openModal('marketingModal')">보기 &gt;</button>
                 </div>
 
                 <div class="checkbox-item">
                     <label class="checkbox-label">
-                        <input type="checkbox" id="checkMarketingSms" class="sub-check"
-                            onchange="updateCheckAllState()">
-                        <span>[선택] SMS 마케팅 정보 수신 동의</span>
+                        <input type="checkbox" id="checkMarketingSms" class="sub-check" onchange="updateCheckAllState()">
+                        <span>[선택] SMS / 카카오톡 알림 수신 동의</span>
                     </label>
                 </div>
             </div>
 
             <button type="submit" id="btnRegister" class="btn-auth">회원가입 완료</button>
-        </form>
 
-        <div class="auth-footer">
-            이미 계정이 있으신가요? <a href="/login">로그인</a>
-        </div>
+            <div class="auth-footer">
+                이미 계정이 있으신가요? <a href="/login">로그인</a>
+            </div>
+        </form>
     </main>
 
-    <!-- 모달: 이용약관 -->
-    <div id="termsModal" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3>전자상거래 표준 이용약관</h3>
-                <button type="button" class="modal-close" onclick="closeModal('termsModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p><strong>제1조 (목적)</strong><br>본 약관은 영월고향방앗간이 제공하는 인터넷 쇼핑몰 서비스의 이용 조건 및 절차, 이용자와 당사의 권리·의무 및 책임사항을 규정함을
-                    목적으로 합니다.</p>
-                <p><strong>제2조 (회원의 의무)</strong><br>회원은 본 서비스 이용과 관련하여 올바른 정보를 등록해야 하며, 타인의 정보를 도용해서는 안 됩니다.</p>
-                <p><strong>제3조 (청약철회)</strong><br>구매자는 재화 수령 후 7일 이내 청약 철회가 가능합니다. 단, 신선식품 특성상 개봉 후 가치가 감소한 경우 일부 제한될 수
-                    있습니다.</p>
-                <p><a href="/terms" onclick="openLegalModal('terms'); return false;" target="_blank" style="color:var(--color-primary); text-decoration:underline;">[전체
-                        이용약관 페이지에서 자세히 보기]</a></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-inline" onclick="closeModal('termsModal')">확인</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 모달: 개인정보 수집 이용 안내 -->
-    <div id="privacyModal" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3>개인정보 수집 및 이용 안내</h3>
-                <button type="button" class="modal-close" onclick="closeModal('privacyModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <table
-                    style="width:100%; border-collapse:collapse; text-align:left; font-size:0.85rem; border:1px solid #ddd;">
-                    <thead>
-                        <tr style="background:#f5f5f5; border-bottom:1px solid #ddd;">
-                            <th style="padding:8px; border-right:1px solid #ddd;">수집 항목</th>
-                            <th style="padding:8px; border-right:1px solid #ddd;">이용 목적</th>
-                            <th style="padding:8px;">보유 및 이용 기간</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td style="padding:8px; border-right:1px solid #ddd; border-bottom:1px solid #ddd;">이메일,
-                                비밀번호, 성명, 연락처</td>
-                            <td style="padding:8px; border-right:1px solid #ddd; border-bottom:1px solid #ddd;">회원 식별,
-                                서비스 제공, 부정이용 방지</td>
-                            <td style="padding:8px; border-bottom:1px solid #ddd;"><strong>회원 탈퇴 시 즉시 파기</strong> (단, 관계
-                                법령에 따라 보존 필요 시 해당 기간 보존)</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <p style="margin-top:1rem;"><a href="/privacy" onclick="openLegalModal('privacy'); return false;" target="_blank"
-                        style="color:var(--color-primary); text-decoration:underline;">[개인정보 처리방침 전체 보기]</a></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-inline" onclick="closeModal('privacyModal')">확인</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 모달: 마케팅 정보 수신 동의 -->
-    <div id="marketingModal" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3>[선택] 마케팅 정보 수신 동의</h3>
-                <button type="button" class="modal-close" onclick="closeModal('marketingModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>영월고향방앗간의 신상품 출시, 계절 한정 이벤트, 회원 전용 할인 쿠폰 및 프로모션 소식을 이메일 및 문자(SMS/LMS)로 받아보실 수 있습니다.</p>
-                <p style="font-size:0.85rem; color:#777;">* 본 동의는 선택 사항이며, 거부하시더라도 기본 회원 서비스 이용에는 제한이 없습니다.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-inline" onclick="closeModal('marketingModal')">확인</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 모달: 커스텀 Alert -->
-    <div id="customAlertModal" class="modal-overlay" style="z-index: 2000;">
+    <!-- 모달: 커스텀 Alert 팝업 -->
+    <div id="customAlertModal" class="modal-overlay">
         <div class="custom-alert-card">
             <div class="custom-alert-icon" id="customAlertIcon">✓</div>
             <h3 id="customAlertTitle" class="custom-alert-title">알림</h3>
@@ -607,120 +481,56 @@
             <button type="button" class="btn-custom-alert-confirm" onclick="closeCustomAlert()">확인</button>
         </div>
     </div>
+{% endblock %}
 
-    <footer>
-        <div class="footer-content">
-            <div class="footer-info">
-                <span class="footer-logo">영월고향방앗간</span><br>
-                강원특별자치도 영월군 영월읍 절무리골길 16, 제2동 1층 | 고객센터: 033-000-0000<br>
-                대표자: 권오명 | 사업자등록번호: 787-04-02840
-            </div>
-            <div class="footer-links">
-                <a href="/terms" onclick="openLegalModal('terms'); return false;">이용약관</a>
-                <a href="/privacy" onclick="openLegalModal('privacy'); return false;">개인정보처리방침</a> | <a href="/refund" onclick="openLegalModal('refund'); return false;">환불 및 교환/반품 정책</a>
-            </div>
-        </div>
-        <div class="copyright">&copy; 2026 영월고향방앗간. All rights reserved.</div>
-    </footer>
-
-    <script src="cart.js"></script>
+{% block extra_js %}
     <script>
         let isEmailVerified = false;
         let verifiedEmail = '';
         let timerInterval = null;
-        let remainingSeconds = 0;
-        let cooldownSeconds = 0;
-        let cooldownInterval = null;
-        let alertCallback = null;
+        let remainingSeconds = 300;
+        let customAlertCallback = null;
 
-        // 브랜드 감성 커스텀 Alert 모달
-        function customAlert(message, type = 'success', callback = null) {
+        function customAlert(message, type = 'info', callback = null) {
             const modal = document.getElementById('customAlertModal');
+            const iconEl = document.getElementById('customAlertIcon');
             const titleEl = document.getElementById('customAlertTitle');
             const msgEl = document.getElementById('customAlertMessage');
-            const iconEl = document.getElementById('customAlertIcon');
 
-            msgEl.innerHTML = message.replace(/\n/g, '<br>');
-            alertCallback = callback;
+            customAlertCallback = callback;
+            msgEl.innerText = message;
 
             if (type === 'error') {
-                titleEl.innerText = '안내';
-                iconEl.innerText = '!';
+                iconEl.innerText = '✕';
                 iconEl.className = 'custom-alert-icon error';
+                titleEl.innerText = '오류';
             } else {
-                titleEl.innerText = '완료';
                 iconEl.innerText = '✓';
                 iconEl.className = 'custom-alert-icon';
+                titleEl.innerText = '알림';
             }
 
-            modal.classList.add('active');
+            if (modal) modal.classList.add('active');
         }
 
         function closeCustomAlert() {
             const modal = document.getElementById('customAlertModal');
-            modal.classList.remove('active');
-            if (alertCallback) {
-                const cb = alertCallback;
-                alertCallback = null;
+            if (modal) modal.classList.remove('active');
+            if (typeof customAlertCallback === 'function') {
+                const cb = customAlertCallback;
+                customAlertCallback = null;
                 cb();
             }
         }
 
-        // 기본 alert() 커스텀 모달로 대체
-        window.alert = function (msg) {
-            const isErr = msg.includes('오류') || msg.includes('실패') || msg.includes('필수') || msg.includes('않습니다') || msg.includes('해 주세요') || msg.includes('초과');
-            customAlert(msg, isErr ? 'error' : 'success');
-        };
-
-        // 이메일 변경 감지 시 인증 상태 즉시 리셋
-        function handleEmailChange() {
-            const currentEmail = document.getElementById('regEmail').value.trim().toLowerCase();
-            if (isEmailVerified && currentEmail !== verifiedEmail) {
-                isEmailVerified = false;
-                verifiedEmail = '';
-                document.getElementById('regEmail').disabled = false;
-                document.getElementById('btnSendOtp').style.display = 'inline-block';
-                document.getElementById('btnSendOtp').disabled = false;
-                document.getElementById('btnSendOtp').innerText = '인증번호 받기';
-                document.getElementById('otpGroup').style.display = 'none';
-                document.getElementById('regOtp').value = '';
-                document.getElementById('otpFeedback').style.display = 'none';
-                showFeedback('emailFeedback', '이메일 주소가 변경되어 인증이 초기화되었습니다.', 'error');
-            }
-        }
-
-        // 비밀번호 실시간 match 확인
-        function checkPasswordMatch() {
-            const p1 = document.getElementById('regPassword').value;
-            const p2 = document.getElementById('regPasswordConfirm').value;
-
-            if (p1.length > 0 && p1.length < 8) {
-                showFeedback('pwdFeedback', '비밀번호는 최소 8자 이상이어야 합니다.', 'error');
-            } else {
-                hideFeedback('pwdFeedback');
-            }
-
-            if (p2.length > 0) {
-                if (p1 !== p2) {
-                    showFeedback('pwdConfirmFeedback', '비밀번호가 일치하지 않습니다.', 'error');
-                } else {
-                    showFeedback('pwdConfirmFeedback', '비밀번호가 일치합니다.', 'success');
-                }
-            } else {
-                hideFeedback('pwdConfirmFeedback');
-            }
-        }
-
-        // 인증번호 받기 요청
         async function requestOtp() {
             const emailInput = document.getElementById('regEmail');
             const email = emailInput.value.trim().toLowerCase();
-            const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
 
-            if (!email || !emailRegex.test(email)) {
-                showFeedback('emailFeedback', '유효한 이메일 주소를 입력해 주세요.', 'error');
-                customAlert('유효한 이메일 주소를 입력해 주세요.', 'error', () => {
-                    emailInput.focus();
+            if (!email || !email.includes('@')) {
+                showFeedback('emailFeedback', '올바른 이메일 주소를 입력해 주세요.', 'error');
+                customAlert('올바른 이메일 주소를 입력해 주세요.', 'error', () => {
+                    focusElement('regEmail');
                 });
                 return;
             }
@@ -739,65 +549,28 @@
                 const data = await resp.json();
 
                 if (resp.ok) {
-                    showFeedback('emailFeedback', data.message, 'success');
+                    showFeedback('emailFeedback', '✓ 인증번호가 발송되었습니다.', 'success');
                     document.getElementById('otpGroup').style.display = 'block';
-                    document.getElementById('regOtp').value = '';
-                    hideFeedback('otpFeedback');
-
-                    // 타이머 시작 (5분)
-                    startTimer(data.expires_in || 300);
-                    // 60초 쿨다운 재전송 버튼 비활성화
-                    startCooldown(60);
-
-                    customAlert(data.message || '인증번호가 입력하신 이메일로 발송되었습니다.', 'success', () => {
-                        document.getElementById('regOtp').focus();
+                    btnSend.innerText = '재전송';
+                    btnSend.disabled = false;
+                    startTimer(300);
+                    customAlert('입력하신 이메일로 6자리 인증번호가 발송되었습니다.', 'success', () => {
+                        focusElement('regOtp');
                     });
                 } else {
-                    showFeedback('emailFeedback', data.error || '인증번호 발송 실패', 'error');
+                    showFeedback('emailFeedback', data.error || '발송 실패', 'error');
                     btnSend.disabled = false;
-                    btnSend.innerText = '인증번호 받기';
-                    customAlert(data.error || '인증번호 발송에 실패했습니다.', 'error', () => {
-                        emailInput.focus();
-                    });
+                    btnSend.innerText = '인증번호 전송';
+                    customAlert(data.error || '인증번호 발송에 실패했습니다.', 'error');
                 }
             } catch (err) {
                 console.error(err);
-                showFeedback('emailFeedback', '인증번호 요청 중 오류가 발생했습니다.', 'error');
+                showFeedback('emailFeedback', '서버 통신 오류가 발생했습니다.', 'error');
                 btnSend.disabled = false;
-                btnSend.innerText = '인증번호 받기';
-                customAlert('인증번호 요청 중 오류가 발생했습니다.', 'error', () => {
-                    emailInput.focus();
-                });
+                btnSend.innerText = '인증번호 전송';
             }
         }
 
-        // 60초 쿨다운
-        function startCooldown(sec) {
-            cooldownSeconds = sec;
-            const btnSend = document.getElementById('btnSendOtp');
-            btnSend.disabled = true;
-
-            clearInterval(cooldownInterval);
-            cooldownInterval = setInterval(() => {
-                cooldownSeconds--;
-                if (isEmailVerified) {
-                    btnSend.style.display = 'none';
-                    clearInterval(cooldownInterval);
-                    return;
-                }
-                if (cooldownSeconds > 0) {
-                    btnSend.innerText = `재전송 (${cooldownSeconds}초)`;
-                } else {
-                    clearInterval(cooldownInterval);
-                    if (!isEmailVerified) {
-                        btnSend.disabled = false;
-                        btnSend.innerText = '인증번호 재전송';
-                    }
-                }
-            }, 1000);
-        }
-
-        // 5분 타이머
         function startTimer(sec) {
             remainingSeconds = sec;
             const badge = document.getElementById('timerBadge');
@@ -817,7 +590,6 @@
             }, 1000);
         }
 
-        // 인증번호 검증
         async function verifyOtp() {
             const email = document.getElementById('regEmail').value.trim().toLowerCase();
             const code = document.getElementById('regOtp').value.trim();
@@ -858,7 +630,6 @@
                     btnVerify.disabled = true;
                     btnVerify.innerText = '완료';
 
-                    // 커스텀 알림 팝업 전송
                     customAlert('이메일 인증이 성공적으로 완료되었습니다!', 'success');
                 } else {
                     showFeedback('otpFeedback', data.error || '인증번호 검증 실패', 'error');
@@ -872,7 +643,6 @@
             }
         }
 
-        // 약관 전체동의 제어
         function toggleCheckAll(source) {
             const checkboxes = document.querySelectorAll('.sub-check');
             checkboxes.forEach(cb => cb.checked = source.checked);
@@ -885,29 +655,20 @@
             checkAll.checked = allChecked;
         }
 
-        // 피드백 메시지 헬퍼
         function showFeedback(elementId, msg, type) {
             const el = document.getElementById(elementId);
+            if (!el) return;
             el.innerText = msg;
             el.className = `feedback-msg ${type}`;
         }
 
         function hideFeedback(elementId) {
             const el = document.getElementById(elementId);
+            if (!el) return;
             el.innerText = '';
             el.className = 'feedback-msg';
         }
 
-        // 모달 열기/닫기
-        function openModal(id) {
-            document.getElementById(id).classList.add('active');
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
-        }
-
-        // Element 포커스 및 중앙 스크롤 이동 헬퍼
         function focusElement(elementId) {
             const el = document.getElementById(elementId);
             if (!el) return;
@@ -915,7 +676,6 @@
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // 회원가입 제출 처리 (위에서 아래 순서대로 꼼꼼히 검증)
         async function handleRegister(e) {
             e.preventDefault();
 
@@ -931,15 +691,11 @@
             const marketing_email_agreed = document.getElementById('checkMarketingEmail') ? document.getElementById('checkMarketingEmail').checked : false;
             const marketing_sms_agreed = document.getElementById('checkMarketingSms') ? document.getElementById('checkMarketingSms').checked : false;
 
-            // 1. 이메일 주소 검증
             if (!email) {
-                customAlert('이메일 주소를 입력해 주세요.', 'error', () => {
-                    focusElement('regEmail');
-                });
+                customAlert('이메일 주소를 입력해 주세요.', 'error', () => { focusElement('regEmail'); });
                 return;
             }
 
-            // 2. 이메일 인증 완료 검증
             if (!isEmailVerified || email !== verifiedEmail) {
                 customAlert('이메일 인증을 완료해 주세요.', 'error', () => {
                     if (document.getElementById('otpGroup').style.display !== 'none') {
@@ -951,71 +707,48 @@
                 return;
             }
 
-            // 3. 비밀번호 검증 (미입력 및 최소 10자 이상)
             if (!password) {
-                customAlert('비밀번호를 입력해 주세요.', 'error', () => {
-                    focusElement('regPassword');
-                });
+                customAlert('비밀번호를 입력해 주세요.', 'error', () => { focusElement('regPassword'); });
                 return;
             }
 
             if (password.length < 10) {
-                customAlert('비밀번호는 최소 10자 이상이어야 합니다.', 'error', () => {
-                    focusElement('regPassword');
-                });
+                customAlert('비밀번호는 최소 10자 이상이어야 합니다.', 'error', () => { focusElement('regPassword'); });
                 return;
             }
 
-            // 4. 비밀번호 확인 검증 (미입력 및 일치 여부)
             if (!password_confirm) {
-                customAlert('비밀번호 확인을 입력해 주세요.', 'error', () => {
-                    focusElement('regPasswordConfirm');
-                });
+                customAlert('비밀번호 확인을 입력해 주세요.', 'error', () => { focusElement('regPasswordConfirm'); });
                 return;
             }
 
             if (password !== password_confirm) {
-                customAlert('비밀번호가 서로 일치하지 않습니다.', 'error', () => {
-                    focusElement('regPasswordConfirm');
-                });
+                customAlert('비밀번호가 서로 일치하지 않습니다.', 'error', () => { focusElement('regPasswordConfirm'); });
                 return;
             }
 
-            // 5. 성함 검증
             if (!name) {
-                customAlert('성함을 입력해 주세요.', 'error', () => {
-                    focusElement('regName');
-                });
+                customAlert('성함을 입력해 주세요.', 'error', () => { focusElement('regName'); });
                 return;
             }
 
-            // 6. 연락처 검증
             if (!phone) {
-                customAlert('연락처를 입력해 주세요.', 'error', () => {
-                    focusElement('regPhone');
-                });
+                customAlert('연락처를 입력해 주세요.', 'error', () => { focusElement('regPhone'); });
                 return;
             }
 
-            // 7. 필수 약관 개별 검증
             if (!terms_agreed) {
-                customAlert('이용약관 동의는 필수입니다.', 'error', () => {
-                    focusElement('checkTerms');
-                });
+                customAlert('이용약관 동의는 필수입니다.', 'error', () => { focusElement('checkTerms'); });
                 return;
             }
 
             if (!privacy_agreed) {
-                customAlert('개인정보 수집·이용 안내 동의는 필수입니다.', 'error', () => {
-                    focusElement('checkPrivacy');
-                });
+                customAlert('개인정보 수집·이용 안내 동의는 필수입니다.', 'error', () => { focusElement('checkPrivacy'); });
                 return;
             }
 
             if (!age_agreed) {
-                customAlert('만 14세 이상 확인은 필수입니다.', 'error', () => {
-                    focusElement('checkAge');
-                });
+                customAlert('만 14세 이상 확인은 필수입니다.', 'error', () => { focusElement('checkAge'); });
                 return;
             }
 
@@ -1061,7 +794,4 @@
             }
         }
     </script>
-<script src="/static/legal_modal.js"></script>
-</body>
-
-</html>
+{% endblock %}

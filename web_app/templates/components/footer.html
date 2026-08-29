@@ -1,34 +1,21 @@
-<!-- Footer Component for 고향방앗간 -->
+<!-- Footer Component for 영월고향방앗간 -->
 <footer>
-    <div class="footer-container" style="max-width: 1200px; margin: 0 auto; padding: 3rem 5%; display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 2rem; color: #666; font-size: 0.9rem; line-height: 1.6;">
-        <div>
-            <h3 style="font-family: 'Noto Serif KR', serif; color: #333; margin-bottom: 1rem; font-size: 1.2rem;">{{ config.BUSINESS_NAME }}</h3>
-            <p><strong>상호명:</strong> {{ config.BUSINESS_NAME }} | <strong>대표자:</strong> {{ config.REPRESENTATIVE_NAME }}</p>
-            <p><strong>사업자등록번호:</strong> {{ config.BUSINESS_REGISTRATION_NUMBER }} | <strong>통신판매업신고:</strong> {{ config.MAIL_ORDER_SALES_NUMBER }}</p>
-            <p><strong>사업장 주소:</strong> {{ config.BUSINESS_ADDRESS }}</p>
-            <p><strong>개인정보보호책임자:</strong> {{ config.PRIVACY_OFFICER }} | <strong>호스팅제공자:</strong> {{ config.HOSTING_PROVIDER }}</p>
+    <div class="footer-content">
+        <div class="footer-info">
+            <span class="footer-logo">{{ config.BUSINESS_NAME if config and config.BUSINESS_NAME else '영월고향방앗간' }}</span><br>
+            {{ config.BUSINESS_ADDRESS if config and config.BUSINESS_ADDRESS else '강원특별자치도 영월군 영월읍 절무리골길 16, 제2동 1층' }} | 고객센터: {{ config.CUSTOMER_SERVICE_PHONE if config and config.CUSTOMER_SERVICE_PHONE else '033-000-0000' }}<br>
+            대표자: {{ config.REPRESENTATIVE_NAME if config and config.REPRESENTATIVE_NAME else '권오명' }} | 사업자등록번호: {{ config.BUSINESS_REGISTRATION_NUMBER if config and config.BUSINESS_REGISTRATION_NUMBER else '787-04-02840' }}<br>
+            통신판매업신고: {{ config.MAIL_ORDER_SALES_NUMBER if config and config.MAIL_ORDER_SALES_NUMBER else '제2026-강원영월-0000호' }}
         </div>
-        <div>
-            <h4 style="color: #333; margin-bottom: 0.8rem;">고객센터 (CS)</h4>
-            <p style="font-size: 1.3rem; font-weight: 700; color: var(--color-primary, #915a28); margin-bottom: 0.5rem;">{{ config.CUSTOMER_SERVICE_PHONE }}</p>
-            <p>운영시간: 평일 09:00 ~ 18:00 (주말/공휴일 휴무)</p>
-            <p>이메일: {{ config.CUSTOMER_SERVICE_EMAIL }}</p>
-        </div>
-        <div>
-            <h4 style="color: #333; margin-bottom: 0.8rem;">이용 안내 & 약관</h4>
-            <p><a href="/terms" onclick="openLegalModal('terms'); return false;" style="color: #666; text-decoration: underline; cursor: pointer;">전자상거래 이용약관</a></p>
-            <p><a href="/privacy" onclick="openLegalModal('privacy'); return false;" style="color: #666; text-decoration: underline; font-weight: 700; cursor: pointer;">개인정보 처리방침</a></p>
-            <p><a href="/refund" onclick="openLegalModal('refund'); return false;" style="color: #666; text-decoration: underline; cursor: pointer;">환불 및 교환/반품 정책</a></p>
-            <div style="margin-top: 1rem; padding: 0.8rem; background: #f9f6f0; border-radius: 6px; border: 1px solid #e5dec9; font-size: 0.8rem;">
-                <strong>구매안전(에스크로) 서비스</strong><br>
-                고객님의 안전거래를 위해 현금 결제 시 PortOne 결제대금예치(에스크로) 서비스를 이용하실 수 있습니다.
-            </div>
+        <div class="footer-links">
+            <a href="/terms" onclick="openLegalModal('terms'); return false;">이용약관</a>
+            <a href="/privacy" onclick="openLegalModal('privacy'); return false;">개인정보처리방침</a> | <a href="/refund" onclick="openLegalModal('refund'); return false;">환불 및 교환/반품 정책</a>
         </div>
     </div>
-    <div class="copyright" style="text-align: center; border-top: 1px solid #eee; padding: 1.5rem 0; color: #888; font-size: 0.85rem;">
-        &copy; 2026 {{ config.BUSINESS_NAME }}. All rights reserved.
+    <div class="copyright">
+        &copy; 2026 {{ config.BUSINESS_NAME if config and config.BUSINESS_NAME else '영월고향방앗간' }}. All rights reserved.
     </div>
 </footer>
 
-<!-- legal_modal.js 자동 로드 -->
+<!-- 약관 팝업 모달 자바스크립트 모듈 로드 -->
 <script src="/static/legal_modal.js"></script>

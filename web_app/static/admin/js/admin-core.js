@@ -1,3 +1,13 @@
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function initSidebarAccordions() {
     document.querySelectorAll('.menu-group-header').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -20,7 +30,146 @@ function initSidebarAccordions() {
 let dashboardPollInterval = null;
 
 function customAlert(message, type = 'info') {
-    alert(`[${type.toUpperCase()}] ${message}`);
+    let container = document.getElementById('admin-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'admin-toast-container';
+        container.style.cssText = `
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 999999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        `;
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        pointer-events: auto;
+        min-width: 280px;
+        max-width: 420px;
+        background: #ffffff;
+        color: #2c1d11;
+        border-radius: 10px;
+        padding: 14px 18px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: 'Noto Sans KR', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        border-left: 5px solid #8D6E63;
+        transform: translateX(120%);
+        transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+        opacity: 0;
+    `;
+
+    let iconHtml = '<i class="fa-solid fa-circle-info" style="color:#1565c0; font-size:1.2rem;"></i>';
+    if (type === 'warning') {
+        toast.style.borderLeftColor = '#f57c00';
+        iconHtml = '<i class="fa-solid fa-triangle-exclamation" style="color:#f57c00; font-size:1.2rem;"></i>';
+    } else if (type === 'error') {
+        toast.style.borderLeftColor = '#d32f2f';
+        iconHtml = '<i class="fa-solid fa-circle-xmark" style="color:#d32f2f; font-size:1.2rem;"></i>';
+    } else if (type === 'success') {
+        toast.style.borderLeftColor = '#2e7d32';
+        iconHtml = '<i class="fa-solid fa-circle-check" style="color:#2e7d32; font-size:1.2rem;"></i>';
+    }
+
+    toast.innerHTML = `
+        <div>${iconHtml}</div>
+        <div style="flex:1; line-height:1.4;">${message}</div>
+        <button type="button" style="background:none; border:none; color:#999; font-size:1.1rem; cursor:pointer; padding:0 4px;" onclick="this.parentElement.remove()">&times;</button>
+    `;
+
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.style.transform = 'translateX(0)';
+        toast.style.opacity = '1';
+    });
+
+    setTimeout(() => {
+        toast.style.transform = 'translateX(120%)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 400);
+    }, 3500);
+}
+
+// 2. 커스텀 Confirm 다이얼로그 모달 (Promise 기반)
+function customConfirm(message, title = '확인 요청') {
+    return new Promise((resolve) => {
+        const existingModal = document.getElementById('admin-custom-confirm-modal');
+        if (existingModal) existingModal.remove();
+
+        const backdrop = document.createElement('div');
+        backdrop.id = 'admin-custom-confirm-modal';
+        backdrop.style.cssText = `
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(4px);
+            z-index: 999999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        `;
+
+        const card = document.createElement('div');
+        card.style.cssText = `
+            background: #ffffff;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 420px;
+            padding: 24px 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+            transform: scale(0.92);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-family: 'Noto Sans KR', sans-serif;
+        `;
+
+        card.innerHTML = `
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+                <div style="width:40px; height:40px; border-radius:50%; background:#fff3e0; display:flex; align-items:center; justify-content:center; color:#e65100; font-size:1.3rem; flex-shrink:0;">
+                    <i class="fa-solid fa-circle-question"></i>
+                </div>
+                <div style="font-size:1.05rem; font-weight:700; color:#2c3e50;">${title}</div>
+            </div>
+            <div style="font-size:0.93rem; color:#4a5568; line-height:1.5; margin-bottom:24px; white-space:pre-wrap;">${message}</div>
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button id="confirm-btn-cancel" style="padding:8px 18px; border-radius:6px; border:1px solid #cbd5e0; background:#f7fafc; color:#4a5568; font-weight:600; font-size:0.88rem; cursor:pointer;">취소</button>
+                <button id="confirm-btn-ok" style="padding:8px 20px; border-radius:6px; border:none; background:#2b6cb0; color:#ffffff; font-weight:600; font-size:0.88rem; cursor:pointer; box-shadow:0 2px 6px rgba(43,108,176,0.3);">확인</button>
+            </div>
+        `;
+
+        backdrop.appendChild(card);
+        document.body.appendChild(backdrop);
+
+        requestAnimationFrame(() => {
+            backdrop.style.opacity = '1';
+            card.style.transform = 'scale(1)';
+        });
+
+        const closeConfirm = (result) => {
+            backdrop.style.opacity = '0';
+            card.style.transform = 'scale(0.92)';
+            setTimeout(() => {
+                backdrop.remove();
+                resolve(result);
+            }, 180);
+        };
+
+        backdrop.querySelector('#confirm-btn-ok').onclick = () => closeConfirm(true);
+        backdrop.querySelector('#confirm-btn-cancel').onclick = () => closeConfirm(false);
+        backdrop.onclick = (e) => { if (e.target === backdrop) closeConfirm(false); };
+    });
 }
 
 function openModal(modalId) {
@@ -142,7 +291,7 @@ function navigatePage(pageName, updateHash = true) {
 
     currentActivePage = actualPage;
 
-    // 페이지별 데이터 로드
+    // 페이지별 데이터 로드 (0ms instant skeleton clear)
     if (actualPage === 'dashboard') {
         if (typeof loadDashboardMetrics === 'function') loadDashboardMetrics();
         dashboardPollInterval = setInterval(() => {
@@ -156,12 +305,22 @@ function navigatePage(pageName, updateHash = true) {
         } else if (typeof switchOrderSubTab === 'function') {
             switchOrderSubTab(pageKey);
         } else if (typeof loadOrders === 'function') {
+            renderTableSkeleton('orders-tbody', 10, 5);
             loadOrders();
         }
     }
-    else if (actualPage === 'products' && typeof loadProducts === 'function') loadProducts();
-    else if (actualPage === 'customers' && typeof loadCustomers === 'function') loadCustomers();
-    else if (actualPage === 'audit' && typeof loadAuditLogs === 'function') loadAuditLogs();
+    else if (actualPage === 'products' && typeof loadProducts === 'function') {
+        renderTableSkeleton('products-tbody', 6, 5);
+        loadProducts();
+    }
+    else if (actualPage === 'customers' && typeof loadCustomers === 'function') {
+        renderTableSkeleton('customers-tbody', 8, 5);
+        loadCustomers();
+    }
+    else if (actualPage === 'audit' && typeof loadAuditLogs === 'function') {
+        renderTableSkeleton('audit-tbody', 9, 5);
+        loadAuditLogs();
+    }
 }
 
 function handleHashRouting() {
@@ -184,7 +343,11 @@ function handleHashRouting() {
 async function fetchPartial(url) {
     try {
         const cacheBustUrl = `${url}?t=${Date.now()}`;
-        const resp = await fetch(cacheBustUrl);
+        let resp = await fetch(cacheBustUrl);
+        if (!resp.ok && url.startsWith('/static/admin/')) {
+            const altUrl = url.replace('/static/admin/', '/admin/');
+            resp = await fetch(`${altUrl}?t=${Date.now()}`);
+        }
         if (resp.ok) {
             return await resp.text();
         }
@@ -196,13 +359,13 @@ async function fetchPartial(url) {
 
 async function loadAdminPartials() {
     // 1. 공통 컴포넌트 (로그인 폼, 사이드바)
-    const loginHtml = await fetchPartial('/static/admin/components/login.html');
+    const loginHtml = await fetchPartial('/admin/components/login.html');
     if (loginHtml) {
         const loginContainer = document.getElementById('login-container');
         if (loginContainer) loginContainer.innerHTML = loginHtml;
     }
 
-    const sidebarHtml = await fetchPartial('/static/admin/components/sidebar.html');
+    const sidebarHtml = await fetchPartial('/admin/components/sidebar.html');
     if (sidebarHtml) {
         const sidebarContainer = document.getElementById('sidebar-container');
         if (sidebarContainer) sidebarContainer.innerHTML = sidebarHtml;
@@ -213,7 +376,7 @@ async function loadAdminPartials() {
     const pages = ['dashboard', 'orders', 'products', 'customers', 'audit'];
     const mainContent = document.getElementById('main-content');
     if (mainContent) {
-        const pageHtmls = await Promise.all(pages.map(p => fetchPartial(`/static/admin/pages/${p}.html`)));
+        const pageHtmls = await Promise.all(pages.map(p => fetchPartial(`/admin/pages/${p}.html`)));
         pageHtmls.forEach(html => {
             if (html) mainContent.insertAdjacentHTML('beforeend', html);
         });
@@ -223,7 +386,7 @@ async function loadAdminPartials() {
     const modals = ['order-detail', 'refund-confirm', 'customer-edit', 'product-edit', 'product-create'];
     const modalContainer = document.getElementById('modal-container');
     if (modalContainer) {
-        const modalHtmls = await Promise.all(modals.map(m => fetchPartial(`/static/admin/components/modals/${m}.html`)));
+        const modalHtmls = await Promise.all(modals.map(m => fetchPartial(`/admin/components/modals/${m}.html`)));
         modalHtmls.forEach(html => {
             if (html) modalContainer.insertAdjacentHTML('beforeend', html);
         });
@@ -314,6 +477,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+// 브라우저 기본 alert 시스템 오버라이딩 (커스텀 alert 자동 전환)
+window.alert = function (message) {
+    if (typeof customAlert === 'function') {
+        customAlert(message, 'info');
+    }
+};
+
 /**
  * 범용 페이지네이션 바 렌더링 유틸
  * @param {string} containerId  - 삽입할 container element ID
@@ -357,5 +527,27 @@ function renderPaginationBar(containerId, pagination, onPageClick) {
             <div style="display:flex;gap:3px;">${btns}</div>
         </div>
     `;
+}
+
+/**
+ * 리스트 테이블 스켈레톤(Skeleton UI) 로딩 플레이스홀더 렌더러
+ * @param {string} tbodyId 
+ * @param {number} colsCount 
+ * @param {number} rowsCount 
+ */
+function renderTableSkeleton(tbodyId, colsCount = 6, rowsCount = 5) {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+    tbody.classList.remove('fade-in-table');
+    let rowsHtml = '';
+    for (let r = 0; r < rowsCount; r++) {
+        let colsHtml = '';
+        for (let c = 0; c < colsCount; c++) {
+            const randomWidth = Math.floor(Math.random() * 35) + 55;
+            colsHtml += `<td style="padding:0.9rem 0.8rem;"><div class="skeleton-bar" style="width:${randomWidth}%;"></div></td>`;
+        }
+        rowsHtml += `<tr>${colsHtml}</tr>`;
+    }
+    tbody.innerHTML = rowsHtml;
 }
 

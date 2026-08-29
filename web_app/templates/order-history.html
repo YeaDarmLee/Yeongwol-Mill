@@ -1,0 +1,600 @@
+{% extends "base.html" %}
+
+{% block title %}주문 조회 - {{ config.BUSINESS_NAME if config and config.BUSINESS_NAME else '영월고향방앗간' }}{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .lookup-container {
+            max-width: 800px;
+            margin: 140px auto 7rem;
+            padding: 0 5%;
+        }
+
+        .tab-group {
+            display: flex;
+            border-bottom: 2px solid var(--color-border-subtle);
+            margin-bottom: 2rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard);
+        }
+
+        .tab-btn:hover {
+            color: var(--color-text-primary);
+        }
+
+        .tab-btn.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+
+        .tab-pane {
+            animation: tabFadeIn 200ms var(--ease-out);
+        }
+
+        @keyframes tabFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(3px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            font-size: 0.95rem;
+            color: var(--color-text-primary);
+        }
+
+        .btn-lookup {
+            width: 100%;
+            padding: 1rem;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: transform var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .btn-lookup:hover {
+                background: var(--color-primary-hover);
+                transform: translateY(-1px);
+            }
+        }
+
+        .order-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+            margin-top: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--color-border-subtle);
+            margin-bottom: 1rem;
+        }
+
+        .order-number {
+            font-family: monospace;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--color-text-primary);
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            background: var(--color-surface-soft);
+            color: var(--color-primary);
+            border: 1px solid var(--color-primary-light);
+            border-radius: var(--radius-full);
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .status-badge.cancelled {
+            background: #ffebee;
+            color: #c62828;
+            border-color: #ef9a9a;
+        }
+
+        .status-badge.shipping {
+            background: #e3f2fd;
+            color: #1565c0;
+            border-color: #90caf9;
+        }
+
+        .status-badge.delivered {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-color: #a5d6a7;
+        }
+
+        .order-item-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1rem 0;
+        }
+
+        .order-item-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed var(--color-border-subtle);
+            font-size: 0.95rem;
+        }
+
+        .order-item-row:last-child {
+            border-bottom: none;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .custom-alert-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            transform: scale(0.9);
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-overlay.active .custom-alert-card {
+            transform: scale(1);
+        }
+
+        .custom-alert-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.8rem;
+            color: var(--color-primary, #915a28);
+        }
+
+        .custom-alert-icon.error {
+            color: #d32f2f;
+        }
+
+        .custom-alert-title {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: #222;
+        }
+
+        .custom-alert-message {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+            word-break: keep-all;
+        }
+
+        .btn-custom-alert-confirm {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--color-primary, #915a28);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .btn-custom-alert-confirm:hover {
+            background: var(--color-primary-hover, #77491f);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <main class="lookup-container">
+        <h1 style="font-family: 'Noto Serif KR', serif; font-size: 2.2rem; text-align: center; margin-bottom: 2rem; color: var(--color-text-primary);">
+            주문 내역 조회
+        </h1>
+
+        <div class="tab-group" role="tablist">
+            <button class="tab-btn" id="btnTabGuest" role="tab" aria-selected="false" aria-controls="guestTabContent"
+                onclick="switchTab('guest')">비회원 주문 조회</button>
+            <button class="tab-btn" id="btnTabUser" role="tab" aria-selected="false" aria-controls="userTabContent"
+                onclick="switchTab('user')">회원 주문 내역</button>
+        </div>
+
+        <!-- 비회원 조회 폼 -->
+        <div id="guestTabContent" class="tab-pane" role="tabpanel" aria-labelledby="btnTabGuest" style="display: none;">
+            <div class="form-card">
+                <div class="form-group">
+                    <label>주문 번호 *</label>
+                    <input type="text" id="lookupOrderNumber" class="form-control" placeholder="ORD-2026XXXX-XXXXXX">
+                </div>
+                <div class="form-group">
+                    <label>주문자 연락처 *</label>
+                    <input type="tel" id="lookupGuestPhone" class="form-control" placeholder="예: 010-1234-5678">
+                </div>
+                <div class="form-group">
+                    <label>비회원 비밀번호 *</label>
+                    <input type="password" id="lookupGuestPassword" class="form-control" placeholder="주문 시 설정한 비밀번호">
+                </div>
+                <button class="btn-lookup" onclick="lookupGuestOrder()">주문 조회하기</button>
+            </div>
+        </div>
+
+        <!-- 회원 조회 폼 -->
+        <div id="userTabContent" class="tab-pane" role="tabpanel" aria-labelledby="btnTabUser" style="display: none;">
+            <div id="memberOrderList">
+                <p style="text-align: center; color: #777;">주문 내역을 불러오는 중입니다...</p>
+            </div>
+        </div>
+
+        <!-- 조회 결과 출력 영역 -->
+        <div id="lookupResult"></div>
+    </main>
+
+    <!-- 모달: 커스텀 Alert -->
+    <div id="customAlertModal" class="modal-overlay">
+        <div class="custom-alert-card">
+            <div class="custom-alert-icon" id="customAlertIcon">✓</div>
+            <h3 id="customAlertTitle" class="custom-alert-title">알림</h3>
+            <p id="customAlertMessage" class="custom-alert-message"></p>
+            <button type="button" class="btn-custom-alert-confirm" onclick="closeCustomAlert()">확인</button>
+        </div>
+    </div>
+
+    <!-- 모달: 주문 상세 정보 -->
+    <div id="userOrderDetailModal" class="modal-overlay">
+        <div class="custom-alert-card"
+            style="max-width: 620px; text-align: left; padding: 2rem; border-radius: 16px; max-height: 85vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--color-primary, #C59B27); padding-bottom: 0.8rem; margin-bottom: 1.2rem;">
+                <h3 style="margin: 0; font-family: 'Noto Serif KR', serif; color: #2c3e50; font-size: 1.25rem;">주문 상세 정보</h3>
+                <button type="button" onclick="closeUserOrderDetailModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #888; line-height: 1;">&times;</button>
+            </div>
+            <div id="userOrderDetailBody">
+                <!-- JS 동적 구동 -->
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        let customAlertCallback = null;
+
+        function customAlert(message, type = 'info', callback = null) {
+            const modal = document.getElementById('customAlertModal');
+            const iconEl = document.getElementById('customAlertIcon');
+            const titleEl = document.getElementById('customAlertTitle');
+            const msgEl = document.getElementById('customAlertMessage');
+
+            customAlertCallback = callback;
+            msgEl.innerText = message;
+
+            if (type === 'error') {
+                iconEl.innerText = '✕';
+                iconEl.className = 'custom-alert-icon error';
+                titleEl.innerText = '오류';
+            } else {
+                iconEl.innerText = '✓';
+                iconEl.className = 'custom-alert-icon';
+                titleEl.innerText = '알림';
+            }
+
+            if (modal) modal.classList.add('active');
+        }
+
+        function closeCustomAlert() {
+            const modal = document.getElementById('customAlertModal');
+            if (modal) modal.classList.remove('active');
+            if (typeof customAlertCallback === 'function') {
+                const cb = customAlertCallback;
+                customAlertCallback = null;
+                cb();
+            }
+        }
+
+        function getOrderStatusKo(status) {
+            const map = {
+                'PENDING': '주문 대기',
+                'CONFIRMED': '주문 확정',
+                'PREPARING': '상품 준비중',
+                'READY_TO_SHIP': '배송 준비중',
+                'SHIPPING': '배송 중',
+                'DELIVERED': '배송 완료',
+                'CANCELLED': '주문 취소'
+            };
+            return map[status] || status;
+        }
+
+        function getPaymentStatusKo(status) {
+            const map = {
+                'PENDING': '결제 대기',
+                'PAID': '결제 완료',
+                'PARTIALLY_REFUNDED': '부분 환불',
+                'REFUNDED': '전액 환불',
+                'FAILED': '결제 실패'
+            };
+            return map[status] || status;
+        }
+
+        function switchTab(type) {
+            const btnGuest = document.getElementById('btnTabGuest');
+            const btnUser = document.getElementById('btnTabUser');
+            const guestContent = document.getElementById('guestTabContent');
+            const userContent = document.getElementById('userTabContent');
+            const lookupResult = document.getElementById('lookupResult');
+
+            if (lookupResult) lookupResult.innerHTML = '';
+
+            if (type === 'guest') {
+                btnGuest.classList.add('active');
+                btnGuest.setAttribute('aria-selected', 'true');
+                btnUser.classList.remove('active');
+                btnUser.setAttribute('aria-selected', 'false');
+                guestContent.style.display = 'block';
+                userContent.style.display = 'none';
+            } else {
+                btnUser.classList.add('active');
+                btnUser.setAttribute('aria-selected', 'true');
+                btnGuest.classList.remove('active');
+                btnGuest.setAttribute('aria-selected', 'false');
+                userContent.style.display = 'block';
+                guestContent.style.display = 'none';
+                loadUserOrders();
+            }
+        }
+
+        async function lookupGuestOrder() {
+            const orderNumber = document.getElementById('lookupOrderNumber').value.trim();
+            const phone = document.getElementById('lookupGuestPhone').value.trim();
+            const password = document.getElementById('lookupGuestPassword').value.trim();
+
+            if (!orderNumber || !phone || !password) {
+                customAlert('주문번호, 연락처, 비밀번호를 모두 입력해 주세요.', 'error');
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/orders/guest/lookup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        order_number: orderNumber,
+                        phone: phone,
+                        password: password
+                    })
+                });
+
+                const data = await resp.json();
+                if (!resp.ok) {
+                    customAlert(data.error || '일치하는 주문 내역이 없거나 비밀번호가 올바르지 않습니다.', 'error');
+                    return;
+                }
+
+                renderSingleOrderResult(data.order);
+            } catch (err) {
+                console.error("Guest order lookup error:", err);
+                customAlert("주문 조회 중 오류가 발생했습니다.", 'error');
+            }
+        }
+
+        async function loadUserOrders() {
+            const container = document.getElementById('memberOrderList');
+            const token = localStorage.getItem('yw_jwt_token');
+
+            if (!token) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 3rem 1rem; background: #fff; border-radius: 12px; border: 1px solid #eee;">
+                        <p style="font-size: 1.1rem; color: #666; margin-bottom: 1.5rem;">회원 전용 서비스입니다. 로그인 후 이용해 주세요.</p>
+                        <a href="/login" class="btn-lookup" style="display: inline-block; width: auto; padding: 0.8rem 2rem;">로그인하러 가기</a>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/orders/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!resp.ok) {
+                    if (resp.status === 401) {
+                        localStorage.removeItem('yw_jwt_token');
+                        localStorage.removeItem('yw_user');
+                        container.innerHTML = '<p style="text-align:center; color:red;">로그인 세션이 만료되었습니다. 다시 로그인해 주세요.</p>';
+                        return;
+                    }
+                    throw new Error("Failed to fetch user orders");
+                }
+
+                const data = await resp.json();
+                if (!data.orders || data.orders.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 4rem 1rem; background: #fff; border-radius: 12px; border: 1px solid #eee;">
+                            <p style="font-size: 1.1rem; color: #777;">주문 내역이 존재하지 않습니다.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = data.orders.map(order => {
+                    const statusClass = order.status === 'CANCELLED' ? 'cancelled' : (order.status === 'SHIPPING' ? 'shipping' : (order.status === 'DELIVERED' ? 'delivered' : ''));
+                    const isCancelable = ['PENDING', 'CONFIRMED'].includes(order.status);
+                    
+                    return `
+                        <div class="order-card">
+                            <div class="order-header">
+                                <div>
+                                    <span class="order-number">${order.order_number}</span>
+                                    <span style="font-size: 0.85rem; color: #888; margin-left: 10px;">${new Date(order.created_at).toLocaleDateString()}</span>
+                                </div>
+                                <span class="status-badge ${statusClass}">${getOrderStatusKo(order.status)}</span>
+                            </div>
+                            <ul class="order-item-list">
+                                ${(order.items || []).map(item => `
+                                    <li class="order-item-row">
+                                        <span><strong>${item.product_name}</strong> ${item.option_name ? `(${item.option_name})` : ''} x ${item.quantity}개</span>
+                                        <strong>${Number(item.price * item.quantity).toLocaleString()}원</strong>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-top: 1px solid #eee; padding-top: 0.8rem; margin-top: 0.5rem;">
+                                <div>
+                                    <span style="color:#666; font-size:0.9rem;">결제금액: <strong style="color:var(--color-primary); font-size:1.1rem;">${Number(order.total_amount).toLocaleString()}원</strong></span>
+                                </div>
+                                <div>
+                                    ${isCancelable ? `<button type="button" class="btn-action" style="background:#d32f2f; color:#fff; border:none; padding:6px 12px; border-radius:4px; font-size:0.85rem; cursor:pointer;" onclick="requestCancelOrder('${order.order_number}')">주문취소 요청</button>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error("User orders load error:", err);
+                container.innerHTML = '<p style="text-align:center; color:red;">주문 내역을 불러오지 못했습니다.</p>';
+            }
+        }
+
+        function renderSingleOrderResult(order) {
+            const container = document.getElementById('lookupResult');
+            const statusClass = order.status === 'CANCELLED' ? 'cancelled' : (order.status === 'SHIPPING' ? 'shipping' : (order.status === 'DELIVERED' ? 'delivered' : ''));
+            const isCancelable = ['PENDING', 'CONFIRMED'].includes(order.status);
+
+            container.innerHTML = `
+                <div class="order-card">
+                    <div class="order-header">
+                        <div>
+                            <span class="order-number">${order.order_number}</span>
+                            <span style="font-size: 0.85rem; color: #888; margin-left: 10px;">${new Date(order.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <span class="status-badge ${statusClass}">${getOrderStatusKo(order.status)}</span>
+                    </div>
+                    <ul class="order-item-list">
+                        ${(order.items || []).map(item => `
+                            <li class="order-item-row">
+                                <span><strong>${item.product_name}</strong> ${item.option_name ? `(${item.option_name})` : ''} x ${item.quantity}개</span>
+                                <strong>${Number(item.price * item.quantity).toLocaleString()}원</strong>
+                            </li>
+                        `).join('')}
+                    </ul>
+                    <div style="background:#faf6f0; padding:12px; border-radius:6px; margin:10px 0; font-size:0.9rem;">
+                        <div><strong>수령인:</strong> ${order.recipient_name} (${order.recipient_phone})</div>
+                        <div><strong>배송지:</strong> ${order.address} ${order.address_detail || ''}</div>
+                        ${order.tracking_number ? `<div style="color:var(--color-primary); margin-top:4px;"><strong>운송장번호:</strong> ${order.courier_company || '대한통운'} ${order.tracking_number}</div>` : ''}
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-top: 1px solid #eee; padding-top: 0.8rem;">
+                        <div>
+                            <span style="color:#666; font-size:0.9rem;">총 결제금액: <strong style="color:var(--color-primary); font-size:1.1rem;">${Number(order.total_amount).toLocaleString()}원</strong></span>
+                        </div>
+                        <div>
+                            ${isCancelable ? `<button type="button" class="btn-action" style="background:#d32f2f; color:#fff; border:none; padding:6px 12px; border-radius:4px; font-size:0.85rem; cursor:pointer;" onclick="requestCancelOrder('${order.order_number}')">주문취소 요청</button>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function requestCancelOrder(orderNumber) {
+            if (!confirm(`주문번호 ${orderNumber} 건을 취소하시겠습니까?`)) return;
+
+            const token = localStorage.getItem('yw_jwt_token');
+            const password = document.getElementById('lookupGuestPassword')?.value.trim() || '';
+
+            try {
+                const resp = await fetch(`/api/orders/${orderNumber}/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    },
+                    body: JSON.stringify({ reason: "고객직접취소요청", guest_password: password })
+                });
+
+                const data = await resp.json();
+                if (resp.ok) {
+                    customAlert("주문 취소 요청이 접수되었습니다.", "info", () => {
+                        window.location.reload();
+                    });
+                } else {
+                    customAlert(data.error || "주문 취소에 실패했습니다.", "error");
+                }
+            } catch (err) {
+                console.error("Cancel order error:", err);
+                customAlert("오류가 발생했습니다.", "error");
+            }
+        }
+
+        function closeUserOrderDetailModal() {
+            const modal = document.getElementById('userOrderDetailModal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = localStorage.getItem('yw_user');
+            if (user) {
+                switchTab('user');
+            } else {
+                switchTab('guest');
+            }
+        });
+    </script>
+{% endblock %}

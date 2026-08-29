@@ -5,11 +5,19 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from db.db_connection import query_db, execute_db
 
 def backfill_snapshots():
-    """기존 주문 데이터의 item snapshot을 안전하게 계산 및 채우기 수행"""
-    print("[SNAPSHOT BACKFILL] 기존 주문 스냅샷 마이그레이션 시작...")
-    
-    # 1. 모든 주문 가져오기
-    orders = query_db("SELECT * FROM orders") or []
+    """기존 주문 데이터의 item snapshot을 안전하게 계산 및 채우기 수행 (미처리 건이 있을 때만 동작)"""
+    # 백필이 필요한 주문(refund_calculation_mode가 NULL이거나 미채워진 건)이 있는지 1회 경량 조회
+    pending_orders = query_db("""
+        SELECT * FROM orders 
+        WHERE refund_calculation_mode IS NULL 
+           OR refund_calculation_mode = ''
+    """) or []
+
+    if not pending_orders:
+        return  # 백필 대상이 없으면 빠른 스킵 (부팅 속도 최적화)
+
+    print("[SNAPSHOT BACKFILL] 기존 미처리 주문 스냅샷 마이그레이션 시작...")
+    orders = pending_orders
     updated_count = 0
     manual_review_count = 0
 

@@ -2,9 +2,11 @@
 
 let productsCurrentPage = 1;
 const PRODUCTS_PAGE_LIMIT = 10;
+let cachedProductsMap = {};
 
 async function loadProducts(page = null) {
     if (page !== null) productsCurrentPage = page;
+    renderTableSkeleton('products-tbody', 6, 5);
 
     try {
         const params = new URLSearchParams();
@@ -30,6 +32,7 @@ async function loadProducts(page = null) {
         if (!data.products || data.products.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#777; padding:1.5rem;">조건에 맞는 상품이 없습니다.</td></tr>`;
         } else {
+            data.products.forEach(p => { cachedProductsMap[p.id] = p; });
             tbody.innerHTML = data.products.map(p => {
                 const optionsStr = (p.options || []).map(o => {
                     const isUnlimited = o.stock >= 999000;
@@ -62,6 +65,7 @@ async function loadProducts(page = null) {
             }).join('');
         }
 
+        tbody.classList.add('fade-in-table');
         renderPaginationBar('products-pagination', data.pagination, 'productsGoPage');
 
     } catch (err) { console.error('상품 데이터 로드 예외:', err); }
@@ -127,7 +131,7 @@ function addCreateOptionRow(optData = null) {
         <label style="font-size:0.8rem; color:#555; display:flex; align-items:center; gap:3px; cursor:pointer; white-space:nowrap;">
             <input type="checkbox" class="opt-unlimited-chk" ${isUnlimited ? 'checked' : ''} onchange="toggleOptionUnlimited(this)"> 무제한
         </label>
-        <button type="button" class="btn-action" style="background:#d32f2f; color:#fff; padding:4px 8px;" onclick="this.parentElement.remove()">삭제</button>
+        <button type="button" class="btn-action btn-action-danger" style="padding:4px 8px;" onclick="this.parentElement.remove()">삭제</button>
     `;
     container.appendChild(div);
 }
@@ -145,6 +149,7 @@ async function submitAddProduct(btnEl) {
     const cs_phone = document.getElementById('create-prod-csphone').value.trim();
     const storage_method = document.getElementById('create-prod-storage').value.trim();
     const allergy_notice = document.getElementById('create-prod-allergy').value.trim();
+    const delivery_info = document.getElementById('create-prod-deliveryinfo') ? document.getElementById('create-prod-deliveryinfo').value.trim() : '';
 
     if (!name || isNaN(price)) { customAlert('상품명과 기본 판매가를 정확히 입력해 주세요.', 'error'); return; }
 
@@ -162,7 +167,7 @@ async function submitAddProduct(btnEl) {
         const resp = await fetch('/api/admin/products', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${adminToken}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, category_id, price, capacity, food_type, manufacturer, shelf_life_text, contents_capacity, origin_info, cs_phone, storage_method, allergy_notice, options })
+            body: JSON.stringify({ name, category_id, price, capacity, food_type, manufacturer, shelf_life_text, contents_capacity, origin_info, cs_phone, storage_method, allergy_notice, delivery_info, options })
         });
         const data = await resp.json();
         if (resp.ok) { customAlert(data.message || '상품 등록 완료', 'success'); closeModal('createProductModal'); loadProducts(); loadDashboardMetrics(); }
@@ -171,39 +176,55 @@ async function submitAddProduct(btnEl) {
     finally { btnEl.disabled = false; }
 }
 
-async function openEditProductModal(productId) {
-    try {
-        const resp = await fetch(`/api/admin/products?page=1&limit=1000`, {
-            headers: { 'Authorization': `Bearer ${adminToken}` }
-        });
-        if (!resp.ok) return;
-        const data = await resp.json();
-        const p = (data.products || []).find(item => item.id === productId);
-        if (!p) { customAlert('상품 정보를 찾을 수 없습니다.', 'error'); return; }
+function bindProductEditModalData(p) {
+    document.getElementById('edit-prod-id').value = p.id;
+    document.getElementById('edit-prod-name').value = p.name || '';
+    document.getElementById('edit-prod-category').value = p.category_id || 1;
+    document.getElementById('edit-prod-price').value = p.price || 0;
+    document.getElementById('edit-prod-capacity').value = p.capacity || '';
+    document.getElementById('edit-prod-description').value = p.description || '';
+    document.getElementById('edit-prod-active').value = p.is_active ? 1 : 0;
+    document.getElementById('edit-prod-foodtype').value = p.food_type || '식용유지류';
+    document.getElementById('edit-prod-manufacturer').value = p.manufacturer || '영월고향방앗간';
+    document.getElementById('edit-prod-shelflife').value = p.shelf_life_text || '제조일로부터 12개월';
+    document.getElementById('edit-prod-contentscap').value = p.contents_capacity || p.capacity || '';
+    document.getElementById('edit-prod-origin').value = p.origin_info || '참깨/들깨: 국산(강원도 영월군 100%)';
+    document.getElementById('edit-prod-csphone').value = p.cs_phone || '033-000-0000';
+    document.getElementById('edit-prod-storage').value = p.storage_method || '직사광선을 피하고 서늘한 곳 보관';
+    document.getElementById('edit-prod-allergy').value = p.allergy_notice || '참깨/들깨 함유';
+    if (document.getElementById('edit-prod-deliveryinfo')) {
+        document.getElementById('edit-prod-deliveryinfo').value = p.delivery_info || '평일 14시 이전 주문 시 당일 발송 (1~2일 내 도착 예정)';
+    }
 
-        document.getElementById('edit-prod-id').value = p.id;
-        document.getElementById('edit-prod-name').value = p.name;
-        document.getElementById('edit-prod-category').value = p.category_id;
-        document.getElementById('edit-prod-price').value = p.price;
-        document.getElementById('edit-prod-capacity').value = p.capacity || '';
-        document.getElementById('edit-prod-description').value = p.description || '';
-        document.getElementById('edit-prod-active').value = p.is_active ? 1 : 0;
-        document.getElementById('edit-prod-foodtype').value = p.food_type || '식용유지류';
-        document.getElementById('edit-prod-manufacturer').value = p.manufacturer || '영월고향방앗간';
-        document.getElementById('edit-prod-shelflife').value = p.shelf_life_text || '제조일로부터 12개월';
-        document.getElementById('edit-prod-contentscap').value = p.contents_capacity || p.capacity || '';
-        document.getElementById('edit-prod-origin').value = p.origin_info || '참깨/들깨: 국산(강원도 영월군 100%)';
-        document.getElementById('edit-prod-csphone').value = p.cs_phone || '033-000-0000';
-        document.getElementById('edit-prod-storage').value = p.storage_method || '직사광선을 피하고 서늘한 곳 보관';
-        document.getElementById('edit-prod-allergy').value = p.allergy_notice || '참깨/들깨 함유';
-
-        const optionsContainer = document.getElementById('edit-prod-options-container');
+    const optionsContainer = document.getElementById('edit-prod-options-container');
+    if (optionsContainer) {
         optionsContainer.innerHTML = '';
         if (p.options && p.options.length > 0) p.options.forEach(opt => addEditOptionRow(opt));
         else addEditOptionRow({ option_name: '300ml (기본)', additional_price: 0, stock: 100 });
+    }
+}
 
-        openModal('editProductModal');
-    } catch (err) { console.error(err); }
+async function openEditProductModal(productId) {
+    // 1. 메모리 캐시 데이터를 이용하여 0ms (즉시) 모달 오픈!
+    const cachedProduct = cachedProductsMap[productId];
+    if (cachedProduct) {
+        bindProductEditModalData(cachedProduct);
+    }
+    openModal('editProductModal');
+
+    // 2. 단일 상품 Fast GET API 호출 (~10ms)로 서버 최신 정보 패치
+    try {
+        const resp = await fetch(`/api/admin/products/${productId}`, {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        if (resp.ok) {
+            const data = await resp.json();
+            if (data.product) {
+                cachedProductsMap[productId] = data.product;
+                bindProductEditModalData(data.product);
+            }
+        }
+    } catch (err) { console.error('단일 상품 최신 정보 갱신 예외:', err); }
 }
 
 function addEditOptionRow(optData = null) {
@@ -223,7 +244,7 @@ function addEditOptionRow(optData = null) {
         <label style="font-size:0.8rem; color:#555; display:flex; align-items:center; gap:3px; cursor:pointer; white-space:nowrap;">
             <input type="checkbox" class="opt-unlimited-chk" ${isUnlimited ? 'checked' : ''} onchange="toggleOptionUnlimited(this)"> 무제한
         </label>
-        <button type="button" class="btn-action" style="background:#d32f2f; color:#fff; padding:4px 8px;" onclick="this.parentElement.remove()">삭제</button>
+        <button type="button" class="btn-action btn-action-danger" style="padding:4px 8px;" onclick="this.parentElement.remove()">삭제</button>
     `;
     container.appendChild(div);
 }
@@ -244,6 +265,7 @@ async function submitEditProduct(btnEl) {
     const cs_phone = document.getElementById('edit-prod-csphone').value.trim();
     const storage_method = document.getElementById('edit-prod-storage').value.trim();
     const allergy_notice = document.getElementById('edit-prod-allergy').value.trim();
+    const delivery_info = document.getElementById('edit-prod-deliveryinfo') ? document.getElementById('edit-prod-deliveryinfo').value.trim() : '';
 
     const options = [];
     document.querySelectorAll('.edit-opt-row').forEach(row => {
@@ -261,7 +283,7 @@ async function submitEditProduct(btnEl) {
         const resp = await fetch(`/api/admin/products/${productId}`, {
             method: 'PUT',
             headers: { 'Authorization': `Bearer ${adminToken}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, category_id, price, capacity, description, is_active, food_type, manufacturer, shelf_life_text, contents_capacity, origin_info, cs_phone, storage_method, allergy_notice, options })
+            body: JSON.stringify({ name, category_id, price, capacity, description, is_active, food_type, manufacturer, shelf_life_text, contents_capacity, origin_info, cs_phone, storage_method, allergy_notice, delivery_info, options })
         });
         const data = await resp.json();
         if (resp.ok) { customAlert(data.message || '상품 정보가 수정되었습니다.', 'success'); closeModal('editProductModal'); loadProducts(); loadDashboardMetrics(); }

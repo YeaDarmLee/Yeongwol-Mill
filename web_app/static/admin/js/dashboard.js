@@ -42,21 +42,31 @@ function animateCountUp(elementId, targetVal, prefix = '', suffix = '', duration
     requestAnimationFrame(update);
 }
 
-async function loadDashboardMetrics(isSilent = false) {
-    try {
-        const resp = await fetch('/api/admin/dashboard', {
-            headers: { 'Authorization': `Bearer ${adminToken}` }
-        });
-        if (!resp.ok) return;
-        const data = await resp.json();
+let cachedDashboardData = null;
 
-        // 갱신 시각
-        if (data.as_of) {
-            document.getElementById('dash-as-of').innerText = data.as_of;
-        }
+function applyDashboardData(data, isInstant = false) {
+    if (!data) return;
 
-        // A. KPI 카드 카운트업 애니메이션
-        if (data.kpi) {
+    if (data.as_of) {
+        const asOfEl = document.getElementById('dash-as-of');
+        if (asOfEl) asOfEl.innerText = data.as_of;
+    }
+
+    // A. KPI 카드
+    if (data.kpi) {
+        if (isInstant) {
+            const setInstantVal = (id, val, prefix = '', suffix = '') => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = `${prefix}${(val || 0).toLocaleString()}${suffix}`;
+            };
+            setInstantVal('val-kpi-today-orders', data.kpi.today_orders, '', '건');
+            setInstantVal('val-kpi-today-net', data.kpi.today_net_sales, '', '원');
+            setInstantVal('val-kpi-gross-sub', data.kpi.today_gross_sales, '', '원');
+            setInstantVal('val-kpi-refund-sub', data.kpi.today_refunds, '-', '원');
+            setInstantVal('val-kpi-preparing', data.kpi.pending_shipping_count, '', '건');
+            setInstantVal('val-kpi-reconciling', data.kpi.reconciling_total, '', '건');
+            setInstantVal('val-kpi-lowstock', data.kpi.low_stock_count, '', '개');
+        } else {
             animateCountUp('val-kpi-today-orders', data.kpi.today_orders, '', '건');
             animateCountUp('val-kpi-today-net', data.kpi.today_net_sales, '', '원');
             animateCountUp('val-kpi-gross-sub', data.kpi.today_gross_sales, '', '원');
@@ -64,37 +74,38 @@ async function loadDashboardMetrics(isSilent = false) {
             animateCountUp('val-kpi-preparing', data.kpi.pending_shipping_count, '', '건');
             animateCountUp('val-kpi-reconciling', data.kpi.reconciling_total, '', '건');
             animateCountUp('val-kpi-lowstock', data.kpi.low_stock_count, '', '개');
-
-            if (data.kpi.reconciling_breakdown) {
-                const b = data.kpi.reconciling_breakdown;
-                const subStr = `처리 ${b.PROCESSING || 0} / 대조 ${b.RECONCILING || 0}`;
-                document.getElementById('val-kpi-reconcile-sub').innerText = subStr;
-            }
         }
 
-        // B. Action Work Queue (정상 주문 5개 / 클레임·관리 5개)
-        if (data.work_queue) {
-            const q = data.work_queue;
-            // 윗줄: 정상 프로세스
-            setQueueCardValue('q-val-pending', 'qc-pending', q.pending_orders);
-            setQueueCardValue('q-val-confirmed', 'qc-confirmed', q.confirmed_orders);
-            setQueueCardValue('q-val-preparing', 'qc-preparing', q.preparing_orders);
-            setQueueCardValue('q-val-shipping', 'qc-shipping', q.shipping_orders);
-            setQueueCardValue('q-val-delivered', 'qc-delivered', q.delivered_orders);
-
-            // 아래줄: 클레임 / 이슈 관리 (24H 지연출고, 환불접수, 환불처리, 상태대조, 금액불일치)
-            setQueueCardValue('q-val-stale-preparing', 'qc-stale-preparing', q.stale_unregistered, true);
-            setQueueCardValue('q-val-refund-req', 'qc-refund-req', q.refund_pending);
-            setQueueCardValue('q-val-refund-proc', 'qc-refund-proc', q.refund_processing);
-            setQueueCardValue('q-val-reconciling', 'qc-reconciling', q.reconciling, true);
-            setQueueCardValue('q-val-mismatch', 'qc-mismatch', q.amount_mismatch, true);
+        if (data.kpi.reconciling_breakdown) {
+            const b = data.kpi.reconciling_breakdown;
+            const subStr = `처리 ${b.PROCESSING || 0} / 대조 ${b.RECONCILING || 0}`;
+            const subEl = document.getElementById('val-kpi-reconcile-sub');
+            if (subEl) subEl.innerText = subStr;
         }
+    }
 
-        // C. Alerts (운영 알림)
-        const alertsContainer = document.getElementById('dashboard-alerts-container');
+    // B. Action Work Queue
+    if (data.work_queue) {
+        const q = data.work_queue;
+        setQueueCardValue('q-val-pending', 'qc-pending', q.pending_orders);
+        setQueueCardValue('q-val-confirmed', 'qc-confirmed', q.confirmed_orders);
+        setQueueCardValue('q-val-preparing', 'qc-preparing', q.preparing_orders);
+        setQueueCardValue('q-val-shipping', 'qc-shipping', q.shipping_orders);
+        setQueueCardValue('q-val-delivered', 'qc-delivered', q.delivered_orders);
+
+        setQueueCardValue('q-val-stale-preparing', 'qc-stale-preparing', q.stale_unregistered, true);
+        setQueueCardValue('q-val-refund-req', 'qc-refund-req', q.refund_pending);
+        setQueueCardValue('q-val-refund-proc', 'qc-refund-proc', q.refund_processing);
+        setQueueCardValue('q-val-reconciling', 'qc-reconciling', q.reconciling, true);
+        setQueueCardValue('q-val-mismatch', 'qc-mismatch', q.amount_mismatch, true);
+    }
+
+    // C. Alerts
+    const alertsContainer = document.getElementById('dashboard-alerts-container');
+    if (alertsContainer) {
         if (data.alerts && data.alerts.length > 0) {
             alertsContainer.innerHTML = data.alerts.map((a, idx) => `
-                <div class="alert-card-item level-${a.level} stagger-row" style="animation-delay: ${idx * 60}ms;" onclick="handleAlertClick('${a.target_filter || ''}')">
+                <div class="alert-card-item level-${a.level} ${isInstant ? '' : 'stagger-row'}" style="${isInstant ? '' : `animation-delay: ${idx * 60}ms;`}" onclick="handleAlertClick('${a.target_filter || ''}')">
                     <div>
                         <strong>${a.title}</strong>
                         <div style="font-size:0.85rem; opacity:0.9;">${a.message}</div>
@@ -103,18 +114,16 @@ async function loadDashboardMetrics(isSilent = false) {
                 </div>
             `).join('');
         } else {
-            alertsContainer.innerHTML = `
-                <div class="alert-empty-success">
-                    현재 긴급 운영 이슈가 없습니다.
-                </div>
-            `;
+            alertsContainer.innerHTML = `<div class="alert-empty-success">현재 긴급 운영 이슈가 없습니다.</div>`;
         }
+    }
 
-        // D. Recent Orders (최근 8건, 스태거 슬라이드업 애니메이션)
-        const recentTbody = document.getElementById('dash-recent-orders-tbody');
+    // D. Recent Orders
+    const recentTbody = document.getElementById('dash-recent-orders-tbody');
+    if (recentTbody) {
         if (data.recent_orders && data.recent_orders.length > 0) {
             recentTbody.innerHTML = data.recent_orders.map((ord, idx) => `
-                <tr class="stagger-row" style="animation-delay: ${idx * 40}ms;">
+                <tr class="${isInstant ? '' : 'stagger-row'}" style="${isInstant ? '' : `animation-delay: ${idx * 40}ms;`}">
                     <td><strong>${ord.order_number}</strong></td>
                     <td style="font-size:0.82rem; color:#666;">${ord.created_at}</td>
                     <td>${ord.customer_name_masked}</td>
@@ -123,8 +132,8 @@ async function loadDashboardMetrics(isSilent = false) {
                     <td><span class="status-badge status-${ord.payment_status}">${getPaymentStatusKo(ord.payment_status)}</span></td>
                     <td>
                         ${ord.has_tracking
-                    ? `<span style="font-size:0.75rem; color:#2e7d32; font-weight:600;">등록완료 (${ord.courier_name || '택배'})</span>`
-                    : `<span style="font-size:0.75rem; color:#d32f2f; font-weight:600;">미등록</span>`}
+                            ? `<span style="font-size:0.75rem; color:#2e7d32; font-weight:600;">등록완료 (${ord.courier_name || '택배'})</span>`
+                            : `<span style="font-size:0.75rem; color:#d32f2f; font-weight:600;">미등록</span>`}
                     </td>
                     <td>
                         <button class="btn-action" style="padding:3px 8px; font-size:0.8rem;" onclick="openOrderDetail(${ord.id})">상세 관리</button>
@@ -134,21 +143,24 @@ async function loadDashboardMetrics(isSilent = false) {
         } else {
             recentTbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#777;">최근 주문 데이터가 없습니다.</td></tr>`;
         }
+    }
 
-        // E. Stock Warnings (재고 경고 상품 스태거 애니메이션)
-        const stockTbody = document.getElementById('dash-stock-tbody');
+    // E. Stock Warnings
+    const stockTbody = document.getElementById('dash-stock-tbody');
+    const stockWrapper = document.getElementById('dash-stock-wrapper');
+    if (stockTbody) {
         if (data.low_stock_options && data.low_stock_options.length > 0) {
             stockTbody.innerHTML = data.low_stock_options.map((opt, idx) => {
                 const available = opt.stock - opt.reserved_stock;
                 const isCritical = available < 0;
                 return `
-                    <tr class="stagger-row" style="animation-delay: ${idx * 40}ms;">
+                    <tr class="${isInstant ? '' : 'stagger-row'}" style="${isInstant ? '' : `animation-delay: ${idx * 40}ms;`}">
                         <td><strong>${opt.product_name}</strong></td>
                         <td>${opt.option_name}</td>
                         <td>${opt.stock}개</td>
                         <td>${opt.reserved_stock}개</td>
                         <td style="font-weight:bold; color:${isCritical ? '#d32f2f' : '#ed6c02'};">
-                            ${available}개 ${isCritical ? '⚠ (초과)' : ''}
+                            ${available}개 ${isCritical ? '<i class="fa-solid fa-triangle-exclamation" style="margin-left:2px;"></i> (초과)' : ''}
                         </td>
                         <td>
                             <button class="btn-action" style="padding:2px 6px; font-size:0.75rem;" onclick="navigatePage('products')">재고 수정</button>
@@ -156,23 +168,39 @@ async function loadDashboardMetrics(isSilent = false) {
                     </tr>
                 `;
             }).join('');
-        } else {
-            document.getElementById('dash-stock-wrapper').innerHTML = `
-                <div class="alert-empty-success" style="margin-top:10px;">
-                    모든 상품의 재고가 안전 수준입니다.
-                </div>
-            `;
+        } else if (stockWrapper) {
+            stockWrapper.innerHTML = `<div class="alert-empty-success" style="margin-top:10px;">모든 상품의 재고가 안전 수준입니다.</div>`;
         }
-
-        // F. Trend Chart 30일 데이터 (부드러운 모션 드로우 렌더링)
-        if (data.trend_30days) {
-            dashboardTrendData = data.trend_30days;
-            startChartAnimation(currentTrendPeriod);
-        }
-
-    } catch (err) {
-        console.error('대시보드 메트릭 로드 오류:', err);
     }
+
+    // F. Trend Chart
+    if (data.trend_30days) {
+        dashboardTrendData = data.trend_30days;
+        startChartAnimation(currentTrendPeriod);
+    }
+}
+
+async function loadDashboardMetrics(isSilent = false) {
+    if (!isSilent && !cachedDashboardData) {
+        const stored = localStorage.getItem('yw_admin_dashboard_cache');
+        if (stored) {
+            try {
+                cachedDashboardData = JSON.parse(stored);
+                applyDashboardData(cachedDashboardData, true);
+            } catch (e) {}
+        }
+    }
+
+    try {
+        const resp = await fetch('/api/admin/dashboard', {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        cachedDashboardData = data;
+        localStorage.setItem('yw_admin_dashboard_cache', JSON.stringify(data));
+        applyDashboardData(data, false);
+    } catch (err) { console.error('대시보드 데이터 로드 예외:', err); }
 }
 
 function setQueueCardValue(valElemId, cardElemId, count, isUrgentAlert = false) {

@@ -1,19 +1,11 @@
-<!DOCTYPE html>
-<html lang="ko">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>상품보기 - 영월고향방앗간</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+{% block title %}상품보기 - {{ config.BUSINESS_NAME if config and config.BUSINESS_NAME else '영월고향방앗간' }}{% endblock %}
+
+{% block extra_css %}
     <style>
         .products {
-            padding: 5rem 5% 8rem;
+            padding: 140px 5% 8rem;
             background-color: var(--color-point1, #f9f7f4);
         }
 
@@ -107,33 +99,10 @@
             display: block;
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-
-    <header>
-        <div class="nav-overlay"></div>
-        <a href="/" class="logo">영월고향방앗간</a>
-        <div class="nav-container">
-            <nav class="gnb">
-                <a href="/">홈</a>
-                <a href="/brand">브랜드 소개</a>
-                <a href="/process">생산과정</a>
-                <a href="/category" style="color: var(--color-primary);">상품보기</a>
-            </nav>
-            <div class="utility">
-                <a href="/login">로그인</a>
-                <a href="/order-history">주문조회</a>
-                <a href="/cart" id="cart-nav">장바구니 (0)</a>
-            </div>
-        </div>
-        <button class="mobile-menu-btn" aria-label="메뉴 열기">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-    </header>
-
+{% block content %}
+    {% set active_page = 'category' %}
     <div class="page-header" style="text-align: center; padding: 140px 1rem 3rem;">
         <h1 style="font-family: 'Noto Serif KR', serif; font-size: 2.5rem; margin-bottom: 0.5rem;">영월고향방앗간 상품보기</h1>
         <p style="color: #666;">정성으로 짜낸 우리 농산물 100% 프리미엄 먹거리</p>
@@ -145,26 +114,10 @@
             <p style="grid-column: 1/-1; text-align: center; color: #888; padding: 3rem 0;">상품 목록을 불러오는 중입니다...</p>
         </div>
     </section>
+{% endblock %}
 
-    <footer>
-        <div class="footer-content">
-            <div class="footer-info">
-                <span class="footer-logo">영월고향방앗간</span><br>
-                강원특별자치도 영월군 영월읍 절무리골길 16, 제2동 1층 | 고객센터: 033-000-0000<br>
-                대표자: 권오명 | 사업자등록번호: 787-04-02840<br>
-                통신판매업신고: 제2026-강원영월-0000호
-            </div>
-            <div class="footer-links">
-                <a href="/terms" onclick="openLegalModal('terms'); return false;">이용약관</a>
-                <a href="/privacy" onclick="openLegalModal('privacy'); return false;">개인정보처리방침</a> | <a href="/refund" onclick="openLegalModal('refund'); return false;">환불 및 교환/반품 정책</a>
-            </div>
-        </div>
-        <div class="copyright">&copy; 2026 영월고향방앗간. All rights reserved.</div>
-    </footer>
-
-    <script src="cart.js"></script>
+{% block extra_js %}
     <script>
-        // MySQL API에서 4개 초기 상품 데이터 로드
         async function fetchProducts() {
             const grid = document.getElementById('productGrid');
             try {
@@ -185,7 +138,7 @@
                         <div class="product-info">
                             <div>
                                 <h3>${product.name}</h3>
-                                <p>${product.description}</p>
+                                <p>${product.description && product.description !== 'null' ? product.description : ''}</p>
                             </div>
                             <span class="price">${Number(product.price).toLocaleString()}원</span>
                         </div>
@@ -199,7 +152,4 @@
 
         document.addEventListener('DOMContentLoaded', fetchProducts);
     </script>
-<script src="/static/legal_modal.js"></script>
-</body>
-
-</html>
+{% endblock %}

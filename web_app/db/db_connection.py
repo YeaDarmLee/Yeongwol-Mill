@@ -21,7 +21,8 @@ def get_db_connection(autocommit=False):
             database=Config.MYSQL_DB,
             charset='utf8mb4',
             cursorclass=DictCursor,
-            autocommit=autocommit
+            autocommit=autocommit,
+            connect_timeout=2
         )
         conn._db_type = 'mysql'
         return conn

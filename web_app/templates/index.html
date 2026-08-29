@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}{{ config.BUSINESS_NAME if config and config.BUSINESS_NAME else '영월고향방앗간' }} - 정직하고 건강한 프리미엄 전통 방앗간{% endblock %}
+
+{% block content %}
+    {% set active_page = 'home' %}
+    <section class="hero">
+        <div class="hero-content">
+            <h1>느리지만 바른 길,<br>영월의 정성을 담다</h1>
+            <p>100% 국산 농산물, 저온 로스팅으로 짜낸 프리미엄 건강 참기름 & 들기름</p>
+            <div class="hero-btns">
+                <a href="/category" class="btn btn-primary">상품 둘러보기</a>
+                <a href="/brand" class="btn btn-secondary">브랜드 스토리</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="product" class="products">
+        <h2 class="section-title">가장 사랑받는 영월고향방앗간의 맛</h2>
+        <p class="section-subtitle">청정 영월에서 자란 우리 농산물로 정직하게 만들었습니다.</p>
+
+        <div class="product-grid" id="mainProductGrid">
+            <!-- Dynamic Items from MySQL DB -->
+            <p style="grid-column: 1/-1; text-align: center; color: #888; padding: 3rem 0;">상품 목록을 로딩 중입니다...</p>
+        </div>
+    </section>
+
+    <section id="story" class="brand-story">
+        <div class="story-img"></div>
+        <div class="story-content">
+            <h2>전통 방앗간 감성,<br>영월의 진심을 담아</h2>
+            <p>영월고향방앗간은 단순한 기름이 아닌,<br class="pc-br"><br class="mo-br"> 영월 농산물을 기반으로 한 건강식품을 만듭니다.<br class="pc-br">
+                대기업의 대량 생산 방식과 타협하지 않고,<br class="pc-br"><br class="mo-br"> 손맛과 정성, 그리고 전통 방식을 고집합니다.<br class="pc-br">
+                투박하지만 가장 정직한 한 방울을<br class="mo-br"> 당신의 식탁에 올리겠습니다.</p>
+            <a href="/brand" class="btn btn-outline">브랜드 스토리 더보기</a>
+        </div>
+    </section>
+
+    <section id="gift" class="gift-set">
+        <h2 class="section-title">감사의 마음을 전하는 프리미엄 선물</h2>
+        <p class="section-subtitle">명절, 부모님 선물로 손색없는 정성을 담았습니다.</p>
+
+        <div class="gift-showcase">
+            <img src="/static/assets/gift_set.png" alt="영월고향방앗간 선물세트">
+        </div>
+
+        <a href="/category" class="btn btn-primary"
+            style="background-color: var(--color-primary); color: white; border: none;">선물세트 보러가기</a>
+    </section>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        async function loadMainProducts() {
+            const grid = document.getElementById('mainProductGrid');
+            try {
+                const response = await fetch('/api/products');
+                const data = await response.json();
+
+                if (!data.products || data.products.length === 0) {
+                    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">등록된 상품이 없습니다.</p>';
+                    return;
+                }
+
+                grid.innerHTML = data.products.map(product => `
+                    <a href="/product?id=${product.id}" class="product-card">
+                        <div class="product-img">
+                            ${product.badge ? `<span class="badge">${product.badge}</span>` : ''}
+                            <img src="${product.image_url || '/static/assets/product_sesame.png'}" alt="${product.name}">
+                        </div>
+                        <div class="product-info">
+                            <h3>${product.name}</h3>
+                            <p>${product.description && product.description !== 'null' ? product.description : ''}</p>
+                            <span class="price">${Number(product.price).toLocaleString()}원</span>
+                            <button class="btn btn-outline" style="width: 100%" onclick="event.preventDefault(); window.location.href='/product?id=${product.id}';">구매하기</button>
+                        </div>
+                    </a>
+                `).join('');
+            } catch (err) {
+                console.error("Main product fetch error:", err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadMainProducts);
+    </script>
+{% endblock %}
